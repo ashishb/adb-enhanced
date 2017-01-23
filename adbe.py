@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 
 import docopt
+import random
 import subprocess
 
 """
@@ -10,6 +11,9 @@ List of things which this enhanced adb tool does
 2. adbe gfx [on|off]
 3. adbe overdraw [on|off]
 4. adbe layout [on|off]
+5. adbe destroy-activities-in-background [on|off]
+   # adb shell settings put global always_finish_activities true might work, it was in system (not global before ICS)
+   # adb shell service call activity 43 i32 1 followed by that
 7. adbe battery saver [on|off]
 8. adbe mobile-data saver [on|off]  # adb shell cmd netpolicy set restrict-background true/false
 9. adbe battery level [0-100]
@@ -19,17 +23,15 @@ List of things which this enhanced adb tool does
 10. adbe top-activity
 11. adbe force-stop $app_name
 12. adbe clear-data $app_name
+18. adbe screenshot $file_name
 21. adbe mobile-data (on|off)
 
 
 List of things which this enhanced adb tool will do in the future
 4. adbe airplane [on|off]  # does not seem to work properly
-5. adbe activity keep-in-background [on|off]
-   # adb shell settings put global always_finish_activities true might work, it was in system (not global before ICS)
 6. adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
 13. adbe app-standby $app_name
 15. adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
-18. adbe screenshot $file_name
 19. adbe screenrecord $file_name
 20. adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
 21. adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
@@ -63,6 +65,8 @@ Usage:
     adbe.py [options] mobile-data ( on | off )
     adbe.py [options] mobile-data saver ( on | off )
     adbe.py [options] rtl ( on | off )
+    adbe.py [options] screenshot <filename.png>
+    adbe.py [options] dont-keep-activities ( on | off )
 
 
 
@@ -138,6 +142,10 @@ def main():
     elif args['rtl']:
         # This is not working as expected
         force_rtl(adb_prefix, args['on'])
+    elif args['screenshot']:
+        dump_screenshot(adb_prefix, args['<filename.png>'])
+    elif args['dont-keep-activities']:
+        handle_dont_keep_activities_in_background(adb_prefix, args['on'])
     else:
         raise NotImplementedError("Not implemented: %s" % args)
 
@@ -304,6 +312,18 @@ def force_rtl(adb_prefix, turn_on):
         cmd = 'settings put global debug.force_rtl 1'
     execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd)
 
+
+def dump_screenshot(adb_prefix, filepath):
+    filepath_on_device = "/sdcard/screenshot-%d.png" % random.randint(1, 1000 * 1000 * 1000)
+    # TODO: May be in the future, add a check here to ensure that we are not over-writing any existing file.
+    dump_cmd = 'screencap -p %s ' % filepath_on_device
+    execute_adb_shell_command(adb_prefix, dump_cmd)
+    pull_cmd = 'pull %s %s' % (filepath_on_device, filepath)
+    execute_adb_command(adb_prefix, pull_cmd)
+    del_cmd = 'rm %s' % filepath_on_device
+    execute_adb_shell_command(adb_prefix, del_cmd)
+
+
 # https://developer.android.com/training/basics/network-ops/data-saver.html
 def handle_mobile_data_saver(adb_prefix, turn_on):
     if turn_on:
@@ -311,6 +331,18 @@ def handle_mobile_data_saver(adb_prefix, turn_on):
     else:
         cmd = "cmd netpolicy set restrict-background false"
     execute_adb_shell_command(adb_prefix, cmd)
+
+
+# Ref: https://github.com/android/platform_packages_apps_settings/blob/4ce19f5c4fd40f3bedc41d3fbcbdede8b2614501/src/com/android/settings/DevelopmentSettings.java#L2123
+def handle_dont_keep_activities_in_background(adb_prefix, turn_on):
+    if turn_on:
+        cmd1 = 'settings put global always_finish_activities true'
+        cmd2 = 'service call activity 43 i32 1'
+    else:
+        cmd1 = 'settings put global always_finish_activities false'
+        cmd2 = 'service call activity 43 i32 0'
+    execute_adb_shell_command(adb_prefix, cmd1)
+    execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd2)
 
 
 def execute_adb_shell_command_and_poke_activity_service(adb_prefix, adb_command):
@@ -325,11 +357,15 @@ def execute_adb_shell_command(adb_prefix, adb_command, piped_into_cmd=None):
 def execute_adb_command(adb_prefix, adb_command, piped_into_cmd=None):
     final_cmd = ("%s %s" % (adb_prefix, adb_command))
     if piped_into_cmd:
+        if __debug__:
+            print 'Executing %s | %s' % (adb_command, piped_into_cmd)
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
         ps1.wait()
         print output
     else:
+        if __debug__:
+            print 'Executing %s' % adb_command
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=None)
         ps1.wait()
 
