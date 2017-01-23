@@ -83,6 +83,7 @@ _KEYCODE_BACK = 4
 
 _verbose = False
 
+
 def main():
     global _verbose
     args = docopt.docopt(USAGE_STRING, version='1.0.0rc2')
@@ -410,6 +411,7 @@ def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
     if piped_into_cmd:
         if _verbose:
             print 'Executing %s | %s' % (final_cmd, piped_into_cmd)
+            print 'Executing %s | %s' % (adb_command, piped_into_cmd)
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
         ps1.wait()
