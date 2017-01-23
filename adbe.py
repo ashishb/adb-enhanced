@@ -64,7 +64,7 @@ Usage:
     adbe.py [options] clear-data <app_name>
     adbe.py [options] mobile-data ( on | off )
     adbe.py [options] mobile-data saver ( on | off )
-    adbe.py [options] rtl ( on | off )
+    adbe.py [options] rtl ( on | off ) - This is not working properly as of now.
     adbe.py [options] screenshot <filename.png>
     adbe.py [options] dont-keep-activities ( on | off )
 
