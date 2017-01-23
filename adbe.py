@@ -28,6 +28,7 @@ List of things which this enhanced adb tool does
 
 
 List of things which this enhanced adb tool will do in the future
+
 4. adbe airplane [on|off]  # does not seem to work properly
 6. adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
 13. adbe app-standby $app_name
@@ -52,7 +53,7 @@ Usage:
     adbe.py [options] gfx (on | off | lines)
     adbe.py [options] overdraw ( on | off | deut )
     adbe.py [options] layout ( on | off )
-    adbe.py [options] airplane ( on | off )
+    adbe.py [options] airplane ( on | off ) - This does not work on all the devices as of now.
     adbe.py [options] battery level <percentage>
     adbe.py [options] battery saver (on | off)
     adbe.py [options] battery reset
@@ -68,17 +69,16 @@ Usage:
     adbe.py [options] screenshot <filename.png>
     adbe.py [options] dont-keep-activities ( on | off )
 
-
-
-
 Options:
     -e, --emulator          directs command to the only running emulator
     -d, --device            directs command to the only connected "USB" device
     -s, --serial SERIAL     directs command to the device or emulator with the given serial number or qualifier.
                             Overrides ANDROID_SERIAL environment variable.
+    -v, --verbose           Verbose mode
 
 """
 
+verbose = False
 
 def main():
     args = docopt.docopt(USAGE_STRING, version='1.0.0rc2')
@@ -91,10 +91,11 @@ def main():
         options += '-d '
     if args['--serial']:
         options += '-s %s ' % args['--serial']
+    verbose = args['--verbose']
 
     adb_prefix = "adb %s" % options
 
-    if __debug__:
+    if False:
         print args
     if args['rotate']:
         handle_rotate(adb_prefix, args['portrait'])
@@ -262,6 +263,7 @@ def handle_doze(adb_prefix, turn_on):
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
+# Ref: https://gitlab.com/SaberMod/pa-android-frameworks-base/commit/a53de0629f3b94472c0f160f5bbe1090b020feab
 def get_update_activity_service_cmd():
     # Note: 1599295570 == ('_' << 24) | ('S' << 16) | ('P' << 8) | 'R'
     return "service call activity 1599295570"
@@ -357,14 +359,14 @@ def execute_adb_shell_command(adb_prefix, adb_command, piped_into_cmd=None):
 def execute_adb_command(adb_prefix, adb_command, piped_into_cmd=None):
     final_cmd = ("%s %s" % (adb_prefix, adb_command))
     if piped_into_cmd:
-        if __debug__:
+        if verbose:
             print 'Executing %s | %s' % (adb_command, piped_into_cmd)
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
         ps1.wait()
         print output
     else:
-        if __debug__:
+        if verbose:
             print 'Executing %s' % adb_command
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=None)
         ps1.wait()
