@@ -4,9 +4,9 @@ ADB enhanced for developers
 # Usage:
     adbe.py [options] rotate (landscape | portrait)
     adbe.py [options] gfx (on | off | lines)
-    adbe.py [options] overdraw ( on | off | deut )
-    adbe.py [options] layout ( on | off )
-    adbe.py [options] airplane ( on | off ) - This does not work on all the devices as of now.
+    adbe.py [options] overdraw (on | off | deut)
+    adbe.py [options] layout (on | off)
+    adbe.py [options] airplane (on | off) - This does not work on all the devices as of now.
     adbe.py [options] battery level <percentage>
     adbe.py [options] battery saver (on | off)
     adbe.py [options] battery reset
@@ -16,11 +16,11 @@ ADB enhanced for developers
     adbe.py [options] top-activity
     adbe.py [options] force-stop <app_name>
     adbe.py [options] clear-data <app_name>
-    adbe.py [options] mobile-data ( on | off )
-    adbe.py [options] mobile-data saver ( on | off )
-    adbe.py [options] rtl ( on | off ) - This is not working properly as of now.
+    adbe.py [options] mobile-data (on | off)
+    adbe.py [options] mobile-data saver (on | off)
+    adbe.py [options] rtl (on | off) - This is not working properly as of now.
     adbe.py [options] screenshot <filename.png>
-    adbe.py [options] dont-keep-activities ( on | off )
+    adbe.py [options] dont-keep-activities (on | off)
 
 # Options:
     -e, --emulator          directs command to the only running emulator
