@@ -53,7 +53,7 @@ Use -q[uite] for quite mode
 USAGE_STRING = """
 
 Usage:
-    adbe.py [options] rotate (landscape | portrait)
+    adbe.py [options] rotate (landscape | portrait | left | right)
     adbe.py [options] gfx (on | off | lines)
     adbe.py [options] overdraw (on | off | deut)
     adbe.py [options] layout (on | off)
@@ -107,7 +107,11 @@ def main():
     if False:
         print args
     if args['rotate']:
-        handle_rotate(adb_prefix, args['portrait'])
+        direction = 'portrait' if args['portrait'] else \
+                'landscape' if args['landscape'] else \
+                'left' if args['left'] else \
+                'right'
+        handle_rotate(adb_prefix, direction)
     elif args['gfx']:
         value = 'on' if args['on'] else \
             ('off' if args['off'] else
@@ -204,15 +208,38 @@ def handle_overdraw(adb_prefix, value):
 
 
 # Source: https://stackoverflow.com/questions/25864385/changing-android-device-orientation-with-adb
-def handle_rotate(adb_prefix, portrait):
+def handle_rotate(adb_prefix, direction):
     disable_acceleration = 'settings put system accelerometer_rotation 0'
     execute_adb_shell_command(adb_prefix, disable_acceleration)
-    if portrait:
-        cmd = 'settings put system user_rotation 0'
-    else:
-        cmd = 'settings put system user_rotation 1'
 
+    if direction is 'portrait':
+        new_direction = 0
+    elif direction is 'landscape':
+        new_direction = 1
+    elif direction is 'left':
+        current_direction = get_current_rotation_direction(adb_prefix)
+        if _verbose:
+            print 'Current direction: %d' % current_direction
+        new_direction = (current_direction + 1) % 4
+    elif direction is 'right':
+        current_direction = get_current_rotation_direction(adb_prefix)
+        if _verbose:
+            print 'Current direction: %d' % current_direction
+        new_direction = (current_direction - 1) % 4
+    else:
+        raise AssertionError('Unexpected direction %s' % direction)
+    cmd = 'settings put system user_rotation %s' % new_direction
     execute_adb_shell_command(adb_prefix, cmd)
+
+
+def get_current_rotation_direction(adb_prefix):
+    cmd = 'settings get system user_rotation'
+    direction = execute_adb_shell_command(adb_prefix, cmd)
+    if _verbose:
+        print 'Return value is %s' % direction
+    if not direction:
+        return 0  # default direction is 0, vertical straight
+    return int(direction)
 
 
 def handle_layout(adb_prefix, value):
@@ -371,12 +398,13 @@ def press_back(adb_prefix):
 
 
 def execute_adb_shell_command_and_poke_activity_service(adb_prefix, adb_cmd):
-    execute_adb_shell_command(adb_prefix, adb_cmd)
+    return_value = execute_adb_shell_command(adb_prefix, adb_cmd)
     execute_adb_shell_command(adb_prefix, get_update_activity_service_cmd())
+    return return_value
 
 
 def execute_adb_shell_command(adb_prefix, adb_cmd, piped_into_cmd=None):
-    execute_adb_command(adb_prefix, "shell %s" % adb_cmd, piped_into_cmd)
+    return execute_adb_command(adb_prefix, "shell %s" % adb_cmd, piped_into_cmd)
 
 
 def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
@@ -388,11 +416,22 @@ def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
         output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
         ps1.wait()
         print output
+        return output
     else:
         if _verbose:
             print 'Executing %s' % final_cmd
-        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=None)
+        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         ps1.wait()
+        output = ''
+        first_line = True
+        for line in ps1.stdout:
+            if first_line:
+                output += line.strip()
+            else:
+                output += '\n' + line.strip()
+        if _verbose:
+            print 'Result is "%s"' % output
+        return output
 
 
 if __name__ == '__main__':
