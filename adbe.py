@@ -25,6 +25,8 @@ List of things which this enhanced adb tool does
 12. adbe clear-data $app_name
 18. adbe screenshot $file_name
 21. adbe mobile-data (on|off)
+22. adbe [options] input-text <text>
+23. adbe press back
 
 
 List of things which this enhanced adb tool will do in the future
@@ -37,6 +39,8 @@ List of things which this enhanced adb tool will do in the future
 20. adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
 21. adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
     adb shell input keyevent KEYCODE_POWER can do the toggle
+24. adbe press up
+
 
 
 adbe set_app_name [-f] $app_name
@@ -68,6 +72,8 @@ Usage:
     adbe.py [options] rtl (on | off) - This is not working properly as of now.
     adbe.py [options] screenshot <filename.png>
     adbe.py [options] dont-keep-activities (on | off)
+    adbe.py [options] input-text <text>
+    adbe.py [options] press back
 
 Options:
     -e, --emulator          directs command to the only running emulator
@@ -78,9 +84,12 @@ Options:
 
 """
 
-verbose = False
+_KEYCODE_BACK = 4
+
+_verbose = False
 
 def main():
+    global _verbose
     args = docopt.docopt(USAGE_STRING, version='1.0.0rc2')
 
     validate_options(args)
@@ -91,7 +100,7 @@ def main():
         options += '-d '
     if args['--serial']:
         options += '-s %s ' % args['--serial']
-    verbose = args['--verbose']
+    _verbose = args['--verbose']
 
     adb_prefix = "adb %s" % options
 
@@ -147,6 +156,10 @@ def main():
         dump_screenshot(adb_prefix, args['<filename.png>'])
     elif args['dont-keep-activities']:
         handle_dont_keep_activities_in_background(adb_prefix, args['on'])
+    elif args['input-text']:
+        input_text(adb_prefix, args['<text>'])
+    elif args['back']:
+        press_back(adb_prefix)
     else:
         raise NotImplementedError("Not implemented: %s" % args)
 
@@ -347,27 +360,37 @@ def handle_dont_keep_activities_in_background(adb_prefix, turn_on):
     execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd2)
 
 
-def execute_adb_shell_command_and_poke_activity_service(adb_prefix, adb_command):
-    execute_adb_shell_command(adb_prefix, adb_command)
+def input_text(adb_prefix, text):
+    cmd = 'input text %s' % text
+    execute_adb_shell_command(adb_prefix, cmd)
+
+
+def press_back(adb_prefix):
+    cmd = 'input keyevent 4'
+    execute_adb_shell_command(adb_prefix, cmd)
+
+
+def execute_adb_shell_command_and_poke_activity_service(adb_prefix, adb_cmd):
+    execute_adb_shell_command(adb_prefix, adb_cmd)
     execute_adb_shell_command(adb_prefix, get_update_activity_service_cmd())
 
 
-def execute_adb_shell_command(adb_prefix, adb_command, piped_into_cmd=None):
-    execute_adb_command(adb_prefix, "shell %s" % adb_command, piped_into_cmd)
+def execute_adb_shell_command(adb_prefix, adb_cmd, piped_into_cmd=None):
+    execute_adb_command(adb_prefix, "shell %s" % adb_cmd, piped_into_cmd)
 
 
-def execute_adb_command(adb_prefix, adb_command, piped_into_cmd=None):
-    final_cmd = ("%s %s" % (adb_prefix, adb_command))
+def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
+    final_cmd = ("%s %s" % (adb_prefix, adb_cmd))
     if piped_into_cmd:
-        if verbose:
-            print 'Executing %s | %s' % (adb_command, piped_into_cmd)
+        if _verbose:
+            print 'Executing %s | %s' % (final_cmd, piped_into_cmd)
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
         ps1.wait()
         print output
     else:
-        if verbose:
-            print 'Executing %s' % adb_command
+        if _verbose:
+            print 'Executing %s' % final_cmd
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=None)
         ps1.wait()
 
