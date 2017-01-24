@@ -7,44 +7,39 @@ import subprocess
 """
 List of things which this enhanced adb tool does
 
-1. adbe rotate [left|right]
-2. adbe gfx [on|off]
-3. adbe overdraw [on|off]
-4. adbe layout [on|off]
-5. adbe destroy-activities-in-background [on|off]
-   # adb shell settings put global always_finish_activities true might work, it was in system (not global before ICS)
-   # adb shell service call activity 43 i32 1 followed by that
-7. adbe battery saver [on|off]
-8. adbe mobile-data saver [on|off]  # adb shell cmd netpolicy set restrict-background true/false
-9. adbe battery level [0-100]
-14. adbe doze
-16. adbe jank $app_name
-17. adbe devices [maps to adb devices -l]
-10. adbe top-activity
-11. adbe force-stop $app_name
-12. adbe clear-data $app_name
-18. adbe screenshot $file_name
-21. adbe mobile-data (on|off)
-22. adbe [options] input-text <text>
-23. adbe press back
+* adbe rotate [left|right]
+* adbe gfx [on|off]
+* adbe overdraw [on|off]
+* adbe layout [on|off]
+* adbe destroy-activities-in-background [on|off]
+* adbe battery saver [on|off]
+* adbe mobile-data saver [on|off]  # adb shell cmd netpolicy set restrict-background true/false
+* adbe battery level [0-100]
+* adbe doze
+* adbe jank $app_name
+* adbe devices [maps to adb devices -l]
+* adbe top-activity
+* adbe force-stop $app_name
+* adbe clear-data $app_name
+* adbe screenshot $file_name
+* adbe mobile-data (on|off)
+* adbe [options] input-text <text>
+* adbe press back
 
 
-List of things which this enhanced adb tool will do in the future
+List of things which this tool will do in the future
 
-4. adbe airplane [on|off]  # does not seem to work properly
-6. adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
-13. adbe app-standby $app_name
-15. adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
-19. adbe screenrecord $file_name
-20. adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
-21. adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
-    adb shell input keyevent KEYCODE_POWER can do the toggle
-24. adbe press up
-
-
-
-adbe set_app_name [-f] $app_name
-adbe reset_app_name
+* adbe airplane [on|off]  # does not seem to work properly
+* adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
+* adbe app-standby $app_name
+* adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
+* adbe screenrecord $file_name
+* adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
+* adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
+* adb shell input keyevent KEYCODE_POWER can do the toggle
+* adbe press up
+* adbe set_app_name [-f] $app_name
+* adbe reset_app_name
 
 Use -q[uite] for quite mode
 
@@ -376,6 +371,9 @@ def handle_mobile_data_saver(adb_prefix, turn_on):
 
 
 # Ref: https://github.com/android/platform_packages_apps_settings/blob/4ce19f5c4fd40f3bedc41d3fbcbdede8b2614501/src/com/android/settings/DevelopmentSettings.java#L2123
+# adb shell settings put global always_finish_activities true might not work on all Android versions.
+# It was in system (not global before ICS)
+# adb shell service call activity 43 i32 1 followed by that
 def handle_dont_keep_activities_in_background(adb_prefix, turn_on):
     if turn_on:
         cmd1 = 'settings put global always_finish_activities true'
