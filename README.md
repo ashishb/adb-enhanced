@@ -1,6 +1,24 @@
 # adb-enhanced
 ADB enhanced for developers, inspired from [android-scripts](https://github.com/dhelleberg/android-scripts)
 
+#Examples
+
+* Turn doze mode on
+
+`adbe doze on`
+
+* Turn mobile-data off
+
+`adbe mobile-data off`
+
+* Turn on battery saver
+
+`adbe battery saver on`
+
+* Don't keep activities in the background
+
+`adbe dont-keep-activities on`
+
 #Usage:
     adbe.py [options] rotate (landscape | portrait | left | right)
     adbe.py [options] gfx (on | off | lines)
