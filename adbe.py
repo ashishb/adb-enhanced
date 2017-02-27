@@ -22,6 +22,7 @@ List of things which this enhanced adb tool does
 * adbe force-stop $app_name
 * adbe clear-data $app_name
 * adbe screenshot $file_name
+* adbe screenrecord $file_name
 * adbe mobile-data (on|off)
 * adbe [options] input-text <text>
 * adbe press back
@@ -33,7 +34,6 @@ List of things which this tool will do in the future
 * adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
 * adbe app-standby $app_name
 * adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
-* adbe screenrecord $file_name
 * adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
 * adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
 * adb shell input keyevent KEYCODE_POWER can do the toggle
@@ -66,6 +66,7 @@ Usage:
     adbe.py [options] mobile-data saver (on | off)
     adbe.py [options] rtl (on | off) - This is not working properly as of now.
     adbe.py [options] screenshot <filename.png>
+    adbe.py [options] screenrecord <filename.mp4>
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
@@ -154,6 +155,8 @@ def main():
         force_rtl(adb_prefix, args['on'])
     elif args['screenshot']:
         dump_screenshot(adb_prefix, args['<filename.png>'])
+    elif args['screenrecord']:
+        dump_screenrecord(adb_prefix, args['<filename.mp4>'])
     elif args['dont-keep-activities']:
         handle_dont_keep_activities_in_background(adb_prefix, args['on'])
     elif args['input-text']:
@@ -228,11 +231,15 @@ def handle_rotate(adb_prefix, direction):
         current_direction = get_current_rotation_direction(adb_prefix)
         if _verbose:
             print 'Current direction: %d' % current_direction
+        if current_direction is None:
+            return
         new_direction = (current_direction + 1) % 4
     elif direction is 'right':
         current_direction = get_current_rotation_direction(adb_prefix)
         if _verbose:
             print 'Current direction: %d' % current_direction
+        if current_direction is None:
+            return
         new_direction = (current_direction - 1) % 4
     else:
         raise AssertionError('Unexpected direction %s' % direction)
@@ -247,7 +254,10 @@ def get_current_rotation_direction(adb_prefix):
         print 'Return value is %s' % direction
     if not direction:
         return 0  # default direction is 0, vertical straight
-    return int(direction)
+    try:
+        return int(direction)
+    except ValueError as e:
+        print 'Failed to get direction, device returned: "%s"' % e
 
 
 def handle_layout(adb_prefix, value):
@@ -327,9 +337,12 @@ def handle_get_jank(adb_prefix, app_name):
 
 
 def handle_list_devices(adb_prefix):
-    cmd = 'devices -l'
-    execute_adb_command(adb_prefix, cmd)
-
+    s1 = execute_adb_command(adb_prefix, 'devices -l')
+    s2 = execute_adb_shell_command(adb_prefix, 'getprop ro.product.manufacturer') 
+    s3 = execute_adb_shell_command(adb_prefix, 'getprop ro.product.model') 
+    s4 = execute_adb_shell_command(adb_prefix, 'getprop ro.build.version.release')
+    s5 = execute_adb_shell_command(adb_prefix, 'getprop ro.build.version.sdk')
+    print s1, s2, s3, '\tRelease:', s4, '\tSDK version:', s5
 
 def print_top_activity(adb_prefix):
     cmd = 'dumpsys activity recents'
@@ -367,6 +380,17 @@ def dump_screenshot(adb_prefix, filepath):
     filepath_on_device = '/sdcard/screenshot-%d.png' % random.randint(1, 1000 * 1000 * 1000)
     # TODO: May be in the future, add a check here to ensure that we are not over-writing any existing file.
     dump_cmd = 'screencap -p %s ' % filepath_on_device
+    execute_adb_shell_command(adb_prefix, dump_cmd)
+    pull_cmd = 'pull %s %s' % (filepath_on_device, filepath)
+    execute_adb_command(adb_prefix, pull_cmd)
+    del_cmd = 'rm %s' % filepath_on_device
+    execute_adb_shell_command(adb_prefix, del_cmd)
+
+
+def dump_screenrecord(adb_prefix, filepath):
+    filepath_on_device = "/sdcard/screenrecord-%d.mp4" % random.randint(1, 1000 * 1000 * 1000)
+    # TODO: May be in the future, add a check here to ensure that we are not over-writing any existing file.
+    dump_cmd = 'screenrecord %s --time-limit 10 ' % filepath_on_device
     execute_adb_shell_command(adb_prefix, dump_cmd)
     pull_cmd = 'pull %s %s' % (filepath_on_device, filepath)
     execute_adb_command(adb_prefix, pull_cmd)
@@ -439,6 +463,7 @@ def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
         for line in ps1.stdout:
             if first_line:
                 output += line.strip()
+                first_line = False
             else:
                 output += '\n' + line.strip()
         if _verbose:
