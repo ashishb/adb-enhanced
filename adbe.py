@@ -98,7 +98,7 @@ def main():
         options += '-s %s ' % args['--serial']
     _verbose = args['--verbose']
 
-    adb_prefix = "adb %s" % options
+    adb_prefix = 'adb %s' % options
 
     if False:
         print args
@@ -161,7 +161,7 @@ def main():
     elif args['back']:
         press_back(adb_prefix)
     else:
-        raise NotImplementedError("Not implemented: %s" % args)
+        raise NotImplementedError('Not implemented: %s' % args)
 
 
 def validate_options(args):
@@ -173,7 +173,7 @@ def validate_options(args):
     if args['--serial']:
         count += 1
     if count > 1:
-        raise AssertionError("Only one out of -e, -d, or -s can be provided")
+        raise AssertionError('Only one out of -e, -d, or -s can be provided')
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
@@ -185,7 +185,7 @@ def handle_gfx(adb_prefix, value):
     elif value == 'lines':
         cmd = 'setprop debug.hwui.profile visual_lines'
     else:
-        raise AssertionError("Unexpected value for gfx %s" % value)
+        raise AssertionError('Unexpected value for gfx %s' % value)
     execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd)
 
 
@@ -202,7 +202,7 @@ def handle_overdraw(adb_prefix, value):
             raise AssertionError(
                     'This command is not support on API %d' % version)
         else:
-            raise AssertionError("Unexpected value for overdraw %s" % value)
+            raise AssertionError('Unexpected value for overdraw %s' % value)
     else:
         if value is 'on':
             cmd = 'setprop debug.hwui.overdraw show'
@@ -211,7 +211,7 @@ def handle_overdraw(adb_prefix, value):
         elif value is 'deut':
             cmd = 'setprop debug.hwui.overdraw show_deuteranomaly'
         else:
-            raise AssertionError("Unexpected value for overdraw %s" % value)
+            raise AssertionError('Unexpected value for overdraw %s' % value)
     execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd)
 
 
@@ -285,7 +285,7 @@ def handle_battery_saver(adb_prefix, turn_on):
 # Source: https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 def handle_battery_level(adb_prefix, level):
     if level < 0 or level > 100:
-        raise AssertionError("Battery percentage must be between 0 and 100")
+        raise AssertionError('Battery percentage must be between 0 and 100')
     cmd = 'dumpsys battery set level %d' % level
 
     execute_adb_shell_command(adb_prefix, get_battery_unplug_cmd())
@@ -314,7 +314,7 @@ def handle_doze(adb_prefix, turn_on):
 # Ref: https://gitlab.com/SaberMod/pa-android-frameworks-base/commit/a53de0629f3b94472c0f160f5bbe1090b020feab
 def get_update_activity_service_cmd():
     # Note: 1599295570 == ('_' << 24) | ('S' << 16) | ('P' << 8) | 'R'
-    return "service call activity 1599295570"
+    return 'service call activity 1599295570'
 
 
 def get_battery_unplug_cmd():
@@ -364,7 +364,7 @@ def force_rtl(adb_prefix, turn_on):
 
 
 def dump_screenshot(adb_prefix, filepath):
-    filepath_on_device = "/sdcard/screenshot-%d.png" % random.randint(1, 1000 * 1000 * 1000)
+    filepath_on_device = '/sdcard/screenshot-%d.png' % random.randint(1, 1000 * 1000 * 1000)
     # TODO: May be in the future, add a check here to ensure that we are not over-writing any existing file.
     dump_cmd = 'screencap -p %s ' % filepath_on_device
     execute_adb_shell_command(adb_prefix, dump_cmd)
@@ -377,9 +377,9 @@ def dump_screenshot(adb_prefix, filepath):
 # https://developer.android.com/training/basics/network-ops/data-saver.html
 def handle_mobile_data_saver(adb_prefix, turn_on):
     if turn_on:
-        cmd = "cmd netpolicy set restrict-background true"
+        cmd = 'cmd netpolicy set restrict-background true'
     else:
-        cmd = "cmd netpolicy set restrict-background false"
+        cmd = 'cmd netpolicy set restrict-background false'
     execute_adb_shell_command(adb_prefix, cmd)
 
 
@@ -415,15 +415,15 @@ def execute_adb_shell_command_and_poke_activity_service(adb_prefix, adb_cmd):
 
 
 def execute_adb_shell_command(adb_prefix, adb_cmd, piped_into_cmd=None):
-    return execute_adb_command(adb_prefix, "shell %s" % adb_cmd, piped_into_cmd)
+    return execute_adb_command(adb_prefix, 'shell %s' % adb_cmd, piped_into_cmd)
 
 
 def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
-    final_cmd = ("%s %s" % (adb_prefix, adb_cmd))
+    final_cmd = ('%s %s' % (adb_prefix, adb_cmd))
     if piped_into_cmd:
         if _verbose:
             print 'Executing %s | %s' % (final_cmd, piped_into_cmd)
-            print 'Executing %s | %s' % (adb_command, piped_into_cmd)
+            print 'Executing %s | %s' % (adb_cmd, piped_into_cmd)
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
         ps1.wait()
