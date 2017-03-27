@@ -192,14 +192,26 @@ def handle_gfx(adb_prefix, value):
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
 # https://plus.google.com/+AladinQ/posts/dpidzto1b8B
 def handle_overdraw(adb_prefix, value):
-    if value is 'on':
-        cmd = 'setprop debug.hwui.overdraw show'
-    elif value is 'off':
-        cmd = 'setprop debug.hwui.overdraw false'
-    elif value is 'deut':
-        cmd = 'setprop debug.hwui.overdraw show_deuteranomaly'
+    version = _get_api_version(adb_prefix)
+    if version < 19:
+        if value is 'on':
+            cmd = 'setprop debug.hwui.show_overdraw true'
+        elif value is 'off':
+            cmd = 'setprop debug.hwui.show_overdraw false'
+        elif value is 'deut':
+            raise AssertionError(
+                    'This command is not support on API %d' % version)
+        else:
+            raise AssertionError("Unexpected value for overdraw %s" % value)
     else:
-        raise AssertionError("Unexpected value for overdraw %s" % value)
+        if value is 'on':
+            cmd = 'setprop debug.hwui.overdraw show'
+        elif value is 'off':
+            cmd = 'setprop debug.hwui.overdraw false'
+        elif value is 'deut':
+            cmd = 'setprop debug.hwui.overdraw show_deuteranomaly'
+        else:
+            raise AssertionError("Unexpected value for overdraw %s" % value)
     execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd)
 
 
@@ -432,6 +444,17 @@ def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
         if _verbose:
             print 'Result is "%s"' % output
         return output
+
+# adb shell getprop ro.build.version.sdk
+def _get_api_version(adb_prefix):
+    version_string = _get_prop(adb_prefix, 'ro.build.version.sdk')
+    if version_string is None:
+        return -1
+    return int(version_string)
+
+
+def _get_prop(adb_prefix, property_name):
+    return execute_adb_shell_command(adb_prefix, 'getprop %s' % property_name)
 
 
 if __name__ == '__main__':
