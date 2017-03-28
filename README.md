@@ -1,6 +1,9 @@
 # adb-enhanced
 ADB enhanced for developers, inspired from [android-scripts](https://github.com/dhelleberg/android-scripts)
 
+# Installation
+pip install adb-enhanced
+
 #Examples
 
 * Turn doze mode on
@@ -19,7 +22,7 @@ ADB enhanced for developers, inspired from [android-scripts](https://github.com/
 
 `adbe dont-keep-activities on`
 
-#Usage:
+# Usage:
     adbe.py [options] rotate (landscape | portrait | left | right)
     adbe.py [options] gfx (on | off | lines)
     adbe.py [options] overdraw (on | off | deut)
