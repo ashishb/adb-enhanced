@@ -45,7 +45,7 @@ pip install adb-enhanced
     adbe.py [options] input-text <text>
     adbe.py [options] press back
 
-#Options:
+# Options:
     -e, --emulator          directs command to the only running emulator
     -d, --device            directs command to the only connected "USB" device
     -s, --serial SERIAL     directs command to the device or emulator with the given serial number or qualifier.
