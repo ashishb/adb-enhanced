@@ -4,7 +4,7 @@ ADB enhanced for developers, inspired from [android-scripts](https://github.com/
 # Installation
 pip install adb-enhanced
 
-#Examples
+# Examples
 
 * Turn doze mode on
 
