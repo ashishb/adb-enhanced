@@ -7,7 +7,7 @@ setup(name='adb-enhanced',
         version=version,
         description="An ADB wrapper for Android developers",
         long_description="""\
-                An ADB wrapper for Android developers for testing.
+        An ADB wrapper for Android developers for testing.
         See Readme for more details -
         https://github.com/ashishb/adb-enhanced/blob/master/README.md
         """,
