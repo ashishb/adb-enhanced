@@ -1,6 +1,9 @@
 # adb-enhanced
 ADB enhanced for developers, inspired from [android-scripts](https://github.com/dhelleberg/android-scripts)
 
+## Python3 compatibility
+As of Nov 27, 2017, the code is python3 compatible, it is not pushed out to python package manager (pip) yet.
+
 # Installation
 pip install adb-enhanced
 
