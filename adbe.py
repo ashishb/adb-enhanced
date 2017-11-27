@@ -1,5 +1,8 @@
 #!/usr/local/bin/python
 
+# Python 2 and 3, print compatibility
+from __future__ import print_function
+
 import docopt
 import random
 import subprocess
@@ -52,7 +55,7 @@ Usage:
     adbe.py [options] gfx (on | off | lines)
     adbe.py [options] overdraw (on | off | deut)
     adbe.py [options] layout (on | off)
-    adbe.py [options] airplane ( on | off ) - This does not work on all the devices as of now.
+    adbe.py [options] airplane (on | off)        This does not work on all the devices as of now.
     adbe.py [options] battery level <percentage>
     adbe.py [options] battery saver (on | off)
     adbe.py [options] battery reset
@@ -102,7 +105,7 @@ def main():
     adb_prefix = 'adb %s' % options
 
     if False:
-        print args
+        print(args)
     if args['rotate']:
         direction = 'portrait' if args['portrait'] else \
                 'landscape' if args['landscape'] else \
@@ -230,14 +233,14 @@ def handle_rotate(adb_prefix, direction):
     elif direction is 'left':
         current_direction = get_current_rotation_direction(adb_prefix)
         if _verbose:
-            print 'Current direction: %d' % current_direction
+            print("Current direction: %d" % current_direction)
         if current_direction is None:
             return
         new_direction = (current_direction + 1) % 4
     elif direction is 'right':
         current_direction = get_current_rotation_direction(adb_prefix)
         if _verbose:
-            print 'Current direction: %d' % current_direction
+            print("Current direction: %d" % current_direction)
         if current_direction is None:
             return
         new_direction = (current_direction - 1) % 4
@@ -251,13 +254,13 @@ def get_current_rotation_direction(adb_prefix):
     cmd = 'settings get system user_rotation'
     direction = execute_adb_shell_command(adb_prefix, cmd)
     if _verbose:
-        print 'Return value is %s' % direction
+        print("Return value is %s" % direction)
     if not direction:
         return 0  # default direction is 0, vertical straight
     try:
         return int(direction)
     except ValueError as e:
-        print 'Failed to get direction, device returned: "%s"' % e
+        print("Failed to get direction, device returned: \"%s\"" % e)
 
 
 def handle_layout(adb_prefix, value):
@@ -342,7 +345,7 @@ def handle_list_devices(adb_prefix):
     s3 = execute_adb_shell_command(adb_prefix, 'getprop ro.product.model') 
     s4 = execute_adb_shell_command(adb_prefix, 'getprop ro.build.version.release')
     s5 = execute_adb_shell_command(adb_prefix, 'getprop ro.build.version.sdk')
-    print s1, s2, s3, '\tRelease:', s4, '\tSDK version:', s5
+    print(s1, s2, s3, '\tRelease:', s4, '\tSDK version:', s5)
 
 def print_top_activity(adb_prefix):
     cmd = 'dumpsys activity recents'
@@ -351,7 +354,7 @@ def print_top_activity(adb_prefix):
 
 def force_stop(adb_prefix, app_name):
     cmd = 'am force-stop %s' % app_name
-    execute_adb_shell_command(adb_prefix, cmd)
+    print(execute_adb_shell_command(adb_prefix, cmd))
 
 
 def clear_disk_data(adb_prefix, app_name):
@@ -446,16 +449,16 @@ def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
     final_cmd = ('%s %s' % (adb_prefix, adb_cmd))
     if piped_into_cmd:
         if _verbose:
-            print 'Executing %s | %s' % (final_cmd, piped_into_cmd)
-            print 'Executing %s | %s' % (adb_cmd, piped_into_cmd)
+            print("Executing %s | %s" % (final_cmd, piped_into_cmd))
+            print("Executing %s | %s" % (adb_cmd, piped_into_cmd))
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
         ps1.wait()
-        print output
+        print(output)
         return output
     else:
         if _verbose:
-            print 'Executing %s' % final_cmd
+            print("Executing %s" % final_cmd)
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         ps1.wait()
         output = ''
@@ -467,7 +470,7 @@ def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
             else:
                 output += '\n' + line.strip()
         if _verbose:
-            print 'Result is "%s"' % output
+            print("Result is \"%s\"" % output)
         return output
 
 # adb shell getprop ro.build.version.sdk
