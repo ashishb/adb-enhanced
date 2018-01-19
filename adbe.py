@@ -55,7 +55,7 @@ Usage:
     adbe.py [options] gfx (on | off | lines)
     adbe.py [options] overdraw (on | off | deut)
     adbe.py [options] layout (on | off)
-    adbe.py [options] airplane (on | off)        This does not work on all the devices as of now.
+    adbe.py [options] airplane (on | off)
     adbe.py [options] battery level <percentage>
     adbe.py [options] battery saver (on | off)
     adbe.py [options] battery reset
@@ -126,7 +126,7 @@ def main():
         value = args['on']
         handle_layout(adb_prefix, value)
     elif args['airplane']:
-        # This is not working as expected
+        # This does not always work
         value = args['on']
         handle_airplane(adb_prefix, value)
     elif args['battery']:
