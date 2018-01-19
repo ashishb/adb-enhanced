@@ -292,6 +292,7 @@ def handle_battery_saver(adb_prefix, turn_on):
         cmd = 'settings put global low_power 0'
 
     execute_adb_shell_command(adb_prefix, get_battery_unplug_cmd())
+    execute_adb_shell_command(adb_prefix, get_battery_discharging_cmd())
     execute_adb_shell_command(adb_prefix, cmd)
 
 
@@ -302,6 +303,7 @@ def handle_battery_level(adb_prefix, level):
     cmd = 'dumpsys battery set level %d' % level
 
     execute_adb_shell_command(adb_prefix, get_battery_unplug_cmd())
+    execute_adb_shell_command(adb_prefix, get_battery_discharging_cmd())
     execute_adb_shell_command(adb_prefix, cmd)
 
 
@@ -316,6 +318,7 @@ def handle_doze(adb_prefix, turn_on):
     if turn_on:
         cmd = 'dumpsys deviceidle force-idle'
         execute_adb_shell_command(adb_prefix, get_battery_unplug_cmd())
+        execute_adb_shell_command(adb_prefix, get_battery_discharging_cmd())
         execute_adb_shell_command(adb_prefix, cmd)
     else:
         cmd = 'dumpsys deviceidle unforce'
@@ -329,6 +332,9 @@ def get_update_activity_service_cmd():
     # Note: 1599295570 == ('_' << 24) | ('S' << 16) | ('P' << 8) | 'R'
     return 'service call activity 1599295570'
 
+# This command puts the battery in discharging mode (most likely this is Android 6.0 onwards only)
+def get_battery_discharging_cmd():
+    return 'dumpsys battery set status 3'
 
 def get_battery_unplug_cmd():
     return 'dumpsys battery unplug'
