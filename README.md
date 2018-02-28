@@ -25,6 +25,14 @@ pip install adb-enhanced
 
 `adbe dont-keep-activities on`
 
+* Grant storage-related runtime permissions
+
+`adbe permissions grant com.example.android storage`
+
+* Revoke storage-related runtime permissions
+
+`adbe permissions revoke com.example.android storage`
+
 # Usage:
     adbe.py [options] rotate (landscape | portrait | left | right)
     adbe.py [options] gfx (on | off | lines)
@@ -47,6 +55,9 @@ pip install adb-enhanced
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
+    adbe.py [options] permission-groups list all
+    adbe.py [options] permissions list (all | dangerous)
+    adbe.py [options] permissions (grant | revoke) <package_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage) - grant and revoke runtime permissions
 
 # Options:
     -e, --emulator          directs command to the only running emulator
