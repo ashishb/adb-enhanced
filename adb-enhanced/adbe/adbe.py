@@ -1,5 +1,8 @@
 #!/usr/local/bin/python
 
+# Python 2 and 3, print compatibility
+from __future__ import print_function
+
 import docopt
 import random
 import subprocess
@@ -22,6 +25,7 @@ List of things which this enhanced adb tool does
 * adbe force-stop $app_name
 * adbe clear-data $app_name
 * adbe screenshot $file_name
+* adbe screenrecord $file_name
 * adbe mobile-data (on|off)
 * adbe [options] input-text <text>
 * adbe press back
@@ -33,7 +37,6 @@ List of things which this tool will do in the future
 * adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
 * adbe app-standby $app_name
 * adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
-* adbe screenrecord $file_name
 * adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
 * adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
 * adb shell input keyevent KEYCODE_POWER can do the toggle
@@ -52,7 +55,7 @@ Usage:
     adbe.py [options] gfx (on | off | lines)
     adbe.py [options] overdraw (on | off | deut)
     adbe.py [options] layout (on | off)
-    adbe.py [options] airplane ( on | off ) - This does not work on all the devices as of now.
+    adbe.py [options] airplane (on | off)
     adbe.py [options] battery level <percentage>
     adbe.py [options] battery saver (on | off)
     adbe.py [options] battery reset
@@ -66,6 +69,7 @@ Usage:
     adbe.py [options] mobile-data saver (on | off)
     adbe.py [options] rtl (on | off) - This is not working properly as of now.
     adbe.py [options] screenshot <filename.png>
+    adbe.py [options] screenrecord <filename.mp4>
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
@@ -98,10 +102,10 @@ def main():
         options += '-s %s ' % args['--serial']
     _verbose = args['--verbose']
 
-    adb_prefix = "adb %s" % options
+    adb_prefix = 'adb %s' % options
 
     if False:
-        print args
+        print(args)
     if args['rotate']:
         direction = 'portrait' if args['portrait'] else \
                 'landscape' if args['landscape'] else \
@@ -122,7 +126,7 @@ def main():
         value = args['on']
         handle_layout(adb_prefix, value)
     elif args['airplane']:
-        # This is not working as expected
+        # This does not always work
         value = args['on']
         handle_airplane(adb_prefix, value)
     elif args['battery']:
@@ -154,6 +158,8 @@ def main():
         force_rtl(adb_prefix, args['on'])
     elif args['screenshot']:
         dump_screenshot(adb_prefix, args['<filename.png>'])
+    elif args['screenrecord']:
+        dump_screenrecord(adb_prefix, args['<filename.mp4>'])
     elif args['dont-keep-activities']:
         handle_dont_keep_activities_in_background(adb_prefix, args['on'])
     elif args['input-text']:
@@ -161,7 +167,7 @@ def main():
     elif args['back']:
         press_back(adb_prefix)
     else:
-        raise NotImplementedError("Not implemented: %s" % args)
+        raise NotImplementedError('Not implemented: %s' % args)
 
 
 def validate_options(args):
@@ -173,7 +179,7 @@ def validate_options(args):
     if args['--serial']:
         count += 1
     if count > 1:
-        raise AssertionError("Only one out of -e, -d, or -s can be provided")
+        raise AssertionError('Only one out of -e, -d, or -s can be provided')
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
@@ -185,21 +191,33 @@ def handle_gfx(adb_prefix, value):
     elif value == 'lines':
         cmd = 'setprop debug.hwui.profile visual_lines'
     else:
-        raise AssertionError("Unexpected value for gfx %s" % value)
+        raise AssertionError('Unexpected value for gfx %s' % value)
     execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd)
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
 # https://plus.google.com/+AladinQ/posts/dpidzto1b8B
 def handle_overdraw(adb_prefix, value):
-    if value is 'on':
-        cmd = 'setprop debug.hwui.overdraw show'
-    elif value is 'off':
-        cmd = 'setprop debug.hwui.overdraw false'
-    elif value is 'deut':
-        cmd = 'setprop debug.hwui.overdraw show_deuteranomaly'
+    version = _get_api_version(adb_prefix)
+    if version < 19:
+        if value is 'on':
+            cmd = 'setprop debug.hwui.show_overdraw true'
+        elif value is 'off':
+            cmd = 'setprop debug.hwui.show_overdraw false'
+        elif value is 'deut':
+            raise AssertionError(
+                    'This command is not support on API %d' % version)
+        else:
+            raise AssertionError('Unexpected value for overdraw %s' % value)
     else:
-        raise AssertionError("Unexpected value for overdraw %s" % value)
+        if value is 'on':
+            cmd = 'setprop debug.hwui.overdraw show'
+        elif value is 'off':
+            cmd = 'setprop debug.hwui.overdraw false'
+        elif value is 'deut':
+            cmd = 'setprop debug.hwui.overdraw show_deuteranomaly'
+        else:
+            raise AssertionError('Unexpected value for overdraw %s' % value)
     execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd)
 
 
@@ -215,12 +233,16 @@ def handle_rotate(adb_prefix, direction):
     elif direction is 'left':
         current_direction = get_current_rotation_direction(adb_prefix)
         if _verbose:
-            print 'Current direction: %d' % current_direction
+            print("Current direction: %d" % current_direction)
+        if current_direction is None:
+            return
         new_direction = (current_direction + 1) % 4
     elif direction is 'right':
         current_direction = get_current_rotation_direction(adb_prefix)
         if _verbose:
-            print 'Current direction: %d' % current_direction
+            print("Current direction: %d" % current_direction)
+        if current_direction is None:
+            return
         new_direction = (current_direction - 1) % 4
     else:
         raise AssertionError('Unexpected direction %s' % direction)
@@ -232,10 +254,13 @@ def get_current_rotation_direction(adb_prefix):
     cmd = 'settings get system user_rotation'
     direction = execute_adb_shell_command(adb_prefix, cmd)
     if _verbose:
-        print 'Return value is %s' % direction
+        print("Return value is %s" % direction)
     if not direction:
         return 0  # default direction is 0, vertical straight
-    return int(direction)
+    try:
+        return int(direction)
+    except ValueError as e:
+        print("Failed to get direction, device returned: \"%s\"" % e)
 
 
 def handle_layout(adb_prefix, value):
@@ -267,16 +292,18 @@ def handle_battery_saver(adb_prefix, turn_on):
         cmd = 'settings put global low_power 0'
 
     execute_adb_shell_command(adb_prefix, get_battery_unplug_cmd())
+    execute_adb_shell_command(adb_prefix, get_battery_discharging_cmd())
     execute_adb_shell_command(adb_prefix, cmd)
 
 
 # Source: https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 def handle_battery_level(adb_prefix, level):
     if level < 0 or level > 100:
-        raise AssertionError("Battery percentage must be between 0 and 100")
+        raise AssertionError('Battery percentage must be between 0 and 100')
     cmd = 'dumpsys battery set level %d' % level
 
     execute_adb_shell_command(adb_prefix, get_battery_unplug_cmd())
+    execute_adb_shell_command(adb_prefix, get_battery_discharging_cmd())
     execute_adb_shell_command(adb_prefix, cmd)
 
 
@@ -291,6 +318,7 @@ def handle_doze(adb_prefix, turn_on):
     if turn_on:
         cmd = 'dumpsys deviceidle force-idle'
         execute_adb_shell_command(adb_prefix, get_battery_unplug_cmd())
+        execute_adb_shell_command(adb_prefix, get_battery_discharging_cmd())
         execute_adb_shell_command(adb_prefix, cmd)
     else:
         cmd = 'dumpsys deviceidle unforce'
@@ -302,8 +330,11 @@ def handle_doze(adb_prefix, turn_on):
 # Ref: https://gitlab.com/SaberMod/pa-android-frameworks-base/commit/a53de0629f3b94472c0f160f5bbe1090b020feab
 def get_update_activity_service_cmd():
     # Note: 1599295570 == ('_' << 24) | ('S' << 16) | ('P' << 8) | 'R'
-    return "service call activity 1599295570"
+    return 'service call activity 1599295570'
 
+# This command puts the battery in discharging mode (most likely this is Android 6.0 onwards only)
+def get_battery_discharging_cmd():
+    return 'dumpsys battery set status 3'
 
 def get_battery_unplug_cmd():
     return 'dumpsys battery unplug'
@@ -315,9 +346,12 @@ def handle_get_jank(adb_prefix, app_name):
 
 
 def handle_list_devices(adb_prefix):
-    cmd = 'devices -l'
-    execute_adb_command(adb_prefix, cmd)
-
+    s1 = execute_adb_command(adb_prefix, 'devices -l')
+    s2 = execute_adb_shell_command(adb_prefix, 'getprop ro.product.manufacturer') 
+    s3 = execute_adb_shell_command(adb_prefix, 'getprop ro.product.model') 
+    s4 = execute_adb_shell_command(adb_prefix, 'getprop ro.build.version.release')
+    s5 = execute_adb_shell_command(adb_prefix, 'getprop ro.build.version.sdk')
+    print(s1, s2, s3, '\tRelease:', s4, '\tSDK version:', s5)
 
 def print_top_activity(adb_prefix):
     cmd = 'dumpsys activity recents'
@@ -326,7 +360,7 @@ def print_top_activity(adb_prefix):
 
 def force_stop(adb_prefix, app_name):
     cmd = 'am force-stop %s' % app_name
-    execute_adb_shell_command(adb_prefix, cmd)
+    print(execute_adb_shell_command(adb_prefix, cmd))
 
 
 def clear_disk_data(adb_prefix, app_name):
@@ -352,9 +386,20 @@ def force_rtl(adb_prefix, turn_on):
 
 
 def dump_screenshot(adb_prefix, filepath):
-    filepath_on_device = "/sdcard/screenshot-%d.png" % random.randint(1, 1000 * 1000 * 1000)
+    filepath_on_device = '/sdcard/screenshot-%d.png' % random.randint(1, 1000 * 1000 * 1000)
     # TODO: May be in the future, add a check here to ensure that we are not over-writing any existing file.
     dump_cmd = 'screencap -p %s ' % filepath_on_device
+    execute_adb_shell_command(adb_prefix, dump_cmd)
+    pull_cmd = 'pull %s %s' % (filepath_on_device, filepath)
+    execute_adb_command(adb_prefix, pull_cmd)
+    del_cmd = 'rm %s' % filepath_on_device
+    execute_adb_shell_command(adb_prefix, del_cmd)
+
+
+def dump_screenrecord(adb_prefix, filepath):
+    filepath_on_device = "/sdcard/screenrecord-%d.mp4" % random.randint(1, 1000 * 1000 * 1000)
+    # TODO: May be in the future, add a check here to ensure that we are not over-writing any existing file.
+    dump_cmd = 'screenrecord %s --time-limit 10 ' % filepath_on_device
     execute_adb_shell_command(adb_prefix, dump_cmd)
     pull_cmd = 'pull %s %s' % (filepath_on_device, filepath)
     execute_adb_command(adb_prefix, pull_cmd)
@@ -365,9 +410,9 @@ def dump_screenshot(adb_prefix, filepath):
 # https://developer.android.com/training/basics/network-ops/data-saver.html
 def handle_mobile_data_saver(adb_prefix, turn_on):
     if turn_on:
-        cmd = "cmd netpolicy set restrict-background true"
+        cmd = 'cmd netpolicy set restrict-background true'
     else:
-        cmd = "cmd netpolicy set restrict-background false"
+        cmd = 'cmd netpolicy set restrict-background false'
     execute_adb_shell_command(adb_prefix, cmd)
 
 
@@ -403,23 +448,23 @@ def execute_adb_shell_command_and_poke_activity_service(adb_prefix, adb_cmd):
 
 
 def execute_adb_shell_command(adb_prefix, adb_cmd, piped_into_cmd=None):
-    return execute_adb_command(adb_prefix, "shell %s" % adb_cmd, piped_into_cmd)
+    return execute_adb_command(adb_prefix, 'shell %s' % adb_cmd, piped_into_cmd)
 
 
 def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
-    final_cmd = ("%s %s" % (adb_prefix, adb_cmd))
+    final_cmd = ('%s %s' % (adb_prefix, adb_cmd))
     if piped_into_cmd:
         if _verbose:
-            print 'Executing %s | %s' % (final_cmd, piped_into_cmd)
-            print 'Executing %s | %s' % (adb_command, piped_into_cmd)
+            print("Executing %s | %s" % (final_cmd, piped_into_cmd))
+            print("Executing %s | %s" % (adb_cmd, piped_into_cmd))
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
         ps1.wait()
-        print output
+        print(output)
         return output
     else:
         if _verbose:
-            print 'Executing %s' % final_cmd
+            print("Executing %s" % final_cmd)
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         ps1.wait()
         output = ''
@@ -427,11 +472,23 @@ def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
         for line in ps1.stdout:
             if first_line:
                 output += line.strip()
+                first_line = False
             else:
                 output += '\n' + line.strip()
         if _verbose:
-            print 'Result is "%s"' % output
+            print("Result is \"%s\"" % output)
         return output
+
+# adb shell getprop ro.build.version.sdk
+def _get_api_version(adb_prefix):
+    version_string = _get_prop(adb_prefix, 'ro.build.version.sdk')
+    if version_string is None:
+        return -1
+    return int(version_string)
+
+
+def _get_prop(adb_prefix, property_name):
+    return execute_adb_shell_command(adb_prefix, 'getprop %s' % property_name)
 
 
 if __name__ == '__main__':
