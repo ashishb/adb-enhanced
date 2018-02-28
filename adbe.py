@@ -73,6 +73,9 @@ Usage:
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
+    adbe.py [options] permission-groups list all
+    adbe.py [options] permissions list (all | dangerous)
+    adbe.py [options] permissions (grant | revoke) <package_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage) - grant and revoke runtime permissions
 
 Options:
     -e, --emulator          directs command to the only running emulator
@@ -166,6 +169,15 @@ def main():
         input_text(adb_prefix, args['<text>'])
     elif args['back']:
         press_back(adb_prefix)
+    elif args['permission-groups'] and args['list'] and args['all']:
+        list_permission_groups(adb_prefix)
+    elif args['permissions'] and args['list']:
+        list_permissions(adb_prefix, args['dangerous'])
+    elif args['permissions']:
+        package_name = args['<package_name>']
+        permission_group = get_permission_group(args)
+        permissions = get_permissions_in_permission_group(adb_prefix, permission_group)
+        grant_or_revoke_runtime_permissions(adb_prefix, package_name, args['grant'], permissions)
     else:
         raise NotImplementedError('Not implemented: %s' % args)
 
@@ -439,6 +451,59 @@ def input_text(adb_prefix, text):
 def press_back(adb_prefix):
     cmd = 'input keyevent 4'
     execute_adb_shell_command(adb_prefix, cmd)
+
+
+def list_permission_groups(adb_prefix):
+    cmd = 'pm list permission-groups'
+    print(execute_adb_shell_command(adb_prefix, cmd))
+
+
+def list_permissions(adb_prefix, dangerous_only_permissions):
+    # -g is to group permissions by permission groups.
+    if dangerous_only_permissions:
+        # -d => dangerous only permissions
+        cmd = 'pm list permissions -g -d'
+    else:
+        cmd = 'pm list permissions -g'
+    print(execute_adb_shell_command(adb_prefix, cmd))
+
+# Returns a fully-qualified permission group name.
+def get_permission_group(args):
+    if args['contacts']: return 'android.permission-group.CONTACTS'
+    if args['phone']: return 'android.permission-group.PHONE'
+    if args['calendar']: return 'android.permission-group.CALENDAR'
+    if args['camera']: return 'android.permission-group.CAMERA'
+    if args['sensors']: return 'android.permission-group.SENSORS'
+    if args['location']: return 'android.permission-group.LOCATION'
+    if args['storage']: return 'android.permission-group.STORAGE'
+    if args['microphone']: return 'android.permission-group.MICROPHONE'
+    if args['sms']: return 'android.permission-group.SMS'
+    raise AssertionError('Unexpected permission group: %s' % args)
+
+
+# Pass the full-qualified permission group name to this method.
+def get_permissions_in_permission_group(adb_prefix, permission_group):
+    # List permissions by group
+    permission_output = execute_adb_shell_command(adb_prefix, 'pm list permissions -g')
+    splits = permission_output.split('group:')
+    for split in splits:
+        if split.startswith(permission_group):
+            potential_permissions = split.split('\n')
+            # Ignore the first entry which is the group name
+            potential_permissions = potential_permissions[1:]
+            # Filter out empty lines.
+            permissions = filter(lambda x: len(x.strip()) > 0, potential_permissions)
+            permissions = map(lambda x: x.replace('permission:', ''), permissions)
+            print('Permissions are %s' % permissions)
+            return permissions
+
+def grant_or_revoke_runtime_permissions(adb_prefix, package_name, action_grant, permissions):
+    if action_grant:
+        cmd = 'pm grant %s' % package_name
+    else:
+        cmd = 'pm revoke %s' % package_name
+    for permission in permissions:
+        execute_adb_shell_command(adb_prefix, cmd + ' ' + permission)
 
 
 def execute_adb_shell_command_and_poke_activity_service(adb_prefix, adb_cmd):
