@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/python
 
 # Python 2 and 3, print compatibility
 from __future__ import print_function
