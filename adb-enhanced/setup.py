@@ -11,10 +11,10 @@ setup(name='adb-enhanced',
         See Readme for more details -
         https://github.com/ashishb/adb-enhanced/blob/master/README.md
         """,
-        classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+        classifiers=["Intended Audience :: Developers"], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
         keywords='Android ADB developer',
         author='Ashish Bhatia',
-        author_email='ashishbhatia.ab@gmail.com',
+        author_email='ashishb@ashishb.net',
         url='https://github.com/ashishb/adb-enhanced',
         license='Apache',
         packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
