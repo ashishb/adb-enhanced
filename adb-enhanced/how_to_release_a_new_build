@@ -1,0 +1,6 @@
+1. Copy the relevant files like adbe.py and README.md from the parent adbe directory to adbe-enhanced/adbe
+2. Modify the setup to update the version
+3. `python setup.py build` - I am not sure if this setup is required or not
+4. `python setup.py sdist upload -r pypi` - upload the project (reference:
+http://peterdowns.com/posts/first-time-with-pypi.html)
+5. Few mins later - https://pypi.org/project/adb-enhanced/#history
