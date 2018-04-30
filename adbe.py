@@ -75,7 +75,7 @@ Usage:
     adbe.py [options] press back
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
-    adbe.py [options] permissions (grant | revoke) <package_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage) - grant and revoke runtime permissions
+    adbe.py [options] permissions (grant | revoke) <package_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
 
 Options:
     -e, --emulator          directs command to the only running emulator
@@ -494,7 +494,7 @@ def get_permissions_in_permission_group(adb_prefix, permission_group):
             # Filter out empty lines.
             permissions = filter(lambda x: len(x.strip()) > 0, potential_permissions)
             permissions = map(lambda x: x.replace('permission:', ''), permissions)
-            print('Permissions are %s' % permissions)
+            print('Permissions in %s group are %s' % (permission_group, permissions))
             return permissions
 
 def grant_or_revoke_runtime_permissions(adb_prefix, package_name, action_grant, permissions):
