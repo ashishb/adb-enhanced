@@ -96,10 +96,12 @@ Options:
 _KEYCODE_BACK = 4
 
 _verbose = False
+_adb_prefix = 'adb'
 
 
 def main():
     global _verbose
+    global _adb_prefix
     args = docopt.docopt(USAGE_STRING, version='1.0.0rc2')
 
     validate_options(args)
@@ -113,82 +115,80 @@ def main():
     _verbose = args['--verbose']
 
     if len(options) > 0:
-        adb_prefix = 'adb %s' % options
-    else:
-        adb_prefix = 'adb'
-
+        _adb_prefix = '%s %s' % (_adb_prefix, options)
+    
     if args['rotate']:
         direction = 'portrait' if args['portrait'] else \
                 'landscape' if args['landscape'] else \
                 'left' if args['left'] else \
                 'right'
-        handle_rotate(adb_prefix, direction)
+        handle_rotate(direction)
     elif args['gfx']:
         value = 'on' if args['on'] else \
             ('off' if args['off'] else
              'lines')
-        handle_gfx(adb_prefix, value)
+        handle_gfx(value)
     elif args['overdraw']:
         value = 'on' if args['on'] else \
             ('off' if args['off'] else
              'deut')
-        handle_overdraw(adb_prefix, value)
+        handle_overdraw(value)
     elif args['layout']:
         value = args['on']
-        handle_layout(adb_prefix, value)
+        handle_layout(value)
     elif args['airplane']:
         # This does not always work
         value = args['on']
-        handle_airplane(adb_prefix, value)
+        handle_airplane(value)
     elif args['battery']:
         if args['saver']:
-            handle_battery_saver(adb_prefix, args['on'])
+            handle_battery_saver(args['on'])
         elif args['level']:
-            handle_battery_level(adb_prefix, int(args['<percentage>']))
+            handle_battery_level(int(args['<percentage>']))
         elif args['reset']:
-            handle_battery_reset(adb_prefix)
+            handle_battery_reset()
     elif args['doze']:
-        handle_doze(adb_prefix, args['on'])
+        handle_doze(args['on'])
     elif args['jank']:
-        handle_get_jank(adb_prefix, args['<app_name>'])
+        handle_get_jank(args['<app_name>'])
     elif args['devices']:
-        handle_list_devices(adb_prefix)
+        handle_list_devices()
     elif args['top-activity']:
-        print_top_activity(adb_prefix)
+        print_top_activity()
     elif args['force-stop']:
-        force_stop(adb_prefix, args['<app_name>'])
+        force_stop(args['<app_name>'])
     elif args['clear-data']:
-        clear_disk_data(adb_prefix, args['<app_name>'])
+        clear_disk_data(args['<app_name>'])
     elif args['mobile-data']:
         if args['saver']:
-            handle_mobile_data_saver(adb_prefix, args['on'])
+            handle_mobile_data_saver(args['on'])
         else:
-            handle_mobile_data(adb_prefix, args['on'])
+            handle_mobile_data(args['on'])
     elif args['rtl']:
         # This is not working as expected
-        force_rtl(adb_prefix, args['on'])
+        force_rtl(args['on'])
     elif args['screenshot']:
-        dump_screenshot(adb_prefix, args['<filename.png>'])
+        dump_screenshot(args['<filename.png>'])
     elif args['screenrecord']:
-        dump_screenrecord(adb_prefix, args['<filename.mp4>'])
+        dump_screenrecord(args['<filename.mp4>'])
     elif args['dont-keep-activities']:
-        handle_dont_keep_activities_in_background(adb_prefix, args['on'])
+        handle_dont_keep_activities_in_background(args['on'])
     elif args['input-text']:
-        input_text(adb_prefix, args['<text>'])
+        input_text(args['<text>'])
     elif args['back']:
-        press_back(adb_prefix)
+        press_back()
     elif args['permission-groups'] and args['list'] and args['all']:
-        list_permission_groups(adb_prefix)
+        list_permission_groups()
     elif args['permissions'] and args['list']:
-        list_permissions(adb_prefix, args['dangerous'])
+        list_permissions(args['dangerous'])
     elif args['permissions']:
         package_name = args['<package_name>']
         permission_group = get_permission_group(args)
-        permissions = get_permissions_in_permission_group(adb_prefix, permission_group)
-        grant_or_revoke_runtime_permissions(adb_prefix, package_name, args['grant'], permissions)
+        permissions = get_permissions_in_permission_group(permission_group)
+        grant_or_revoke_runtime_permissions(package_name, args['grant'], permissions)
     elif args['restrict-background'] or args['restrict-bg']:
         package_name = args['<package_name>']
-        apply_or_remove_background_restriction(adb_prefix, package_name, args['true'])
+        apply_or_remove_background_restriction(package_name, args['true'])
     else:
         raise NotImplementedError('Not implemented: %s' % args)
 
@@ -206,7 +206,7 @@ def validate_options(args):
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
-def handle_gfx(adb_prefix, value):
+def handle_gfx(value):
     if value == 'on':
         cmd = 'setprop debug.hwui.profile visual_bars'
     elif value == 'off':
@@ -215,13 +215,13 @@ def handle_gfx(adb_prefix, value):
         cmd = 'setprop debug.hwui.profile visual_lines'
     else:
         raise AssertionError('Unexpected value for gfx %s' % value)
-    execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd)
+    execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
 # https://plus.google.com/+AladinQ/posts/dpidzto1b8B
-def handle_overdraw(adb_prefix, value):
-    version = _get_api_version(adb_prefix)
+def handle_overdraw(value):
+    version = _get_api_version()
     if version < 19:
         if value is 'on':
             cmd = 'setprop debug.hwui.show_overdraw true'
@@ -241,27 +241,27 @@ def handle_overdraw(adb_prefix, value):
             cmd = 'setprop debug.hwui.overdraw show_deuteranomaly'
         else:
             raise AssertionError('Unexpected value for overdraw %s' % value)
-    execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd)
+    execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
 # Source: https://stackoverflow.com/questions/25864385/changing-android-device-orientation-with-adb
-def handle_rotate(adb_prefix, direction):
+def handle_rotate(direction):
     disable_acceleration = 'settings put system accelerometer_rotation 0'
-    execute_adb_shell_command(adb_prefix, disable_acceleration)
+    execute_adb_shell_command(disable_acceleration)
 
     if direction is 'portrait':
         new_direction = 0
     elif direction is 'landscape':
         new_direction = 1
     elif direction is 'left':
-        current_direction = get_current_rotation_direction(adb_prefix)
+        current_direction = get_current_rotation_direction()
         if _verbose:
             print("Current direction: %d" % current_direction)
         if current_direction is None:
             return
         new_direction = (current_direction + 1) % 4
     elif direction is 'right':
-        current_direction = get_current_rotation_direction(adb_prefix)
+        current_direction = get_current_rotation_direction()
         if _verbose:
             print("Current direction: %d" % current_direction)
         if current_direction is None:
@@ -270,12 +270,12 @@ def handle_rotate(adb_prefix, direction):
     else:
         raise AssertionError('Unexpected direction %s' % direction)
     cmd = 'settings put system user_rotation %s' % new_direction
-    execute_adb_shell_command(adb_prefix, cmd)
+    execute_adb_shell_command(cmd)
 
 
-def get_current_rotation_direction(adb_prefix):
+def get_current_rotation_direction():
     cmd = 'settings get system user_rotation'
-    direction = execute_adb_shell_command(adb_prefix, cmd)
+    direction = execute_adb_shell_command(cmd)
     if _verbose:
         print("Return value is %s" % direction)
     if not direction:
@@ -286,67 +286,67 @@ def get_current_rotation_direction(adb_prefix):
         print("Failed to get direction, device returned: \"%s\"" % e)
 
 
-def handle_layout(adb_prefix, value):
+def handle_layout(value):
     if value:
         cmd = 'setprop debug.layout true'
     else:
         cmd = 'setprop debug.layout false'
-    execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd)
+    execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
 # Source: https://stackoverflow.com/questions/10506591/turning-airplane-mode-on-via-adb
 # This is incomplete
-def handle_airplane(adb_prefix, turn_on):
+def handle_airplane(turn_on):
     if turn_on:
         cmd = 'settings put global airplane_mode_on 1'
     else:
         cmd = 'settings put global airplane_mode_on 0'
 
     broadcast_change = 'am broadcast -a android.intent.action.AIRPLANE_MODE'
-    execute_adb_shell_command(adb_prefix, cmd)
-    execute_adb_shell_command(adb_prefix, broadcast_change)
+    execute_adb_shell_command(cmd)
+    execute_adb_shell_command(broadcast_change)
 
 
 # Source: https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
-def handle_battery_saver(adb_prefix, turn_on):
+def handle_battery_saver(turn_on):
     if turn_on:
         cmd = 'settings put global low_power 1'
     else:
         cmd = 'settings put global low_power 0'
 
-    execute_adb_shell_command(adb_prefix, get_battery_unplug_cmd())
-    execute_adb_shell_command(adb_prefix, get_battery_discharging_cmd())
-    execute_adb_shell_command(adb_prefix, cmd)
+    execute_adb_shell_command(get_battery_unplug_cmd())
+    execute_adb_shell_command(get_battery_discharging_cmd())
+    execute_adb_shell_command(cmd)
 
 
 # Source: https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
-def handle_battery_level(adb_prefix, level):
+def handle_battery_level(level):
     if level < 0 or level > 100:
         raise AssertionError('Battery percentage must be between 0 and 100')
     cmd = 'dumpsys battery set level %d' % level
 
-    execute_adb_shell_command(adb_prefix, get_battery_unplug_cmd())
-    execute_adb_shell_command(adb_prefix, get_battery_discharging_cmd())
-    execute_adb_shell_command(adb_prefix, cmd)
+    execute_adb_shell_command(get_battery_unplug_cmd())
+    execute_adb_shell_command(get_battery_discharging_cmd())
+    execute_adb_shell_command(cmd)
 
 
 # Source: https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
-def handle_battery_reset(adb_prefix):
+def handle_battery_reset():
     cmd = 'dumpsys battery reset'
-    execute_adb_shell_command(adb_prefix, cmd)
+    execute_adb_shell_command(cmd)
 
 
 # https://developer.android.com/training/monitoring-device-state/doze-standby.html
-def handle_doze(adb_prefix, turn_on):
+def handle_doze(turn_on):
     if turn_on:
         cmd = 'dumpsys deviceidle force-idle'
-        execute_adb_shell_command(adb_prefix, get_battery_unplug_cmd())
-        execute_adb_shell_command(adb_prefix, get_battery_discharging_cmd())
-        execute_adb_shell_command(adb_prefix, cmd)
+        execute_adb_shell_command(get_battery_unplug_cmd())
+        execute_adb_shell_command(get_battery_discharging_cmd())
+        execute_adb_shell_command(cmd)
     else:
         cmd = 'dumpsys deviceidle unforce'
-        execute_adb_shell_command(adb_prefix, handle_battery_reset())
-        execute_adb_shell_command(adb_prefix, cmd)
+        execute_adb_shell_command(handle_battery_reset())
+        execute_adb_shell_command(cmd)
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
@@ -355,128 +355,130 @@ def get_update_activity_service_cmd():
     # Note: 1599295570 == ('_' << 24) | ('S' << 16) | ('P' << 8) | 'R'
     return 'service call activity 1599295570'
 
+
 # This command puts the battery in discharging mode (most likely this is Android 6.0 onwards only)
 def get_battery_discharging_cmd():
     return 'dumpsys battery set status 3'
+
 
 def get_battery_unplug_cmd():
     return 'dumpsys battery unplug'
 
 
-def handle_get_jank(adb_prefix, app_name):
+def handle_get_jank(app_name):
     cmd = 'dumpsys gfxinfo %s ' % app_name
-    execute_adb_shell_command(adb_prefix, cmd, 'grep Janky')
+    execute_adb_shell_command(cmd, 'grep Janky')
 
 
-def handle_list_devices(adb_prefix):
-    s1 = execute_adb_command(adb_prefix, 'devices -l')
-    s2 = execute_adb_shell_command(adb_prefix, 'getprop ro.product.manufacturer') 
-    s3 = execute_adb_shell_command(adb_prefix, 'getprop ro.product.model') 
-    s4 = execute_adb_shell_command(adb_prefix, 'getprop ro.build.version.release')
-    s5 = execute_adb_shell_command(adb_prefix, 'getprop ro.build.version.sdk')
+def handle_list_devices():
+    s1 = execute_adb_command('devices -l')
+    s2 = execute_adb_shell_command('getprop ro.product.manufacturer') 
+    s3 = execute_adb_shell_command('getprop ro.product.model') 
+    s4 = execute_adb_shell_command('getprop ro.build.version.release')
+    s5 = execute_adb_shell_command('getprop ro.build.version.sdk')
     print(s1, s2, s3, '\tRelease:', s4, '\tSDK version:', s5)
 
-def print_top_activity(adb_prefix):
+def print_top_activity():
     cmd = 'dumpsys activity recents'
-    execute_adb_shell_command(adb_prefix, cmd, 'grep "Recent #0"')
+    execute_adb_shell_command(cmd, 'grep "Recent #0"')
 
 
-def force_stop(adb_prefix, app_name):
+def force_stop(app_name):
     cmd = 'am force-stop %s' % app_name
-    print(execute_adb_shell_command(adb_prefix, cmd))
+    print(execute_adb_shell_command(cmd))
 
 
-def clear_disk_data(adb_prefix, app_name):
+def clear_disk_data(app_name):
     cmd = 'pm clear %s' % app_name
-    execute_adb_shell_command(adb_prefix, cmd)
+    execute_adb_shell_command(cmd)
 
 
 # Source: https://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later
-def handle_mobile_data(adb_prefix, turn_on):
+def handle_mobile_data(turn_on):
     if turn_on:
         cmd = 'svc data enable'
     else:
         cmd = 'svc data disable'
-    execute_adb_shell_command(adb_prefix, cmd)
+    execute_adb_shell_command(cmd)
 
 
-def force_rtl(adb_prefix, turn_on):
+def force_rtl(turn_on):
     if turn_on:
         cmd = 'settings put global debug.force_rtl 1'
     else:
         cmd = 'settings put global debug.force_rtl 1'
-    execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd)
+    execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
-def dump_screenshot(adb_prefix, filepath):
+def dump_screenshot(filepath):
     filepath_on_device = '/sdcard/screenshot-%d.png' % random.randint(1, 1000 * 1000 * 1000)
     # TODO: May be in the future, add a check here to ensure that we are not over-writing any existing file.
     dump_cmd = 'screencap -p %s ' % filepath_on_device
-    execute_adb_shell_command(adb_prefix, dump_cmd)
+    execute_adb_shell_command(dump_cmd)
     pull_cmd = 'pull %s %s' % (filepath_on_device, filepath)
-    execute_adb_command(adb_prefix, pull_cmd)
+    execute_adb_command(pull_cmd)
     del_cmd = 'rm %s' % filepath_on_device
-    execute_adb_shell_command(adb_prefix, del_cmd)
+    execute_adb_shell_command(del_cmd)
 
 
-def dump_screenrecord(adb_prefix, filepath):
+def dump_screenrecord(filepath):
     filepath_on_device = "/sdcard/screenrecord-%d.mp4" % random.randint(1, 1000 * 1000 * 1000)
     # TODO: May be in the future, add a check here to ensure that we are not over-writing any existing file.
     dump_cmd = 'screenrecord %s --time-limit 10 ' % filepath_on_device
-    execute_adb_shell_command(adb_prefix, dump_cmd)
+    execute_adb_shell_command(dump_cmd)
     pull_cmd = 'pull %s %s' % (filepath_on_device, filepath)
-    execute_adb_command(adb_prefix, pull_cmd)
+    execute_adb_command(pull_cmd)
     del_cmd = 'rm %s' % filepath_on_device
-    execute_adb_shell_command(adb_prefix, del_cmd)
+    execute_adb_shell_command(del_cmd)
 
 
 # https://developer.android.com/training/basics/network-ops/data-saver.html
-def handle_mobile_data_saver(adb_prefix, turn_on):
+def handle_mobile_data_saver(turn_on):
     if turn_on:
         cmd = 'cmd netpolicy set restrict-background true'
     else:
         cmd = 'cmd netpolicy set restrict-background false'
-    execute_adb_shell_command(adb_prefix, cmd)
+    execute_adb_shell_command(cmd)
 
 
 # Ref: https://github.com/android/platform_packages_apps_settings/blob/4ce19f5c4fd40f3bedc41d3fbcbdede8b2614501/src/com/android/settings/DevelopmentSettings.java#L2123
 # adb shell settings put global always_finish_activities true might not work on all Android versions.
 # It was in system (not global before ICS)
 # adb shell service call activity 43 i32 1 followed by that
-def handle_dont_keep_activities_in_background(adb_prefix, turn_on):
+def handle_dont_keep_activities_in_background(turn_on):
     if turn_on:
         cmd1 = 'settings put global always_finish_activities true'
         cmd2 = 'service call activity 43 i32 1'
     else:
         cmd1 = 'settings put global always_finish_activities false'
         cmd2 = 'service call activity 43 i32 0'
-    execute_adb_shell_command(adb_prefix, cmd1)
-    execute_adb_shell_command_and_poke_activity_service(adb_prefix, cmd2)
+    execute_adb_shell_command(cmd1)
+    execute_adb_shell_command_and_poke_activity_service(cmd2)
 
 
-def input_text(adb_prefix, text):
+def input_text(text):
     cmd = 'input text %s' % text
-    execute_adb_shell_command(adb_prefix, cmd)
+    execute_adb_shell_command(cmd)
 
 
-def press_back(adb_prefix):
+def press_back():
     cmd = 'input keyevent 4'
-    execute_adb_shell_command(adb_prefix, cmd)
+    execute_adb_shell_command(cmd)
 
 
-def list_permission_groups(adb_prefix):
+def list_permission_groups():
     cmd = 'pm list permission-groups'
-    print(execute_adb_shell_command(adb_prefix, cmd))
+    print(execute_adb_shell_command(cmd))
 
 
-def list_permissions(adb_prefix, dangerous_only_permissions):
+def list_permissions(dangerous_only_permissions):
     # -g is to group permissions by permission groups.
     if dangerous_only_permissions:
         # -d => dangerous only permissions
         cmd = 'pm list permissions -g -d'
     else:
         cmd = 'pm list permissions -g'
-    print(execute_adb_shell_command(adb_prefix, cmd))
+    print(execute_adb_shell_command(cmd))
 
 # Returns a fully-qualified permission group name.
 def get_permission_group(args):
@@ -493,9 +495,9 @@ def get_permission_group(args):
 
 
 # Pass the full-qualified permission group name to this method.
-def get_permissions_in_permission_group(adb_prefix, permission_group):
+def get_permissions_in_permission_group(permission_group):
     # List permissions by group
-    permission_output = execute_adb_shell_command(adb_prefix, 'pm list permissions -g')
+    permission_output = execute_adb_shell_command('pm list permissions -g')
     splits = permission_output.split('group:')
     for split in splits:
         if split.startswith(permission_group):
@@ -509,37 +511,37 @@ def get_permissions_in_permission_group(adb_prefix, permission_group):
             return permissions
 
 
-def grant_or_revoke_runtime_permissions(adb_prefix, package_name, action_grant, permissions):
+def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions):
     if action_grant:
         cmd = 'pm grant %s' % package_name
     else:
         cmd = 'pm revoke %s' % package_name
     for permission in permissions:
-        execute_adb_shell_command(adb_prefix, cmd + ' ' + permission)
+        execute_adb_shell_command(cmd + ' ' + permission)
 
 
 # Source: https://developer.android.com/preview/features/power
-def apply_or_remove_background_restriction(adb_prefix, package_name, set_restriction):
-    api_version = _get_api_version(adb_prefix)
+def apply_or_remove_background_restriction(package_name, set_restriction):
+    api_version = _get_api_version()
     if api_version < 28:
         _print_error('This command cannot be executed below API version 28, your Android version is %s' % api_version)
         return
     appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (package_name, 'ignore' if set_restriction else 'allow')
-    execute_adb_shell_command(adb_prefix, appops_cmd)
+    execute_adb_shell_command(appops_cmd)
 
 
-def execute_adb_shell_command_and_poke_activity_service(adb_prefix, adb_cmd):
-    return_value = execute_adb_shell_command(adb_prefix, adb_cmd)
-    execute_adb_shell_command(adb_prefix, get_update_activity_service_cmd())
+def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
+    return_value = execute_adb_shell_command(adb_cmd)
+    execute_adb_shell_command(get_update_activity_service_cmd())
     return return_value
 
 
-def execute_adb_shell_command(adb_prefix, adb_cmd, piped_into_cmd=None):
-    return execute_adb_command(adb_prefix, 'shell %s' % adb_cmd, piped_into_cmd)
+def execute_adb_shell_command(adb_cmd, piped_into_cmd=None):
+    return execute_adb_command('shell %s' % adb_cmd, piped_into_cmd)
 
 
-def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
-    final_cmd = ('%s %s' % (adb_prefix, adb_cmd))
+def execute_adb_command(adb_cmd, piped_into_cmd=None):
+    final_cmd = ('%s %s' % (_adb_prefix, adb_cmd))
     if piped_into_cmd:
         if _verbose:
             print("Executing %s | %s" % (final_cmd, piped_into_cmd))
@@ -568,15 +570,15 @@ def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
 
 
 # adb shell getprop ro.build.version.sdk
-def _get_api_version(adb_prefix):
-    version_string = _get_prop(adb_prefix, 'ro.build.version.sdk')
+def _get_api_version():
+    version_string = _get_prop('ro.build.version.sdk')
     if version_string is None:
         return -1
     return int(version_string)
 
 
-def _get_prop(adb_prefix, property_name):
-    return execute_adb_shell_command(adb_prefix, 'getprop %s' % property_name)
+def _get_prop(property_name):
+    return execute_adb_shell_command('getprop %s' % property_name)
 
 
 def _print_error(error_string):
