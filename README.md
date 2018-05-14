@@ -1,5 +1,5 @@
 # adb-enhanced
-ADB enhanced for developers, inspired from [android-scripts](https://github.com/dhelleberg/android-scripts)
+Swiss-army knife for android testing and development, inspired from [android-scripts](https://github.com/dhelleberg/android-scripts)
 
 ## Python3 compatibility
 As of Nov 27, 2017, the code is python3 compatible and as of Jan 18, 2018, pip (python package manager) also has the updated version 
