@@ -10,30 +10,36 @@ import subprocess
 """
 List of things which this enhanced adb tool does
 
-* adbe rotate [left|right]
-* adbe gfx [on|off]
-* adbe overdraw [on|off]
-* adbe layout [on|off]
-* adbe destroy-activities-in-background [on|off]
-* adbe battery saver [on|off]
-* adbe mobile-data saver [on|off]  # adb shell cmd netpolicy set restrict-background true/false
-* adbe battery level [0-100]
-* adbe doze
-* adbe jank $app_name
-* adbe devices [maps to adb devices -l]
-* adbe top-activity
-* adbe force-stop $app_name
-* adbe clear-data $app_name
-* adbe screenshot $file_name
-* adbe screenrecord $file_name
-* adbe mobile-data (on|off)
-* adbe [options] input-text <text>
-* adbe press back
+* adbe.py [options] rotate (landscape | portrait | left | right)
+* adbe.py [options] gfx (on | off | lines)
+* adbe.py [options] overdraw (on | off | deut)
+* adbe.py [options] layout (on | off)
+* adbe.py [options] airplane (on | off)
+* adbe.py [options] battery level <percentage>
+* adbe.py [options] battery saver (on | off)
+* adbe.py [options] battery reset
+* adbe.py [options] doze (on | off)
+* adbe.py [options] jank <app_name>
+* adbe.py [options] devices
+* adbe.py [options] top-activity
+* adbe.py [options] force-stop <app_name>
+* adbe.py [options] clear-data <app_name>
+* adbe.py [options] mobile-data (on | off)
+* adbe.py [options] mobile-data saver (on | off)
+* adbe.py [options] rtl (on | off) - This is not working properly as of now.
+* adbe.py [options] screenshot <filename.png>
+* adbe.py [options] screenrecord <filename.mp4>
+* adbe.py [options] dont-keep-activities (on | off)
+* adbe.py [options] input-text <text>
+* adbe.py [options] press back
+* adbe.py [options] permission-groups list all
+* adbe.py [options] permissions list (all | dangerous)
+* adbe.py [options] permissions (grant | revoke) <package_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+* adbe.py [options] restrict-background (true | false) <app_name>
 
 
 List of things which this tool will do in the future
 
-* adbe airplane [on|off]  # does not seem to work properly
 * adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
 * adbe app-standby $app_name
 * adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
@@ -76,6 +82,7 @@ Usage:
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <package_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe.py [options] restrict-background (true | false) <app_name>
 
 Options:
     -e, --emulator          directs command to the only running emulator
@@ -105,10 +112,11 @@ def main():
         options += '-s %s ' % args['--serial']
     _verbose = args['--verbose']
 
-    adb_prefix = 'adb %s' % options
+    if len(options) > 0:
+        adb_prefix = 'adb %s' % options
+    else:
+        adb_prefix = 'adb'
 
-    if False:
-        print(args)
     if args['rotate']:
         direction = 'portrait' if args['portrait'] else \
                 'landscape' if args['landscape'] else \
@@ -178,6 +186,9 @@ def main():
         permission_group = get_permission_group(args)
         permissions = get_permissions_in_permission_group(adb_prefix, permission_group)
         grant_or_revoke_runtime_permissions(adb_prefix, package_name, args['grant'], permissions)
+    elif args['restrict-background'] or args['restrict-bg']:
+        package_name = args['<package_name>']
+        apply_or_remove_background_restriction(adb_prefix, package_name, args['true'])
     else:
         raise NotImplementedError('Not implemented: %s' % args)
 
@@ -497,6 +508,7 @@ def get_permissions_in_permission_group(adb_prefix, permission_group):
             print('Permissions in %s group are %s' % (permission_group, permissions))
             return permissions
 
+
 def grant_or_revoke_runtime_permissions(adb_prefix, package_name, action_grant, permissions):
     if action_grant:
         cmd = 'pm grant %s' % package_name
@@ -504,6 +516,16 @@ def grant_or_revoke_runtime_permissions(adb_prefix, package_name, action_grant, 
         cmd = 'pm revoke %s' % package_name
     for permission in permissions:
         execute_adb_shell_command(adb_prefix, cmd + ' ' + permission)
+
+
+# Source: https://developer.android.com/preview/features/power
+def apply_or_remove_background_restriction(adb_prefix, package_name, set_restriction):
+    api_version = _get_api_version(adb_prefix)
+    if api_version < 28:
+        _print_error('This command cannot be executed below API version 28, your Android version is %s' % api_version)
+        return
+    appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (package_name, 'ignore' if set_restriction else 'allow')
+    execute_adb_shell_command(adb_prefix, appops_cmd)
 
 
 def execute_adb_shell_command_and_poke_activity_service(adb_prefix, adb_cmd):
@@ -544,6 +566,7 @@ def execute_adb_command(adb_prefix, adb_cmd, piped_into_cmd=None):
             print("Result is \"%s\"" % output)
         return output
 
+
 # adb shell getprop ro.build.version.sdk
 def _get_api_version(adb_prefix):
     version_string = _get_prop(adb_prefix, 'ro.build.version.sdk')
@@ -554,6 +577,10 @@ def _get_api_version(adb_prefix):
 
 def _get_prop(adb_prefix, property_name):
     return execute_adb_shell_command(adb_prefix, 'getprop %s' % property_name)
+
+
+def _print_error(error_string):
+    print(error_string)
 
 
 if __name__ == '__main__':
