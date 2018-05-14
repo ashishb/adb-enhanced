@@ -480,6 +480,7 @@ def list_permissions(dangerous_only_permissions):
         cmd = 'pm list permissions -g'
     print(execute_adb_shell_command(cmd))
 
+
 # Returns a fully-qualified permission group name.
 def get_permission_group(args):
     if args['contacts']: return 'android.permission-group.CONTACTS'
