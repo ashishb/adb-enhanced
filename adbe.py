@@ -150,15 +150,21 @@ def main():
     elif args['doze']:
         handle_doze(args['on'])
     elif args['jank']:
-        handle_get_jank(args['<app_name>'])
+        package_name = args['<package_name>']
+        _ensure_package_exists(package_name)
+        handle_get_jank(package_name)
     elif args['devices']:
         handle_list_devices()
     elif args['top-activity']:
         print_top_activity()
     elif args['force-stop']:
-        force_stop(args['<app_name>'])
+        package_name = args['<package_name>']
+        _ensure_package_exists(package_name)
+        force_stop(package_name)
     elif args['clear-data']:
-        clear_disk_data(args['<app_name>'])
+        package_name = args['<package_name>']
+        _ensure_package_exists(package_name)
+        clear_disk_data(package_name)
     elif args['mobile-data']:
         if args['saver']:
             handle_mobile_data_saver(args['on'])
@@ -183,11 +189,13 @@ def main():
         list_permissions(args['dangerous'])
     elif args['permissions']:
         package_name = args['<package_name>']
+        _ensure_package_exists(package_name)
         permission_group = get_permission_group(args)
         permissions = get_permissions_in_permission_group(permission_group)
         grant_or_revoke_runtime_permissions(package_name, args['grant'], permissions)
     elif args['restrict-background'] or args['restrict-bg']:
         package_name = args['<package_name>']
+        _ensure_package_exists(package_name)
         apply_or_remove_background_restriction(package_name, args['true'])
     else:
         raise NotImplementedError('Not implemented: %s' % args)
@@ -479,6 +487,17 @@ def list_permissions(dangerous_only_permissions):
     else:
         cmd = 'pm list permissions -g'
     print(execute_adb_shell_command(cmd))
+
+
+def _ensure_package_exists(package_name):
+    if not _package_exists(package_name):
+        raise AssertionError("Package %s does not exist" % package_name)
+
+
+def _package_exists(package_name):
+    cmd = 'pm path %s' % package_name
+    response = execute_adb_shell_command(cmd)
+    return response is not None and len(response.strip()) != 0
 
 
 # Returns a fully-qualified permission group name.
