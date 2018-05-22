@@ -34,7 +34,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] press back
 * adbe.py [options] permission-groups list all
 * adbe.py [options] permissions list (all | dangerous)
-* adbe.py [options] permissions (grant | revoke) <package_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+* adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
 * adbe.py [options] restrict-background (true | false) <app_name>
 
 
@@ -81,7 +81,7 @@ Usage:
     adbe.py [options] press back
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
-    adbe.py [options] permissions (grant | revoke) <package_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
     adbe.py [options] restrict-background (true | false) <app_name>
 
 Options:
@@ -150,21 +150,21 @@ def main():
     elif args['doze']:
         handle_doze(args['on'])
     elif args['jank']:
-        package_name = args['<package_name>']
-        _ensure_package_exists(package_name)
-        handle_get_jank(package_name)
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
+        handle_get_jank(app_name)
     elif args['devices']:
         handle_list_devices()
     elif args['top-activity']:
         print_top_activity()
     elif args['force-stop']:
-        package_name = args['<package_name>']
-        _ensure_package_exists(package_name)
-        force_stop(package_name)
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
+        force_stop(app_name)
     elif args['clear-data']:
-        package_name = args['<package_name>']
-        _ensure_package_exists(package_name)
-        clear_disk_data(package_name)
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
+        clear_disk_data(app_name)
     elif args['mobile-data']:
         if args['saver']:
             handle_mobile_data_saver(args['on'])
@@ -188,15 +188,15 @@ def main():
     elif args['permissions'] and args['list']:
         list_permissions(args['dangerous'])
     elif args['permissions']:
-        package_name = args['<package_name>']
-        _ensure_package_exists(package_name)
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
         permission_group = get_permission_group(args)
         permissions = get_permissions_in_permission_group(permission_group)
-        grant_or_revoke_runtime_permissions(package_name, args['grant'], permissions)
+        grant_or_revoke_runtime_permissions(app_name, args['grant'], permissions)
     elif args['restrict-background'] or args['restrict-bg']:
-        package_name = args['<package_name>']
-        _ensure_package_exists(package_name)
-        apply_or_remove_background_restriction(package_name, args['true'])
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
+        apply_or_remove_background_restriction(app_name, args['true'])
     else:
         raise NotImplementedError('Not implemented: %s' % args)
 
