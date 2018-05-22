@@ -263,15 +263,13 @@ def handle_rotate(direction):
         new_direction = 1
     elif direction is 'left':
         current_direction = get_current_rotation_direction()
-        if _verbose:
-            print("Current direction: %d" % current_direction)
+        print_verbose("Current direction: %s" % current_direction)
         if current_direction is None:
             return
         new_direction = (current_direction + 1) % 4
     elif direction is 'right':
         current_direction = get_current_rotation_direction()
-        if _verbose:
-            print("Current direction: %d" % current_direction)
+        print_verbose("Current direction: %s" % current_direction)
         if current_direction is None:
             return
         new_direction = (current_direction - 1) % 4
@@ -284,14 +282,13 @@ def handle_rotate(direction):
 def get_current_rotation_direction():
     cmd = 'settings get system user_rotation'
     direction = execute_adb_shell_command(cmd)
-    if _verbose:
-        print("Return value is %s" % direction)
+    print_verbose("Return value is %s" % direction)
     if not direction:
         return 0  # default direction is 0, vertical straight
     try:
         return int(direction)
     except ValueError as e:
-        print("Failed to get direction, device returned: \"%s\"" % e)
+        print_error("Failed to get direction, device returned: \"%s\"" % e)
 
 
 def handle_layout(value):
@@ -384,7 +381,7 @@ def handle_list_devices():
     s3 = execute_adb_shell_command('getprop ro.product.model') 
     s4 = execute_adb_shell_command('getprop ro.build.version.release')
     s5 = execute_adb_shell_command('getprop ro.build.version.sdk')
-    print(s1, s2, s3, '\tRelease:', s4, '\tSDK version:', s5)
+    print_message('%s %s %s\tRelease:%s\tSDK version:%s' % (s1, s2, s3, s4, s5))
 
 def print_top_activity():
     cmd = 'dumpsys activity recents'
@@ -393,7 +390,7 @@ def print_top_activity():
 
 def force_stop(app_name):
     cmd = 'am force-stop %s' % app_name
-    print(execute_adb_shell_command(cmd))
+    print_message(execute_adb_shell_command(cmd))
 
 
 def clear_disk_data(app_name):
@@ -476,7 +473,7 @@ def press_back():
 
 def list_permission_groups():
     cmd = 'pm list permission-groups'
-    print(execute_adb_shell_command(cmd))
+    print_message(execute_adb_shell_command(cmd))
 
 
 def list_permissions(dangerous_only_permissions):
@@ -486,7 +483,7 @@ def list_permissions(dangerous_only_permissions):
         cmd = 'pm list permissions -g -d'
     else:
         cmd = 'pm list permissions -g'
-    print(execute_adb_shell_command(cmd))
+    print_message(execute_adb_shell_command(cmd))
 
 
 def _ensure_package_exists(package_name):
@@ -527,7 +524,7 @@ def get_permissions_in_permission_group(permission_group):
             # Filter out empty lines.
             permissions = filter(lambda x: len(x.strip()) > 0, potential_permissions)
             permissions = map(lambda x: x.replace('permission:', ''), permissions)
-            print('Permissions in %s group are %s' % (permission_group, permissions))
+            print_message('Permissions in %s group are %s' % (permission_group, permissions))
             return permissions
 
 
@@ -544,7 +541,7 @@ def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions)
 def apply_or_remove_background_restriction(package_name, set_restriction):
     api_version = _get_api_version()
     if api_version < 28:
-        _print_error('This command cannot be executed below API version 28, your Android version is %s' % api_version)
+        print_error('This command cannot be executed below API version 28, your Android version is %s' % api_version)
         return
     appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (package_name, 'ignore' if set_restriction else 'allow')
     execute_adb_shell_command(appops_cmd)
@@ -563,17 +560,15 @@ def execute_adb_shell_command(adb_cmd, piped_into_cmd=None):
 def execute_adb_command(adb_cmd, piped_into_cmd=None):
     final_cmd = ('%s %s' % (_adb_prefix, adb_cmd))
     if piped_into_cmd:
-        if _verbose:
-            print("Executing %s | %s" % (final_cmd, piped_into_cmd))
-            print("Executing %s | %s" % (adb_cmd, piped_into_cmd))
+        print_verbose("Executing %s | %s" % (final_cmd, piped_into_cmd))
+        print_verbose("Executing %s | %s" % (adb_cmd, piped_into_cmd))
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
         ps1.wait()
-        print(output)
+        print_message(output)
         return output
     else:
-        if _verbose:
-            print("Executing %s" % final_cmd)
+        print_verbose("Executing %s" % final_cmd)
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         ps1.wait()
         output = ''
@@ -584,8 +579,7 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None):
                 first_line = False
             else:
                 output += '\n' + line.strip()
-        if _verbose:
-            print("Result is \"%s\"" % output)
+        print_verbose("Result is \"%s\"" % output)
         return output
 
 
@@ -601,8 +595,29 @@ def _get_prop(property_name):
     return execute_adb_shell_command('getprop %s' % property_name)
 
 
-def _print_error(error_string):
-    print(error_string)
+def print_message(message):
+    print(message)
+
+
+def print_error(error_string):
+    print('%s%s%s' %(bcolors.FAIL, error_string, bcolors.ENDC))
+
+
+def print_verbose(message):
+    if _verbose:
+        print('%s%s%s' %(bcolors.WARNING, message, bcolors.ENDC))
+
+
+# Coloring approach inspired from https://stackoverflow.com/a/287944
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 
 if __name__ == '__main__':
