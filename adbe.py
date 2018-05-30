@@ -488,7 +488,8 @@ def list_permissions(dangerous_only_permissions):
 
 def _ensure_package_exists(package_name):
     if not _package_exists(package_name):
-        raise AssertionError("Package %s does not exist" % package_name)
+        print_error("Package %s does not exist" % package_name)
+        quit()
 
 
 def _package_exists(package_name):
