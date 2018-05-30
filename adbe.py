@@ -38,6 +38,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] permissions list (all | dangerous)
 * adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
 * adbe.py [options] restrict-background (true | false) <app_name>
+* adbe.py [options] ls [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 
 
 List of things which this tool will do in the future
@@ -85,12 +86,14 @@ Usage:
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
     adbe.py [options] restrict-background (true | false) <app_name>
+    adbe.py [options] ls [-l] <file_path>
 
 Options:
     -e, --emulator          directs command to the only running emulator
     -d, --device            directs command to the only connected "USB" device
     -s, --serial SERIAL     directs command to the device or emulator with the given serial number or qualifier.
                             Overrides ANDROID_SERIAL environment variable.
+    -l                      For long list format, valid only for "ls" command
     -v, --verbose           Verbose mode
 
 """
@@ -199,6 +202,10 @@ def main():
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
         apply_or_remove_background_restriction(app_name, args['true'])
+    elif args['ls']:
+        file_path = args['<file_path>']
+        long_format = args['-l']
+        perform_ls(file_path, long_format)
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 
@@ -567,6 +574,21 @@ def apply_or_remove_background_restriction(package_name, set_restriction):
     execute_adb_shell_command(appops_cmd)
 
 
+def perform_ls(file_path, long_format):
+    cmd_prefix = 'ls'
+    if long_format:
+        cmd_prefix += ' -l'
+    cmd = '%s %s' % (cmd_prefix, file_path)
+    # This is hacky but works for the cases I am looking for.
+    if file_path.startswith('/data/data/'):
+        run_as_package = file_path.split('/')[3]
+        if run_as_package is not None and len(run_as_package.strip()) > 0:
+            print_verbose('Running as package: %s' % run_as_package)
+            cmd = 'run-as %s %s' % (run_as_package, cmd)
+
+    print_message(execute_adb_shell_command(cmd))
+
+
 def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
     return_value = execute_adb_shell_command(adb_cmd)
     execute_adb_shell_command(get_update_activity_service_cmd())
@@ -580,15 +602,14 @@ def execute_adb_shell_command(adb_cmd, piped_into_cmd=None):
 def execute_adb_command(adb_cmd, piped_into_cmd=None):
     final_cmd = ('%s %s' % (_adb_prefix, adb_cmd))
     if piped_into_cmd:
-        print_verbose("Executing %s | %s" % (final_cmd, piped_into_cmd))
-        print_verbose("Executing %s | %s" % (adb_cmd, piped_into_cmd))
+        print_verbose("Executing \"%s | %s\"" % (final_cmd, piped_into_cmd))
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
         ps1.wait()
         print_message(output)
         return output
     else:
-        print_verbose("Executing %s" % final_cmd)
+        print_verbose("Executing \"%s\"" % final_cmd)
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         ps1.wait()
         output = ''
