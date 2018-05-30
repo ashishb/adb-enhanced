@@ -116,12 +116,12 @@ def main():
 
     if len(options) > 0:
         _adb_prefix = '%s %s' % (_adb_prefix, options)
-    
+
     if args['rotate']:
         direction = 'portrait' if args['portrait'] else \
-                'landscape' if args['landscape'] else \
+            'landscape' if args['landscape'] else \
                 'left' if args['left'] else \
-                'right'
+                    'right'
         handle_rotate(direction)
     elif args['gfx']:
         value = 'on' if args['on'] else \
@@ -210,7 +210,7 @@ def validate_options(args):
     if args['--serial']:
         count += 1
     if count > 1:
-        raise AssertionError('Only one out of -e, -d, or -s can be provided')
+        print_error_and_exit('Only one out of -e, -d, or -s can be provided')
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
@@ -222,7 +222,9 @@ def handle_gfx(value):
     elif value == 'lines':
         cmd = 'setprop debug.hwui.profile visual_lines'
     else:
-        raise AssertionError('Unexpected value for gfx %s' % value)
+        print_error_and_exit('Unexpected value for gfx %s' % value)
+        return
+
     execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
@@ -236,10 +238,10 @@ def handle_overdraw(value):
         elif value is 'off':
             cmd = 'setprop debug.hwui.show_overdraw false'
         elif value is 'deut':
-            raise AssertionError(
-                    'This command is not support on API %d' % version)
+            print_error_and_exit(
+                'This command is not support on API %d' % version)
         else:
-            raise AssertionError('Unexpected value for overdraw %s' % value)
+            print_error_and_exit('Unexpected value for overdraw %s' % value)
     else:
         if value is 'on':
             cmd = 'setprop debug.hwui.overdraw show'
@@ -248,7 +250,9 @@ def handle_overdraw(value):
         elif value is 'deut':
             cmd = 'setprop debug.hwui.overdraw show_deuteranomaly'
         else:
-            raise AssertionError('Unexpected value for overdraw %s' % value)
+            print_error_and_exit('Unexpected value for overdraw %s' % value)
+            return
+
     execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
@@ -274,7 +278,9 @@ def handle_rotate(direction):
             return
         new_direction = (current_direction - 1) % 4
     else:
-        raise AssertionError('Unexpected direction %s' % direction)
+        print_error_and_exit('Unexpected direction %s' % direction)
+        return
+
     cmd = 'settings put system user_rotation %s' % new_direction
     execute_adb_shell_command(cmd)
 
@@ -327,7 +333,7 @@ def handle_battery_saver(turn_on):
 # Source: https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 def handle_battery_level(level):
     if level < 0 or level > 100:
-        raise AssertionError('Battery percentage must be between 0 and 100')
+        print_error_and_exit('Battery percentage %d is outside the valid range of 0 to 100' % level)
     cmd = 'dumpsys battery set level %d' % level
 
     execute_adb_shell_command(get_battery_unplug_cmd())
@@ -377,11 +383,12 @@ def handle_get_jank(app_name):
 
 def handle_list_devices():
     s1 = execute_adb_command('devices -l')
-    s2 = execute_adb_shell_command('getprop ro.product.manufacturer') 
-    s3 = execute_adb_shell_command('getprop ro.product.model') 
+    s2 = execute_adb_shell_command('getprop ro.product.manufacturer')
+    s3 = execute_adb_shell_command('getprop ro.product.model')
     s4 = execute_adb_shell_command('getprop ro.build.version.release')
     s5 = execute_adb_shell_command('getprop ro.build.version.sdk')
     print_message('%s %s %s\tRelease:%s\tSDK version:%s' % (s1, s2, s3, s4, s5))
+
 
 def print_top_activity():
     cmd = 'dumpsys activity recents'
@@ -488,8 +495,7 @@ def list_permissions(dangerous_only_permissions):
 
 def _ensure_package_exists(package_name):
     if not _package_exists(package_name):
-        print_error("Package %s does not exist" % package_name)
-        quit()
+        print_error_and_exit("Package %s does not exist" % package_name)
 
 
 def _package_exists(package_name):
@@ -500,16 +506,26 @@ def _package_exists(package_name):
 
 # Returns a fully-qualified permission group name.
 def get_permission_group(args):
-    if args['contacts']: return 'android.permission-group.CONTACTS'
-    if args['phone']: return 'android.permission-group.PHONE'
-    if args['calendar']: return 'android.permission-group.CALENDAR'
-    if args['camera']: return 'android.permission-group.CAMERA'
-    if args['sensors']: return 'android.permission-group.SENSORS'
-    if args['location']: return 'android.permission-group.LOCATION'
-    if args['storage']: return 'android.permission-group.STORAGE'
-    if args['microphone']: return 'android.permission-group.MICROPHONE'
-    if args['sms']: return 'android.permission-group.SMS'
-    raise AssertionError('Unexpected permission group: %s' % args)
+    if args['contacts']:
+        return 'android.permission-group.CONTACTS'
+    elif args['phone']:
+        return 'android.permission-group.PHONE'
+    elif args['calendar']:
+        return 'android.permission-group.CALENDAR'
+    elif args['camera']:
+        return 'android.permission-group.CAMERA'
+    elif args['sensors']:
+        return 'android.permission-group.SENSORS'
+    elif args['location']:
+        return 'android.permission-group.LOCATION'
+    elif args['storage']:
+        return 'android.permission-group.STORAGE'
+    elif args['microphone']:
+        return 'android.permission-group.MICROPHONE'
+    elif args['sms']:
+        return 'android.permission-group.SMS'
+    else:
+        print_error_and_exit('Unexpected permission group: %s' % args)
 
 
 # Pass the full-qualified permission group name to this method.
@@ -542,8 +558,9 @@ def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions)
 def apply_or_remove_background_restriction(package_name, set_restriction):
     api_version = _get_api_version()
     if api_version < 28:
-        print_error('This command cannot be executed below API version 28, your Android version is %s' % api_version)
-        return
+        print_error_and_exit(
+            'This command cannot be executed below API version 28, your Android version is %s' % api_version)
+
     appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (package_name, 'ignore' if set_restriction else 'allow')
     execute_adb_shell_command(appops_cmd)
 
@@ -600,13 +617,18 @@ def print_message(message):
     print(message)
 
 
+def print_error_and_exit(error_string):
+    print('%s%s%s' % (bcolors.FAIL, error_string, bcolors.ENDC))
+    quit(1)
+
+
 def print_error(error_string):
-    print('%s%s%s' %(bcolors.FAIL, error_string, bcolors.ENDC))
+    print('%s%s%s' % (bcolors.FAIL, error_string, bcolors.ENDC))
 
 
 def print_verbose(message):
     if _verbose:
-        print('%s%s%s' %(bcolors.WARNING, message, bcolors.ENDC))
+        print('%s%s%s' % (bcolors.WARNING, message, bcolors.ENDC))
 
 
 # Coloring approach inspired from https://stackoverflow.com/a/287944
