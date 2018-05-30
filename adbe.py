@@ -3,6 +3,8 @@
 # Python 2 and 3, print compatibility
 from __future__ import print_function
 
+import sys
+
 import docopt
 import random
 import subprocess
@@ -193,12 +195,12 @@ def main():
         permission_group = get_permission_group(args)
         permissions = get_permissions_in_permission_group(permission_group)
         grant_or_revoke_runtime_permissions(app_name, args['grant'], permissions)
-    elif args['restrict-background'] or args['restrict-bg']:
+    elif args['restrict-background']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
         apply_or_remove_background_restriction(app_name, args['true'])
     else:
-        raise NotImplementedError('Not implemented: %s' % args)
+        print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 
 
 def validate_options(args):
