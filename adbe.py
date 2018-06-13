@@ -41,6 +41,8 @@ List of things which this enhanced adb tool does
 * adbe.py [options] ls [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 * adbe.py [options] start <app_name> - Launches an Android app's default launcher activity, which in most cases corresponds to how a developer wants to start the app
 * adbe.py [options] stop <app_name> - Force stop an application
+* adbe.py [options] print-apk-path <apk_name>
+
 
 List of things which this tool will do in the future
 
@@ -55,7 +57,6 @@ List of things which this tool will do in the future
 * adbe reset_app_name
 * adbe apps list (debugabble | system | third-party)
 * adbe print-signature <apk_name>
-* adbe print-path <apk_name>
 
 Use -q[uite] for quite mode
 
@@ -93,6 +94,7 @@ Usage:
     adbe.py [options] ls [-l] <file_path>
     adbe.py [options] start <app_name>
     adbe.py [options] stop <app_name>
+    adbe.py [options] print-apk-path <app_name>
 
 Options:
     -e, --emulator          directs command to the only running emulator
@@ -220,6 +222,10 @@ def main():
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
         stop_app(app_name)
+    elif args['print-apk-path']:
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
+        print_app_path(app_name)
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 
@@ -612,6 +618,14 @@ def launch_app(app_name):
 def stop_app(app_name):
     adb_shell_cmd = 'am kill %s' % app_name
     execute_adb_shell_command(adb_shell_cmd)
+
+
+def print_app_path(app_name):
+    adb_shell_cmd = 'pm path %s' % app_name
+    str = execute_adb_shell_command(adb_shell_cmd)
+    apk_path = str.split(':', 2)[1]
+    print_verbose('Path for %s is %s' % (app_name, apk_path))
+    print(str)
 
 
 def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
