@@ -40,7 +40,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] restrict-background (true | false) <app_name>
 * adbe.py [options] ls [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 * adbe.py [options] start <app_name> - Launches an Android app's default launcher activity, which in most cases corresponds to how a developer wants to start the app
-
+* adbe.py [options] stop <app_name> - Force stop an application
 
 List of things which this tool will do in the future
 
@@ -56,7 +56,6 @@ List of things which this tool will do in the future
 * adbe apps list (debugabble | system | third-party)
 * adbe print-signature <apk_name>
 * adbe print-path <apk_name>
-* adbe.py [options] stop <app_name>
 
 Use -q[uite] for quite mode
 
@@ -93,6 +92,7 @@ Usage:
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-l] <file_path>
     adbe.py [options] start <app_name>
+    adbe.py [options] stop <app_name>
 
 Options:
     -e, --emulator          directs command to the only running emulator
@@ -214,7 +214,12 @@ def main():
         perform_ls(file_path, long_format)
     elif args['start']:
         app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
         launch_app(app_name)
+    elif args['stop']:
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
+        stop_app(app_name)
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 
@@ -601,6 +606,11 @@ def perform_ls(file_path, long_format):
 # Source: https://stackoverflow.com/a/25398877
 def launch_app(app_name):
     adb_shell_cmd = 'monkey -p %s -c android.intent.category.LAUNCHER 1' % app_name
+    execute_adb_shell_command(adb_shell_cmd)
+
+
+def stop_app(app_name):
+    adb_shell_cmd = 'am kill %s' % app_name
     execute_adb_shell_command(adb_shell_cmd)
 
 
