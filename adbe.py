@@ -412,14 +412,32 @@ def handle_get_jank(app_name):
 
 def handle_list_devices():
     s1 = execute_adb_command('devices -l')
-    device_id = s1.split('\n')[1].split()[0]
-    manufacturer = execute_adb_shell_command('getprop ro.product.manufacturer')
-    model = execute_adb_shell_command('getprop ro.product.model')
-    release = execute_adb_shell_command('getprop ro.build.version.release')
-    sdk = execute_adb_shell_command('getprop ro.build.version.sdk')
-    print_message('Serial ID: %s\nManufacturer: %s\nModel: %s\nRelease: %s\nSDK version: %s\n' % (
-        device_id, manufacturer, model, release, sdk))
+    # Skip the first line, it says "List of devices attached"
+    device_infos = s1.split('\n')[1:]
 
+    if len(device_infos) == 0 or (len(device_infos) == 1 and len(device_infos[0]) == 0):
+        print_error_and_exit('No attached Android device found')
+    elif len(device_infos) == 1:
+        _print_device_info()
+    else:
+        for device_info in device_infos:
+            if len(device_info) == 0:
+                continue
+            device_serial = device_info.split()[0]
+            _print_device_info(device_serial)
+
+
+def _print_device_info(device_serial = None):
+    cmd_prefix = ''
+    if device_serial is not None:
+        cmd_prefix = '-s %s' % device_serial
+
+    manufacturer = execute_adb_command('%s shell getprop ro.product.manufacturer' % cmd_prefix)
+    model = execute_adb_command('%s shell getprop ro.product.model' % cmd_prefix)
+    release = execute_adb_command('%s shell getprop ro.build.version.release' % cmd_prefix)
+    sdk = execute_adb_command('%s shell getprop ro.build.version.sdk' % cmd_prefix)
+    print_message('Serial ID: %s\nManufacturer: %s\nModel: %s\nRelease: %s\nSDK version: %s\n' % (
+        device_serial, manufacturer, model, release, sdk))
 
 def print_top_activity():
     cmd = 'dumpsys activity recents'
