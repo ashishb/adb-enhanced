@@ -412,11 +412,13 @@ def handle_get_jank(app_name):
 
 def handle_list_devices():
     s1 = execute_adb_command('devices -l')
-    s2 = execute_adb_shell_command('getprop ro.product.manufacturer')
-    s3 = execute_adb_shell_command('getprop ro.product.model')
-    s4 = execute_adb_shell_command('getprop ro.build.version.release')
-    s5 = execute_adb_shell_command('getprop ro.build.version.sdk')
-    print_message('%s %s %s\tRelease:%s\tSDK version:%s' % (s1, s2, s3, s4, s5))
+    device_id = s1.split('\n')[1].split()[0]
+    manufacturer = execute_adb_shell_command('getprop ro.product.manufacturer')
+    model = execute_adb_shell_command('getprop ro.product.model')
+    release = execute_adb_shell_command('getprop ro.build.version.release')
+    sdk = execute_adb_shell_command('getprop ro.build.version.sdk')
+    print_message('Serial ID: %s\nManufacturer: %s\nModel: %s\nRelease: %s\nSDK version: %s\n' % (
+        device_id, manufacturer, model, release, sdk))
 
 
 def print_top_activity():
