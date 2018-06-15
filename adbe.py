@@ -92,6 +92,7 @@ Usage:
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-l] [-R] <file_path>
+    adbe.py [options] cat <file_path>
     adbe.py [options] start <app_name>
     adbe.py [options] stop <app_name>
     adbe.py [options] print-apk-path <app_name>
@@ -216,6 +217,9 @@ def main():
         long_format = args['-l']
         recursive = args['-R']
         list_directory(file_path, long_format, recursive)
+    elif args['cat']:
+        file_path = args['<file_path>']
+        cat_file(file_path)
     elif args['start']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
@@ -623,14 +627,26 @@ def list_directory(file_path, long_format, recursive):
     if recursive:
         cmd_prefix += ' -R'
     cmd = '%s %s' % (cmd_prefix, file_path)
+    cmd = _may_be_wrap_with_run_as(cmd, file_path)
+
+    print_message(execute_adb_shell_command(cmd))
+
+
+def cat_file(file_path):
+    cmd_prefix = 'cat'
+    cmd = '%s %s' % (cmd_prefix, file_path)
+    cmd = _may_be_wrap_with_run_as(cmd, file_path)
+    print_message(execute_adb_shell_command(cmd))
+
+
+def _may_be_wrap_with_run_as(cmd, file_path):
     # This is hacky but works for the cases I am looking for.
     if file_path.startswith('/data/data/'):
         run_as_package = file_path.split('/')[3]
         if run_as_package is not None and len(run_as_package.strip()) > 0:
             print_verbose('Running as package: %s' % run_as_package)
             cmd = 'run-as %s %s' % (run_as_package, cmd)
-
-    print_message(execute_adb_shell_command(cmd))
+    return cmd
 
 
 # Source: https://stackoverflow.com/a/25398877
