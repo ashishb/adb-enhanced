@@ -91,7 +91,7 @@ Usage:
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
     adbe.py [options] restrict-background (true | false) <app_name>
-    adbe.py [options] ls [-l] <file_path>
+    adbe.py [options] ls [-l] [-R] <file_path>
     adbe.py [options] start <app_name>
     adbe.py [options] stop <app_name>
     adbe.py [options] print-apk-path <app_name>
@@ -101,7 +101,8 @@ Options:
     -d, --device            directs command to the only connected "USB" device
     -s, --serial SERIAL     directs command to the device or emulator with the given serial number or qualifier.
                             Overrides ANDROID_SERIAL environment variable.
-    -l                      For long list format, valid only for "ls" command
+    -l                      For long list format, only valid for "ls" command
+    -R                      For recursive directory listing, only valid for "ls" command
     -v, --verbose           Verbose mode
 
 """
@@ -213,7 +214,8 @@ def main():
     elif args['ls']:
         file_path = args['<file_path>']
         long_format = args['-l']
-        perform_ls(file_path, long_format)
+        recursive = args['-R']
+        list_directory(file_path, long_format, recursive)
     elif args['start']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
@@ -614,10 +616,12 @@ def apply_or_remove_background_restriction(package_name, set_restriction):
     execute_adb_shell_command(appops_cmd)
 
 
-def perform_ls(file_path, long_format):
+def list_directory(file_path, long_format, recursive):
     cmd_prefix = 'ls'
     if long_format:
         cmd_prefix += ' -l'
+    if recursive:
+        cmd_prefix += ' -R'
     cmd = '%s %s' % (cmd_prefix, file_path)
     # This is hacky but works for the cases I am looking for.
     if file_path.startswith('/data/data/'):
