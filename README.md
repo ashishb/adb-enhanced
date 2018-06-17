@@ -30,6 +30,13 @@ Swiss-army knife for android testing and development, inspired from [android-scr
 
 `adbe permissions revoke com.example.android storage`
 
+* ls/cat any file without worrying about adding "run-as"
+
+`adbe ls /data/data/com.example/databases`  # Works as long as com.example is a debuggable package
+
+* Launch an appl
+`adbe start com.example`
+
 # Usage:
 
     adbe.py [options] rotate (landscape | portrait | left | right)
