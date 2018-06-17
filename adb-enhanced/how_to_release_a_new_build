@@ -1,6 +1,8 @@
 1. Copy the relevant files like adbe.py and README.md from the parent adbe directory to adbe-enhanced/adbe
 2. Modify the setup to update the version
-3. `python setup.py build` - I am not sure if this setup is required or not
-4. `python setup.py sdist upload -r pypi` - upload the project (reference:
-http://peterdowns.com/posts/first-time-with-pypi.html)
-5. Few mins later - https://pypi.org/project/adb-enhanced/#history
+3. `python3 -m pip install --user --upgrade setuptools wheel`  # One time
+4. `python3 setup.py sdist bdist_wheel` # Reference: https://packaging.python.org/tutorials/packaging-projects/
+   This should create dist directory.
+5. # Probably not required at all, `python3 -m pip install --user --upgrade twine`  # One time
+6. `python3 setup.py sdist upload`
+5. Few mins later, check https://pypi.org/project/adb-enhanced/#history
