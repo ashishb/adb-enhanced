@@ -72,6 +72,7 @@ Swiss-army knife for android testing and development, inspired from [android-scr
     adbe.py [options] print-apk-path <app_name>
 
 #Options:
+
     -e, --emulator          directs command to the only running emulator
     -d, --device            directs command to the only connected "USB" device
     -s, --serial SERIAL     directs command to the device or emulator with the given serial number or qualifier.
@@ -81,4 +82,5 @@ Swiss-army knife for android testing and development, inspired from [android-scr
     -v, --verbose           Verbose mode
     
 ## Python3 compatibility
+
 As of Nov 27, 2017, the code is python3 compatible and as of Jan 18, 2018, pip (python package manager) also has the updated version 
