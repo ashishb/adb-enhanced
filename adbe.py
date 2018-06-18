@@ -24,8 +24,6 @@ List of things which this enhanced adb tool does
 * adbe.py [options] jank <app_name>
 * adbe.py [options] devices
 * adbe.py [options] top-activity
-* adbe.py [options] force-stop <app_name>
-* adbe.py [options] clear-data <app_name>
 * adbe.py [options] mobile-data (on | off)
 * adbe.py [options] mobile-data saver (on | off)
 * adbe.py [options] rtl (on | off) - This is not working properly as of now.
@@ -41,6 +39,8 @@ List of things which this enhanced adb tool does
 * adbe.py [options] ls [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 * adbe.py [options] start <app_name> - Launches an Android app's default launcher activity, which in most cases corresponds to how a developer wants to start the app
 * adbe.py [options] stop <app_name> - Force stop an application
+* adbe.py [options] force-stop <app_name>
+* adbe.py [options] clear-data <app_name>
 * adbe.py [options] print-apk-path <apk_name>
 
 
@@ -77,8 +77,6 @@ Usage:
     adbe.py [options] jank <app_name>
     adbe.py [options] devices
     adbe.py [options] top-activity
-    adbe.py [options] force-stop <app_name>
-    adbe.py [options] clear-data <app_name>
     adbe.py [options] mobile-data (on | off)
     adbe.py [options] mobile-data saver (on | off)
     adbe.py [options] rtl (on | off)
@@ -95,6 +93,8 @@ Usage:
     adbe.py [options] cat <file_path>
     adbe.py [options] start <app_name>
     adbe.py [options] stop <app_name>
+    adbe.py [options] force-stop <app_name>
+    adbe.py [options] clear-data <app_name>
     adbe.py [options] print-apk-path <app_name>
 
 Options:
