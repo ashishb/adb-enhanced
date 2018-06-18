@@ -71,7 +71,7 @@ Swiss-army knife for android testing and development, inspired from [android-scr
     adbe.py [options] clear-data <app_name>
     adbe.py [options] print-apk-path <app_name>
 
-#Options:
+# Options:
 
     -e, --emulator          directs command to the only running emulator
     -d, --device            directs command to the only connected "USB" device
