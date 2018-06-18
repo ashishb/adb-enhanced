@@ -51,8 +51,6 @@ Swiss-army knife for android testing and development, inspired from [android-scr
     adbe.py [options] jank <app_name>
     adbe.py [options] devices
     adbe.py [options] top-activity
-    adbe.py [options] force-stop <app_name>
-    adbe.py [options] clear-data <app_name>
     adbe.py [options] mobile-data (on | off)
     adbe.py [options] mobile-data saver (on | off)
     adbe.py [options] rtl (on | off)
@@ -69,6 +67,8 @@ Swiss-army knife for android testing and development, inspired from [android-scr
     adbe.py [options] cat <file_path>
     adbe.py [options] start <app_name>
     adbe.py [options] stop <app_name>
+    adbe.py [options] force-stop <app_name>
+    adbe.py [options] clear-data <app_name>
     adbe.py [options] print-apk-path <app_name>
 
 #Options:
