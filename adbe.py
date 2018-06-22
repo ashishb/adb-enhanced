@@ -473,7 +473,7 @@ def force_rtl(turn_on):
     if turn_on:
         cmd = 'settings put global debug.force_rtl 1'
     else:
-        cmd = 'settings put global debug.force_rtl 1'
+        cmd = 'settings put global debug.force_rtl 0'
     execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
