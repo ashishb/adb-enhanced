@@ -30,6 +30,13 @@ Swiss-army knife for android testing and development, inspired from [android-scr
 
 `adbe permissions revoke com.example.android storage`
 
+* ls/cat any file without worrying about adding "run-as"
+
+`adbe ls /data/data/com.example/databases`  # Works as long as com.example is a debuggable package
+
+* Launch an app
+`adbe start com.example`
+
 # Usage:
 
     adbe.py [options] rotate (landscape | portrait | left | right)
@@ -44,8 +51,6 @@ Swiss-army knife for android testing and development, inspired from [android-scr
     adbe.py [options] jank <app_name>
     adbe.py [options] devices
     adbe.py [options] top-activity
-    adbe.py [options] force-stop <app_name>
-    adbe.py [options] clear-data <app_name>
     adbe.py [options] mobile-data (on | off)
     adbe.py [options] mobile-data saver (on | off)
     adbe.py [options] rtl (on | off)
@@ -62,9 +67,13 @@ Swiss-army knife for android testing and development, inspired from [android-scr
     adbe.py [options] cat <file_path>
     adbe.py [options] start <app_name>
     adbe.py [options] stop <app_name>
+    adbe.py [options] force-stop <app_name>
+    adbe.py [options] clear-data <app_name>
+    adbe.py [options] app-info <app_name>
     adbe.py [options] print-apk-path <app_name>
 
-#Options:
+# Options:
+
     -e, --emulator          directs command to the only running emulator
     -d, --device            directs command to the only connected "USB" device
     -s, --serial SERIAL     directs command to the device or emulator with the given serial number or qualifier.
@@ -74,4 +83,5 @@ Swiss-army knife for android testing and development, inspired from [android-scr
     -v, --verbose           Verbose mode
     
 ## Python3 compatibility
+
 As of Nov 27, 2017, the code is python3 compatible and as of Jan 18, 2018, pip (python package manager) also has the updated version 
