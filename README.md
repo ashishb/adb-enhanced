@@ -34,7 +34,7 @@ Swiss-army knife for android testing and development, inspired from [android-scr
 
 `adbe ls /data/data/com.example/databases`  # Works as long as com.example is a debuggable package
 
-* Launch an appl
+* Launch an app
 `adbe start com.example`
 
 # Usage:
@@ -69,6 +69,7 @@ Swiss-army knife for android testing and development, inspired from [android-scr
     adbe.py [options] stop <app_name>
     adbe.py [options] force-stop <app_name>
     adbe.py [options] clear-data <app_name>
+    adbe.py [options] app-info <app_name>
     adbe.py [options] print-apk-path <app_name>
 
 # Options:
