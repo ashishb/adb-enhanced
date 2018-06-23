@@ -783,10 +783,10 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None):
         first_line = True
         for line in ps1.stdout:
             if first_line:
-                output += str(line).strip()
+                output += line.decode('utf-8').strip()
                 first_line = False
             else:
-                output += '\n' + str(line).strip()
+                output += '\n' + line.decode('utf-8').strip()
         print_verbose("Result is \"%s\"" % output)
         return output
 
