@@ -6,9 +6,9 @@ from __future__ import print_function
 import re
 import sys
 
-import docopt
 import random
 import subprocess
+import docopt
 
 """
 List of things which this enhanced adb tool does
@@ -138,7 +138,7 @@ def main():
     if args['rotate']:
         direction = 'portrait' if args['portrait'] else \
             'landscape' if args['landscape'] else \
-                'left' if args['left'] else \
+            'left' if args['left'] else \
                     'right'
         handle_rotate(direction)
     elif args['gfx']:
@@ -210,7 +210,8 @@ def main():
         _ensure_package_exists(app_name)
         permission_group = get_permission_group(args)
         permissions = get_permissions_in_permission_group(permission_group)
-        grant_or_revoke_runtime_permissions(app_name, args['grant'], permissions)
+        grant_or_revoke_runtime_permissions(
+            app_name, args['grant'], permissions)
     elif args['restrict-background']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
@@ -255,7 +256,8 @@ def validate_options(args):
         print_error_and_exit('Only one out of -e, -d, or -s can be provided')
 
 
-# Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
+# Source:
+# https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
 def handle_gfx(value):
     if value == 'on':
         cmd = 'setprop debug.hwui.profile visual_bars'
@@ -298,7 +300,8 @@ def handle_overdraw(value):
     execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
-# Source: https://stackoverflow.com/questions/25864385/changing-android-device-orientation-with-adb
+# Source:
+# https://stackoverflow.com/questions/25864385/changing-android-device-orientation-with-adb
 def handle_rotate(direction):
     disable_acceleration = 'settings put system accelerometer_rotation 0'
     execute_adb_shell_command(disable_acceleration)
@@ -360,7 +363,8 @@ def handle_airplane(turn_on):
     execute_adb_shell_command(broadcast_change)
 
 
-# Source: https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
+# Source:
+# https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 def handle_battery_saver(turn_on):
     if turn_on:
         cmd = 'settings put global low_power 1'
@@ -372,10 +376,13 @@ def handle_battery_saver(turn_on):
     execute_adb_shell_command(cmd)
 
 
-# Source: https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
+# Source:
+# https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 def handle_battery_level(level):
     if level < 0 or level > 100:
-        print_error_and_exit('Battery percentage %d is outside the valid range of 0 to 100' % level)
+        print_error_and_exit(
+            'Battery percentage %d is outside the valid range of 0 to 100' %
+            level)
     cmd = 'dumpsys battery set level %d' % level
 
     execute_adb_shell_command(get_battery_unplug_cmd())
@@ -383,7 +390,8 @@ def handle_battery_level(level):
     execute_adb_shell_command(cmd)
 
 
-# Source: https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
+# Source:
+# https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 def handle_battery_reset():
     cmd = 'dumpsys battery reset'
     execute_adb_shell_command(cmd)
@@ -403,13 +411,15 @@ def handle_doze(turn_on):
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
-# Ref: https://gitlab.com/SaberMod/pa-android-frameworks-base/commit/a53de0629f3b94472c0f160f5bbe1090b020feab
+# Ref:
+# https://gitlab.com/SaberMod/pa-android-frameworks-base/commit/a53de0629f3b94472c0f160f5bbe1090b020feab
 def get_update_activity_service_cmd():
     # Note: 1599295570 == ('_' << 24) | ('S' << 16) | ('P' << 8) | 'R'
     return 'service call activity 1599295570'
 
 
-# This command puts the battery in discharging mode (most likely this is Android 6.0 onwards only)
+# This command puts the battery in discharging mode (most likely this is
+# Android 6.0 onwards only)
 def get_battery_discharging_cmd():
     return 'dumpsys battery set status 3'
 
@@ -428,7 +438,9 @@ def handle_list_devices():
     # Skip the first line, it says "List of devices attached"
     device_infos = s1.split('\n')[1:]
 
-    if len(device_infos) == 0 or (len(device_infos) == 1 and len(device_infos[0]) == 0):
+    if len(device_infos) == 0 or (
+            len(device_infos) == 1 and len(
+            device_infos[0]) == 0):
         print_error_and_exit('No attached Android device found')
     elif len(device_infos) == 1:
         _print_device_info()
@@ -440,17 +452,27 @@ def handle_list_devices():
             _print_device_info(device_serial)
 
 
-def _print_device_info(device_serial = None):
+def _print_device_info(device_serial=None):
     cmd_prefix = ''
     if device_serial is not None:
         cmd_prefix = '-s %s' % device_serial
 
-    manufacturer = execute_adb_command('%s shell getprop ro.product.manufacturer' % cmd_prefix)
-    model = execute_adb_command('%s shell getprop ro.product.model' % cmd_prefix)
-    release = execute_adb_command('%s shell getprop ro.build.version.release' % cmd_prefix)
-    sdk = execute_adb_command('%s shell getprop ro.build.version.sdk' % cmd_prefix)
-    print_message('Serial ID: %s\nManufacturer: %s\nModel: %s\nRelease: %s\nSDK version: %s\n' % (
-        device_serial, manufacturer, model, release, sdk))
+    manufacturer = execute_adb_command(
+        '%s shell getprop ro.product.manufacturer' %
+        cmd_prefix)
+    model = execute_adb_command(
+        '%s shell getprop ro.product.model' %
+        cmd_prefix)
+    release = execute_adb_command(
+        '%s shell getprop ro.build.version.release' %
+        cmd_prefix)
+    sdk = execute_adb_command(
+        '%s shell getprop ro.build.version.sdk' %
+        cmd_prefix)
+    print_message(
+        'Serial ID: %s\nManufacturer: %s\nModel: %s\nRelease: %s\nSDK version: %s\n' %
+        (device_serial, manufacturer, model, release, sdk))
+
 
 def print_top_activity():
     cmd = 'dumpsys activity recents'
@@ -467,7 +489,8 @@ def clear_disk_data(app_name):
     execute_adb_shell_command(cmd)
 
 
-# Source: https://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later
+# Source:
+# https://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later
 def handle_mobile_data(turn_on):
     if turn_on:
         cmd = 'svc data enable'
@@ -485,8 +508,10 @@ def force_rtl(turn_on):
 
 
 def dump_screenshot(filepath):
-    filepath_on_device = '/sdcard/screenshot-%d.png' % random.randint(1, 1000 * 1000 * 1000)
-    # TODO: May be in the future, add a check here to ensure that we are not over-writing any existing file.
+    filepath_on_device = '/sdcard/screenshot-%d.png' % random.randint(
+        1, 1000 * 1000 * 1000)
+    # TODO: May be in the future, add a check here to ensure that we are not
+    # over-writing any existing file.
     dump_cmd = 'screencap -p %s ' % filepath_on_device
     execute_adb_shell_command(dump_cmd)
     pull_cmd = 'pull %s %s' % (filepath_on_device, filepath)
@@ -496,8 +521,10 @@ def dump_screenshot(filepath):
 
 
 def dump_screenrecord(filepath):
-    filepath_on_device = "/sdcard/screenrecord-%d.mp4" % random.randint(1, 1000 * 1000 * 1000)
-    # TODO: May be in the future, add a check here to ensure that we are not over-writing any existing file.
+    filepath_on_device = "/sdcard/screenrecord-%d.mp4" % random.randint(
+        1, 1000 * 1000 * 1000)
+    # TODO: May be in the future, add a check here to ensure that we are not
+    # over-writing any existing file.
     dump_cmd = 'screenrecord %s --time-limit 10 ' % filepath_on_device
     execute_adb_shell_command(dump_cmd)
     pull_cmd = 'pull %s %s' % (filepath_on_device, filepath)
@@ -601,13 +628,21 @@ def get_permissions_in_permission_group(permission_group):
             # Ignore the first entry which is the group name
             potential_permissions = potential_permissions[1:]
             # Filter out empty lines.
-            permissions = filter(lambda x: len(x.strip()) > 0, potential_permissions)
-            permissions = map(lambda x: x.replace('permission:', ''), permissions)
-            print_message('Permissions in %s group are %s' % (permission_group, permissions))
+            permissions = filter(
+                lambda x: len(
+                    x.strip()) > 0,
+                potential_permissions)
+            permissions = map(
+                lambda x: x.replace(
+                    'permission:', ''), permissions)
+            print_message(
+                'Permissions in %s group are %s' %
+                (permission_group, permissions))
             return permissions
 
 
-def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions):
+def grant_or_revoke_runtime_permissions(
+        package_name, action_grant, permissions):
     if action_grant:
         cmd = 'pm grant %s' % package_name
     else:
@@ -621,9 +656,11 @@ def apply_or_remove_background_restriction(package_name, set_restriction):
     api_version = _get_api_version()
     if api_version < 28:
         print_error_and_exit(
-            'This command cannot be executed below API version 28, your Android version is %s' % api_version)
+            'This command cannot be executed below API version 28, your Android version is %s' %
+            api_version)
 
-    appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (package_name, 'ignore' if set_restriction else 'allow')
+    appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (
+        package_name, 'ignore' if set_restriction else 'allow')
     execute_adb_shell_command(appops_cmd)
 
 
@@ -675,7 +712,8 @@ def _regex_extract(regex, data):
         return regex_object.group(1)
 
 
-# adb shell pm dump <app_name> produces about 1200 lines, mostly useless, compared to this.
+# adb shell pm dump <app_name> produces about 1200 lines, mostly useless,
+# compared to this.
 def print_app_info(app_name):
 
     # app_info_dump = execute_adb_shell_command('pm dump %s' % app_name)
@@ -685,19 +723,23 @@ def print_app_info(app_name):
     min_sdk_version = _regex_extract('minSdk=(\\d+)?', app_info_dump)
     target_sdk_version = _regex_extract('targetSdk=(\\d+)?', app_info_dump)
     max_sdk_version = _regex_extract('maxSdk=(\\d+)?', app_info_dump)
-    is_debuggable = re.search('pkgFlags.*DEBUGGABLE', app_info_dump, re.IGNORECASE) is not None
-    requested_permissions = \
-        re.search('requested permissions:(.*)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)\
-            .group(1)\
-            .split('\n')
-    install_time_permissions_string = \
-        re.search('install permissions:(.*)runtime permissions:', app_info_dump, re.IGNORECASE | re.DOTALL) \
-            .group(1) \
-            .split('\n')
+    is_debuggable = re.search(
+        'pkgFlags.*DEBUGGABLE',
+        app_info_dump,
+        re.IGNORECASE) is not None
+    requested_permissions = re.search(
+        'requested permissions:(.*)install permissions:',
+        app_info_dump,
+        re.IGNORECASE | re.DOTALL) .group(1) .split('\n')
+    install_time_permissions_string = re.search(
+        'install permissions:(.*)runtime permissions:',
+        app_info_dump,
+        re.IGNORECASE | re.DOTALL) .group(1) .split('\n')
 
     # Remove empty entries
     requested_permissions = filter(None, requested_permissions)
-    install_time_permissions_string = filter(None, install_time_permissions_string)
+    install_time_permissions_string = filter(
+        None, install_time_permissions_string)
     install_time_granted_permissions = []
     install_time_denied_permissions = []  # This will most likely remain empty
     for permission_string in install_time_permissions_string:
@@ -722,9 +764,9 @@ def print_app_info(app_name):
 
     runtime_not_granted_permissions = filter(
         lambda p: p not in runtime_granted_permissions and
-                  p not in runtime_denied_permissions and
-                  p not in install_time_granted_permissions and
-                  p not in install_time_denied_permissions, requested_permissions)
+        p not in runtime_denied_permissions and
+        p not in install_time_granted_permissions and
+        p not in install_time_denied_permissions, requested_permissions)
 
     msg = ''
     msg += 'App name: %s\n' % app_name
@@ -737,14 +779,20 @@ def print_app_info(app_name):
         msg += 'Max SDK version: %s\n' % max_sdk_version
 
     msg += '\nPermissions:\n\n'
-    msg += 'Install time granted permissions:\n%s\n\n' % '\n'.join(install_time_granted_permissions)
+    msg += 'Install time granted permissions:\n%s\n\n' % '\n'.join(
+        install_time_granted_permissions)
     if len(install_time_denied_permissions) > 0:
-        msg += 'Install time denied permissions:\n%s\n\n' % '\n'.join(install_time_denied_permissions)
-    msg += 'Runtime granted permissions:\n%s\n\n' % '\n'.join(runtime_granted_permissions)
-    msg += 'Runtime denied permissions:\n%s\n\n' % '\n'.join(runtime_denied_permissions)
-    msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(runtime_not_granted_permissions)
+        msg += 'Install time denied permissions:\n%s\n\n' % '\n'.join(
+            install_time_denied_permissions)
+    msg += 'Runtime granted permissions:\n%s\n\n' % '\n'.join(
+        runtime_granted_permissions)
+    msg += 'Runtime denied permissions:\n%s\n\n' % '\n'.join(
+        runtime_denied_permissions)
+    msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(
+        runtime_not_granted_permissions)
 
-    # TODO: Consider adding printing the signing key support to this in the future.
+    # TODO: Consider adding printing the signing key support to this in the
+    # future.
     print_message(msg)
 
 
@@ -771,7 +819,8 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None):
     if piped_into_cmd:
         print_verbose("Executing \"%s | %s\"" % (final_cmd, piped_into_cmd))
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
-        output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
+        output = subprocess.check_output(
+            piped_into_cmd, shell=True, stdin=ps1.stdout)
         ps1.wait()
         print_message(output)
         return output
