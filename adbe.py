@@ -3,6 +3,7 @@
 # Python 2 and 3, print compatibility
 from __future__ import print_function
 
+import re
 import sys
 
 import docopt
@@ -41,7 +42,8 @@ List of things which this enhanced adb tool does
 * adbe.py [options] stop <app_name> - Force stop an application
 * adbe.py [options] force-stop <app_name>
 * adbe.py [options] clear-data <app_name>
-* adbe.py [options] print-apk-path <apk_name>
+* adbe.py [options] app-info <app_name>
+* adbe.py [options] print-apk-path <app_name>
 
 
 List of things which this tool will do in the future
@@ -56,7 +58,7 @@ List of things which this tool will do in the future
 * adbe set_app_name [-f] $app_name
 * adbe reset_app_name
 * adbe apps list (debugabble | system | third-party)
-* adbe print-signature <apk_name>
+* adbe print-signature <app_name>
 
 Use -q[uite] for quite mode
 
@@ -95,6 +97,7 @@ Usage:
     adbe.py [options] stop <app_name>
     adbe.py [options] force-stop <app_name>
     adbe.py [options] clear-data <app_name>
+    adbe.py [options] app-info <app_name>
     adbe.py [options] print-apk-path <app_name>
 
 Options:
@@ -228,6 +231,10 @@ def main():
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
         stop_app(app_name)
+    elif args['app-info']:
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
+        print_app_info(app_name)
     elif args['print-apk-path']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
@@ -658,6 +665,87 @@ def launch_app(app_name):
 def stop_app(app_name):
     adb_shell_cmd = 'am kill %s' % app_name
     execute_adb_shell_command(adb_shell_cmd)
+
+
+def _regex_extract(regex, data):
+    regex_object = re.search(regex, data, re.IGNORECASE)
+    if regex_object is None:
+        return None
+    else:
+        return regex_object.group(1)
+
+
+# adb shell pm dump <app_name> produces about 1200 lines, mostly useless, compared to this.
+def print_app_info(app_name):
+
+    # app_info_dump = execute_adb_shell_command('pm dump %s' % app_name)
+    app_info_dump = execute_adb_shell_command('dumpsys package %s' % app_name)
+    version_code = _regex_extract('versionCode=(\\d+)?', app_info_dump)
+    version_name = _regex_extract('versionName=([\\d.]+)?', app_info_dump)
+    min_sdk_version = _regex_extract('minSdk=(\\d+)?', app_info_dump)
+    target_sdk_version = _regex_extract('targetSdk=(\\d+)?', app_info_dump)
+    max_sdk_version = _regex_extract('maxSdk=(\\d+)?', app_info_dump)
+    is_debuggable = re.search('pkgFlags.*DEBUGGABLE', app_info_dump, re.IGNORECASE) is not None
+    requested_permissions = \
+        re.search('requested permissions:(.*)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)\
+            .group(1)\
+            .split('\n')
+    install_time_permissions_string = \
+        re.search('install permissions:(.*)runtime permissions:', app_info_dump, re.IGNORECASE | re.DOTALL) \
+            .group(1) \
+            .split('\n')
+
+    # Remove empty entries
+    requested_permissions = filter(None, requested_permissions)
+    install_time_permissions_string = filter(None, install_time_permissions_string)
+    install_time_granted_permissions = []
+    install_time_denied_permissions = []  # This will most likely remain empty
+    for permission_string in install_time_permissions_string:
+        if permission_string.find('granted=true') >= 0:
+            permission, _ = permission_string.split(':')
+            install_time_granted_permissions.append(permission)
+        elif permission_string.find('granted=false') >= 0:
+            permission, _ = permission_string.split(':')
+            install_time_denied_permissions.append(permission)
+
+    runtime_denied_permissions = []
+    runtime_granted_permissions = []
+    for permission in requested_permissions:
+        if permission in install_time_granted_permissions or permission in install_time_denied_permissions:
+            continue
+        granted_pattern = '%s: granted=true' % permission
+        denied_pattern = '%s: granted=false' % permission
+        if app_info_dump.find(granted_pattern) >= 0:
+            runtime_granted_permissions.append(permission)
+        elif app_info_dump.find(denied_pattern) >= 0:
+            runtime_denied_permissions.append(permission)
+
+    runtime_not_granted_permissions = filter(
+        lambda p: p not in runtime_granted_permissions and
+                  p not in runtime_denied_permissions and
+                  p not in install_time_granted_permissions and
+                  p not in install_time_denied_permissions, requested_permissions)
+
+    msg = ''
+    msg += 'App name: %s\n' % app_name
+    msg += 'Version: %s\n' % version_name
+    msg += 'Version Code: %s\n' % version_code
+    msg += 'Is debuggable: %r\n' % is_debuggable
+    msg += 'Min SDK version: %s\n' % min_sdk_version
+    msg += 'Target SDK version: %s\n' % target_sdk_version
+    if max_sdk_version is not None:
+        msg += 'Max SDK version: %s\n' % max_sdk_version
+
+    msg += '\nPermissions:\n\n'
+    msg += 'Install time granted permissions:\n%s\n\n' % '\n'.join(install_time_granted_permissions)
+    if len(install_time_denied_permissions) > 0:
+        msg += 'Install time denied permissions:\n%s\n\n' % '\n'.join(install_time_denied_permissions)
+    msg += 'Runtime granted permissions:\n%s\n\n' % '\n'.join(runtime_granted_permissions)
+    msg += 'Runtime denied permissions:\n%s\n\n' % '\n'.join(runtime_denied_permissions)
+    msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(runtime_not_granted_permissions)
+
+    # TODO: Consider adding printing the signing key support to this in the future.
+    print_message(msg)
 
 
 def print_app_path(app_name):
