@@ -1,8 +1,11 @@
-# adb-enhanced
+# adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced)
+
 Swiss-army knife for android testing and development, inspired from [android-scripts](https://github.com/dhelleberg/android-scripts)
 
 # Installation
 `pip install adb-enhanced`
+
+
 
 # Examples
 
