@@ -737,7 +737,7 @@ def print_app_info(app_name):
         re.IGNORECASE | re.DOTALL) .group(1) .split('\n')
 
     # Remove empty entries
-    requested_permissions = filter(None, requested_permissions)
+    requested_permissions = list(filter(None, requested_permissions))
     install_time_permissions_string = filter(
         None, install_time_permissions_string)
     install_time_granted_permissions = []
@@ -762,11 +762,11 @@ def print_app_info(app_name):
         elif app_info_dump.find(denied_pattern) >= 0:
             runtime_denied_permissions.append(permission)
 
-    runtime_not_granted_permissions = filter(
+    runtime_not_granted_permissions = list(filter(
         lambda p: p not in runtime_granted_permissions and
         p not in runtime_denied_permissions and
         p not in install_time_granted_permissions and
-        p not in install_time_denied_permissions, requested_permissions)
+        p not in install_time_denied_permissions, requested_permissions))
 
     msg = ''
     msg += 'App name: %s\n' % app_name
@@ -788,8 +788,9 @@ def print_app_info(app_name):
         runtime_granted_permissions)
     msg += 'Runtime denied permissions:\n%s\n\n' % '\n'.join(
         runtime_denied_permissions)
-    msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(
-        runtime_not_granted_permissions)
+    if len(runtime_not_granted_permissions) > 0:
+        msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(
+                runtime_not_granted_permissions)
 
     # TODO: Consider adding printing the signing key support to this in the
     # future.
