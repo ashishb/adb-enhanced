@@ -621,6 +621,9 @@ def get_permission_group(args):
 def get_permissions_in_permission_group(permission_group):
     # List permissions by group
     permission_output = execute_adb_shell_command('pm list permissions -g')
+    # Remove ungrouped permissions section completely.
+    if 'ungrouped:' in permission_output:
+        permission_output, _ = permission_output.split('ungrouped:')
     splits = permission_output.split('group:')
     for split in splits:
         if split.startswith(permission_group):
@@ -632,9 +635,9 @@ def get_permissions_in_permission_group(permission_group):
                 lambda x: len(
                     x.strip()) > 0,
                 potential_permissions)
-            permissions = map(
+            permissions = list(map(
                 lambda x: x.replace(
-                    'permission:', ''), permissions)
+                    'permission:', ''), permissions))
             print_message(
                 'Permissions in %s group are %s' %
                 (permission_group, permissions))
