@@ -334,12 +334,12 @@ def get_current_rotation_direction():
     cmd = 'settings get system user_rotation'
     direction = execute_adb_shell_command(cmd)
     print_verbose("Return value is %s" % direction)
-    if not direction:
+    if not direction or direction == 'null':
         return 0  # default direction is 0, vertical straight
     try:
         return int(direction)
     except ValueError as e:
-        print_error("Failed to get direction, device returned: \"%s\"" % e)
+        print_error("Failed to get direction, error: \"%s\"" % e)
 
 
 def handle_layout(value):
