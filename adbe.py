@@ -112,6 +112,7 @@ Options:
 """
 
 _KEYCODE_BACK = 4
+_MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 
 _verbose = False
 _adb_prefix = 'adb'
@@ -206,6 +207,11 @@ def main():
     elif args['permissions'] and args['list']:
         list_permissions(args['dangerous'])
     elif args['permissions']:
+        android_api_version = _get_device_android_api_version()
+        if android_api_version < _MIN_API_FOR_RUNTIME_PERMISSIONS:
+            print_error_and_exit(
+                'Runtime permissions are supported only on API %d and above, your version is %d' %
+                (_MIN_API_FOR_RUNTIME_PERMISSIONS, android_api_version))
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
         permission_group = get_permission_group(args)
@@ -275,7 +281,7 @@ def handle_gfx(value):
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
 # https://plus.google.com/+AladinQ/posts/dpidzto1b8B
 def handle_overdraw(value):
-    version = _get_api_version()
+    version = _get_device_android_api_version()
     if version < 19:
         if value is 'on':
             cmd = 'setprop debug.hwui.show_overdraw true'
@@ -656,7 +662,7 @@ def grant_or_revoke_runtime_permissions(
 
 # Source: https://developer.android.com/preview/features/power
 def apply_or_remove_background_restriction(package_name, set_restriction):
-    api_version = _get_api_version()
+    api_version = _get_device_android_api_version()
     if api_version < 28:
         print_error_and_exit(
             'This command cannot be executed below API version 28, your Android version is %s' %
@@ -845,7 +851,7 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None):
 
 
 # adb shell getprop ro.build.version.sdk
-def _get_api_version():
+def _get_device_android_api_version():
     version_string = _get_prop('ro.build.version.sdk')
     if version_string is None:
         return -1
