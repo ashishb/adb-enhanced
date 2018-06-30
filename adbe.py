@@ -725,7 +725,6 @@ def _regex_extract(regex, data):
 # compared to this.
 def print_app_info(app_name):
 
-    # app_info_dump = execute_adb_shell_command('pm dump %s' % app_name)
     app_info_dump = execute_adb_shell_command('dumpsys package %s' % app_name)
     version_code = _regex_extract('versionCode=(\\d+)?', app_info_dump)
     version_name = _regex_extract('versionName=([\\d.]+)?', app_info_dump)
