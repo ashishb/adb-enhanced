@@ -33,6 +33,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] dont-keep-activities (on | off)
 * adbe.py [options] input-text <text>
 * adbe.py [options] press back
+* adbe.py [options] open-url <url>
 * adbe.py [options] permission-groups list all
 * adbe.py [options] permissions list (all | dangerous)
 * adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
@@ -87,6 +88,7 @@ Usage:
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
+    adbe.py [options] open-url <url>
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
@@ -202,6 +204,9 @@ def main():
         input_text(args['<text>'])
     elif args['back']:
         press_back()
+    elif args['open-url']:
+        url = args['<url>']
+        open_url(url)
     elif args['permission-groups'] and args['list'] and args['all']:
         list_permission_groups()
     elif args['permissions'] and args['list']:
@@ -570,6 +575,12 @@ def input_text(text):
 
 def press_back():
     cmd = 'input keyevent 4'
+    execute_adb_shell_command(cmd)
+
+
+def open_url(url):
+    # Let's not do any URL encoding for now, if required, we will add that in the future.
+    cmd = 'am start -a android.intent.action.VIEW -d %s' % url
     execute_adb_shell_command(cmd)
 
 
