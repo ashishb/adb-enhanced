@@ -841,13 +841,11 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None):
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
         output = subprocess.check_output(
             piped_into_cmd, shell=True, stdin=ps1.stdout)
-        ps1.wait()
         print_message(output)
         return output
     else:
         print_verbose("Executing \"%s\"" % final_cmd)
         ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
-        ps1.wait()
         output = ''
         first_line = True
         for line in ps1.stdout:
