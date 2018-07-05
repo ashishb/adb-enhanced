@@ -139,7 +139,7 @@ def main():
     if args['rotate']:
         direction = 'portrait' if args['portrait'] else \
             'landscape' if args['landscape'] else \
-            'left' if args['left'] else \
+                'left' if args['left'] else \
                     'right'
         handle_rotate(direction)
     elif args['gfx']:
@@ -446,7 +446,7 @@ def handle_list_devices():
 
     if len(device_infos) == 0 or (
             len(device_infos) == 1 and len(
-            device_infos[0]) == 0):
+        device_infos[0]) == 0):
         print_error_and_exit('No attached Android device found')
     elif len(device_infos) == 1:
         _print_device_info()
@@ -724,25 +724,34 @@ def _regex_extract(regex, data):
 # adb shell pm dump <app_name> produces about 1200 lines, mostly useless,
 # compared to this.
 def print_app_info(app_name):
-
     app_info_dump = execute_adb_shell_command('dumpsys package %s' % app_name)
     version_code = _regex_extract('versionCode=(\\d+)?', app_info_dump)
     version_name = _regex_extract('versionName=([\\d.]+)?', app_info_dump)
     min_sdk_version = _regex_extract('minSdk=(\\d+)?', app_info_dump)
     target_sdk_version = _regex_extract('targetSdk=(\\d+)?', app_info_dump)
     max_sdk_version = _regex_extract('maxSdk=(\\d+)?', app_info_dump)
+    installer_package_name = _regex_extract('installerPackageName=(\\S+)?', app_info_dump)
     is_debuggable = re.search(
         'pkgFlags.*DEBUGGABLE',
         app_info_dump,
         re.IGNORECASE) is not None
-    requested_permissions = re.search(
-        'requested permissions:(.*)install permissions:',
-        app_info_dump,
-        re.IGNORECASE | re.DOTALL) .group(1) .split('\n')
-    install_time_permissions_string = re.search(
-        'install permissions:(.*)runtime permissions:',
-        app_info_dump,
-        re.IGNORECASE | re.DOTALL) .group(1) .split('\n')
+
+    requested_permissions_regex = \
+        re.search('requested permissions:(.*)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+    if requested_permissions_regex is None:
+        requested_permissions_regex = re.search('requested permissions:(.*)runtime permissions:', app_info_dump,
+                                                re.IGNORECASE | re.DOTALL)
+    if requested_permissions_regex is None:
+        requested_permissions = []  # No permissions requested by the app.
+    else:
+        requested_permissions = requested_permissions_regex.group(1).split('\n')
+
+    install_time_permissions_regex = re.search('install permissions:(.*)runtime permissions:', app_info_dump,
+                                               re.IGNORECASE | re.DOTALL)
+    if install_time_permissions_regex is None:
+        install_time_permissions_string = []
+    else:
+        install_time_permissions_string = install_time_permissions_regex.group(1).split('\n')
 
     # Remove empty entries
     requested_permissions = list(filter(None, requested_permissions))
@@ -772,9 +781,9 @@ def print_app_info(app_name):
 
     runtime_not_granted_permissions = list(filter(
         lambda p: p not in runtime_granted_permissions and
-        p not in runtime_denied_permissions and
-        p not in install_time_granted_permissions and
-        p not in install_time_denied_permissions, requested_permissions))
+                  p not in runtime_denied_permissions and
+                  p not in install_time_granted_permissions and
+                  p not in install_time_denied_permissions, requested_permissions))
 
     msg = ''
     msg += 'App name: %s\n' % app_name
@@ -798,7 +807,9 @@ def print_app_info(app_name):
         runtime_denied_permissions)
     if len(runtime_not_granted_permissions) > 0:
         msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(
-                runtime_not_granted_permissions)
+            runtime_not_granted_permissions)
+
+    msg += 'Installer package name: %s\n' % installer_package_name
 
     # TODO: Consider adding printing the signing key support to this in the
     # future.
