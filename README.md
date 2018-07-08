@@ -2,6 +2,10 @@
 
 Swiss-army knife for android testing and development, inspired from [android-scripts](https://github.com/dhelleberg/android-scripts)
 
+# Release announcement
+See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/](https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/)
+
+
 # Installation
 `pip install adb-enhanced`
 
