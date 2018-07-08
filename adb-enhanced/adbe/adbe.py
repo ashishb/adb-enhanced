@@ -6,6 +6,7 @@ from __future__ import print_function
 import re
 import sys
 
+import os
 import random
 import subprocess
 import docopt
@@ -33,11 +34,13 @@ List of things which this enhanced adb tool does
 * adbe.py [options] dont-keep-activities (on | off)
 * adbe.py [options] input-text <text>
 * adbe.py [options] press back
+* adbe.py [options] open-url <url>
 * adbe.py [options] permission-groups list all
 * adbe.py [options] permissions list (all | dangerous)
 * adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
 * adbe.py [options] restrict-background (true | false) <app_name>
 * adbe.py [options] ls [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
+* adbe.py [options] pull <remote> [local] [-a] - A smart pull which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 * adbe.py [options] start <app_name> - Launches an Android app's default launcher activity, which in most cases corresponds to how a developer wants to start the app
 * adbe.py [options] stop <app_name> - Force stop an application
 * adbe.py [options] force-stop <app_name>
@@ -87,11 +90,14 @@ Usage:
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
+    adbe.py [options] open-url <url>
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-l] [-R] <file_path>
+    adbe.py [options] pull [-a] <remote>
+    adbe.py [options] pull [-a] <remote> <local>
     adbe.py [options] cat <file_path>
     adbe.py [options] start <app_name>
     adbe.py [options] stop <app_name>
@@ -112,6 +118,7 @@ Options:
 """
 
 _KEYCODE_BACK = 4
+_MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 
 _verbose = False
 _adb_prefix = 'adb'
@@ -138,7 +145,7 @@ def main():
     if args['rotate']:
         direction = 'portrait' if args['portrait'] else \
             'landscape' if args['landscape'] else \
-            'left' if args['left'] else \
+                'left' if args['left'] else \
                     'right'
         handle_rotate(direction)
     elif args['gfx']:
@@ -201,11 +208,19 @@ def main():
         input_text(args['<text>'])
     elif args['back']:
         press_back()
+    elif args['open-url']:
+        url = args['<url>']
+        open_url(url)
     elif args['permission-groups'] and args['list'] and args['all']:
         list_permission_groups()
     elif args['permissions'] and args['list']:
         list_permissions(args['dangerous'])
     elif args['permissions']:
+        android_api_version = _get_device_android_api_version()
+        if android_api_version < _MIN_API_FOR_RUNTIME_PERMISSIONS:
+            print_error_and_exit(
+                'Runtime permissions are supported only on API %d and above, your version is %d' %
+                (_MIN_API_FOR_RUNTIME_PERMISSIONS, android_api_version))
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
         permission_group = get_permission_group(args)
@@ -221,6 +236,11 @@ def main():
         long_format = args['-l']
         recursive = args['-R']
         list_directory(file_path, long_format, recursive)
+    elif args['pull']:
+        remote_file_path = args['<remote>']
+        local_file_path = args['<local>']
+        copy_ancillary = args['-a']
+        pull_file(remote_file_path, local_file_path, copy_ancillary)
     elif args['cat']:
         file_path = args['<file_path>']
         cat_file(file_path)
@@ -275,7 +295,7 @@ def handle_gfx(value):
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
 # https://plus.google.com/+AladinQ/posts/dpidzto1b8B
 def handle_overdraw(value):
-    version = _get_api_version()
+    version = _get_device_android_api_version()
     if version < 19:
         if value is 'on':
             cmd = 'setprop debug.hwui.show_overdraw true'
@@ -440,7 +460,7 @@ def handle_list_devices():
 
     if len(device_infos) == 0 or (
             len(device_infos) == 1 and len(
-            device_infos[0]) == 0):
+        device_infos[0]) == 0):
         print_error_and_exit('No attached Android device found')
     elif len(device_infos) == 1:
         _print_device_info()
@@ -508,28 +528,22 @@ def force_rtl(turn_on):
 
 
 def dump_screenshot(filepath):
-    filepath_on_device = '/sdcard/screenshot-%d.png' % random.randint(
-        1, 1000 * 1000 * 1000)
-    # TODO: May be in the future, add a check here to ensure that we are not
-    # over-writing any existing file.
-    dump_cmd = 'screencap -p %s ' % filepath_on_device
+    file_path_on_device = _create_tmp_file('screenshot', 'png')
+    dump_cmd = 'screencap -p %s ' % file_path_on_device
     execute_adb_shell_command(dump_cmd)
-    pull_cmd = 'pull %s %s' % (filepath_on_device, filepath)
+    pull_cmd = 'pull %s %s' % (file_path_on_device, filepath)
     execute_adb_command(pull_cmd)
-    del_cmd = 'rm %s' % filepath_on_device
+    del_cmd = 'rm %s' % file_path_on_device
     execute_adb_shell_command(del_cmd)
 
 
 def dump_screenrecord(filepath):
-    filepath_on_device = "/sdcard/screenrecord-%d.mp4" % random.randint(
-        1, 1000 * 1000 * 1000)
-    # TODO: May be in the future, add a check here to ensure that we are not
-    # over-writing any existing file.
-    dump_cmd = 'screenrecord %s --time-limit 10 ' % filepath_on_device
+    file_path_on_device = _create_tmp_file('screenrecord', 'mp4')
+    dump_cmd = 'screenrecord %s --time-limit 10 ' % file_path_on_device
     execute_adb_shell_command(dump_cmd)
-    pull_cmd = 'pull %s %s' % (filepath_on_device, filepath)
+    pull_cmd = 'pull %s %s' % (file_path_on_device, filepath)
     execute_adb_command(pull_cmd)
-    del_cmd = 'rm %s' % filepath_on_device
+    del_cmd = 'rm %s' % file_path_on_device
     execute_adb_shell_command(del_cmd)
 
 
@@ -567,6 +581,12 @@ def press_back():
     execute_adb_shell_command(cmd)
 
 
+def open_url(url):
+    # Let's not do any URL encoding for now, if required, we will add that in the future.
+    cmd = 'am start -a android.intent.action.VIEW -d %s' % url
+    execute_adb_shell_command(cmd)
+
+
 def list_permission_groups():
     cmd = 'pm list permission-groups'
     print_message(execute_adb_shell_command(cmd))
@@ -591,6 +611,31 @@ def _package_exists(package_name):
     cmd = 'pm path %s' % package_name
     response = execute_adb_shell_command(cmd)
     return response is not None and len(response.strip()) != 0
+
+def _create_tmp_file(filename_prefix = None, filename_suffix = None):
+    if filename_prefix is None:
+        filename_prefix = 'file'
+    if filename_suffix is None:
+        filename_suffix = 'tmp'
+    filepath_on_device = '/sdcard/%s-%d.%s' % (
+        filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
+    if _file_exists(filepath_on_device):
+        # Retry if the file already exists
+        print_verbose('Tmp File %s already exists, trying a new random name' % filepath_on_device)
+        return _create_tmp_file(filename_prefix, filename_suffix)
+    return filepath_on_device
+
+
+# Returns true if the file_path exists on the device, false if it does not exists or is inaccessible.
+def _file_exists(file_path):
+    exists_cmd = "'ls %s > /dev/null && echo exists'" % file_path
+    exists_cmd = _may_be_wrap_with_run_as(exists_cmd, file_path)
+    output = execute_adb_shell_command(exists_cmd, ignore_stderr=True)
+    return output.find('exists') != -1
+
+
+def _is_sqlite_database(file_path):
+    return file_path.endswith('.db')
 
 
 # Returns a fully-qualified permission group name.
@@ -656,7 +701,7 @@ def grant_or_revoke_runtime_permissions(
 
 # Source: https://developer.android.com/preview/features/power
 def apply_or_remove_background_restriction(package_name, set_restriction):
-    api_version = _get_api_version()
+    api_version = _get_device_android_api_version()
     if api_version < 28:
         print_error_and_exit(
             'This command cannot be executed below API version 28, your Android version is %s' %
@@ -677,6 +722,51 @@ def list_directory(file_path, long_format, recursive):
     cmd = _may_be_wrap_with_run_as(cmd, file_path)
 
     print_message(execute_adb_shell_command(cmd))
+
+
+# Copies from remote_file_path on Android to local_file_path on the disk
+# local_file_path can be None
+def pull_file(remote_file_path, local_file_path, copy_ancillary = False):
+    if not _file_exists(remote_file_path):
+        print_error_and_exit('File %s does not exist' % remote_file_path)
+
+    if local_file_path is None:
+        local_file_path = remote_file_path.split('/')[-1]
+        print_verbose('Local file path not provided, using \"%s\" for that' % local_file_path)
+
+    tmp_file = _create_tmp_file()
+    cp_cmd = 'cp -r %s %s' % (remote_file_path, tmp_file)
+    wrapped_cp_cmd = _may_be_wrap_with_run_as(cp_cmd, remote_file_path)
+    if cp_cmd == wrapped_cp_cmd:
+        # cp command is not required at all, if copying it is not required.
+        pull_cmd = 'pull %s %s' % (remote_file_path, local_file_path)
+        execute_adb_command(pull_cmd)
+    else:
+        # First copy the files to sdcard, then pull them out, and then delete them from sdcard.
+        execute_adb_shell_command(wrapped_cp_cmd)
+        pull_cmd = 'pull %s %s' % (tmp_file, local_file_path)
+        execute_adb_command(pull_cmd)
+        del_cmd = 'rm -r %s' % tmp_file
+        execute_adb_shell_command(del_cmd)
+
+    print_message('Copying remote file \"%s\" to local file \"%s\" (Size: %d bytes)' % (
+        remote_file_path,
+        local_file_path,
+        os.path.getsize(local_file_path)))
+
+    if _is_sqlite_database(remote_file_path):
+        # Copy temporary Sqlite files
+        # Source :https://ashishb.net/all/android-the-right-way-to-pull-sqlite-database-from-the-device/
+        for suffix in ['wal', 'journal', 'shm']:
+            tmp_db_file = '%s-%s' % (remote_file_path, suffix)
+            if not _file_exists(tmp_db_file):
+                continue
+            if copy_ancillary:
+                pull_file(tmp_db_file, '%s-%s' %(local_file_path, suffix), copy_ancillary=True)
+            else:
+                print_error('File \"%s\" has an ancillary file \"%s\" which should be copied.\nSee %s for details'
+                            % (remote_file_path, tmp_db_file,
+                               'https://ashishb.net/all/android-the-right-way-to-pull-sqlite-database-from-the-device/'))
 
 
 def cat_file(file_path):
@@ -718,26 +808,34 @@ def _regex_extract(regex, data):
 # adb shell pm dump <app_name> produces about 1200 lines, mostly useless,
 # compared to this.
 def print_app_info(app_name):
-
-    # app_info_dump = execute_adb_shell_command('pm dump %s' % app_name)
     app_info_dump = execute_adb_shell_command('dumpsys package %s' % app_name)
     version_code = _regex_extract('versionCode=(\\d+)?', app_info_dump)
     version_name = _regex_extract('versionName=([\\d.]+)?', app_info_dump)
     min_sdk_version = _regex_extract('minSdk=(\\d+)?', app_info_dump)
     target_sdk_version = _regex_extract('targetSdk=(\\d+)?', app_info_dump)
     max_sdk_version = _regex_extract('maxSdk=(\\d+)?', app_info_dump)
+    installer_package_name = _regex_extract('installerPackageName=(\\S+)?', app_info_dump)
     is_debuggable = re.search(
         'pkgFlags.*DEBUGGABLE',
         app_info_dump,
         re.IGNORECASE) is not None
-    requested_permissions = re.search(
-        'requested permissions:(.*)install permissions:',
-        app_info_dump,
-        re.IGNORECASE | re.DOTALL) .group(1) .split('\n')
-    install_time_permissions_string = re.search(
-        'install permissions:(.*)runtime permissions:',
-        app_info_dump,
-        re.IGNORECASE | re.DOTALL) .group(1) .split('\n')
+
+    requested_permissions_regex = \
+        re.search('requested permissions:(.*)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+    if requested_permissions_regex is None:
+        requested_permissions_regex = re.search('requested permissions:(.*)runtime permissions:', app_info_dump,
+                                                re.IGNORECASE | re.DOTALL)
+    if requested_permissions_regex is None:
+        requested_permissions = []  # No permissions requested by the app.
+    else:
+        requested_permissions = requested_permissions_regex.group(1).split('\n')
+
+    install_time_permissions_regex = re.search('install permissions:(.*)runtime permissions:', app_info_dump,
+                                               re.IGNORECASE | re.DOTALL)
+    if install_time_permissions_regex is None:
+        install_time_permissions_string = []
+    else:
+        install_time_permissions_string = install_time_permissions_regex.group(1).split('\n')
 
     # Remove empty entries
     requested_permissions = list(filter(None, requested_permissions))
@@ -767,9 +865,9 @@ def print_app_info(app_name):
 
     runtime_not_granted_permissions = list(filter(
         lambda p: p not in runtime_granted_permissions and
-        p not in runtime_denied_permissions and
-        p not in install_time_granted_permissions and
-        p not in install_time_denied_permissions, requested_permissions))
+                  p not in runtime_denied_permissions and
+                  p not in install_time_granted_permissions and
+                  p not in install_time_denied_permissions, requested_permissions))
 
     msg = ''
     msg += 'App name: %s\n' % app_name
@@ -793,7 +891,9 @@ def print_app_info(app_name):
         runtime_denied_permissions)
     if len(runtime_not_granted_permissions) > 0:
         msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(
-                runtime_not_granted_permissions)
+            runtime_not_granted_permissions)
+
+    msg += 'Installer package name: %s\n' % installer_package_name
 
     # TODO: Consider adding printing the signing key support to this in the
     # future.
@@ -814,24 +914,24 @@ def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
     return return_value
 
 
-def execute_adb_shell_command(adb_cmd, piped_into_cmd=None):
-    return execute_adb_command('shell %s' % adb_cmd, piped_into_cmd)
+def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
+    return execute_adb_command('shell %s' % adb_cmd, piped_into_cmd, ignore_stderr)
 
 
-def execute_adb_command(adb_cmd, piped_into_cmd=None):
+def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
     final_cmd = ('%s %s' % (_adb_prefix, adb_cmd))
     if piped_into_cmd:
         print_verbose("Executing \"%s | %s\"" % (final_cmd, piped_into_cmd))
-        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
+        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE,
+                               stderr=None if ignore_stderr is False else open(os.devnull, 'w'))
         output = subprocess.check_output(
             piped_into_cmd, shell=True, stdin=ps1.stdout)
-        ps1.wait()
         print_message(output)
         return output
     else:
         print_verbose("Executing \"%s\"" % final_cmd)
-        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE)
-        ps1.wait()
+        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE,
+                               stderr=None if ignore_stderr is False else open(os.devnull, 'w'))
         output = ''
         first_line = True
         for line in ps1.stdout:
@@ -845,7 +945,7 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None):
 
 
 # adb shell getprop ro.build.version.sdk
-def _get_api_version():
+def _get_device_android_api_version():
     version_string = _get_prop('ro.build.version.sdk')
     if version_string is None:
         return -1
