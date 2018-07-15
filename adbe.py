@@ -32,6 +32,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] screenshot <filename.png>
 * adbe.py [options] screenrecord <filename.mp4>
 * adbe.py [options] dont-keep-activities (on | off)
+* adbe.py [options] animations (on | off)
 * adbe.py [options] input-text <text>
 * adbe.py [options] press back
 * adbe.py [options] open-url <url>
@@ -90,6 +91,7 @@ Usage:
     adbe.py [options] screenshot <filename.png>
     adbe.py [options] screenrecord <filename.mp4>
     adbe.py [options] dont-keep-activities (on | off)
+    adbe.py [options] animations (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
     adbe.py [options] open-url <url>
@@ -208,6 +210,8 @@ def main():
         dump_screenrecord(args['<filename.mp4>'])
     elif args['dont-keep-activities']:
         handle_dont_keep_activities_in_background(args['on'])
+    elif args['animations']:
+        toggle_animations(args['on'])
     elif args['input-text']:
         input_text(args['<text>'])
     elif args['back']:
@@ -580,6 +584,22 @@ def handle_dont_keep_activities_in_background(turn_on):
         cmd2 = 'service call activity 43 i32 0'
     execute_adb_shell_command(cmd1)
     execute_adb_shell_command_and_poke_activity_service(cmd2)
+
+
+def toggle_animations(turn_on):
+    if turn_on:
+        cmd1 = 'settings delete global window_animation_scale'
+        cmd2 = 'settings delete global transition_animation_scale'
+        cmd3 = 'settings delete global animator_duration_scale'
+    else:
+        # Source: https://github.com/jaredsburrows/android-gif-example/blob/824c493285a2a2cf22f085662431cf0a7aa204b8/.travis.yml#L34
+        cmd1 = 'settings put global window_animation_scale 0'
+        cmd2 = 'settings put global transition_animation_scale 0'
+        cmd3 = 'settings put global animator_duration_scale 0'
+
+    execute_adb_shell_command(cmd1)
+    execute_adb_shell_command(cmd2)
+    execute_adb_shell_command(cmd3)
 
 
 def input_text(text):
