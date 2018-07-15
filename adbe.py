@@ -474,8 +474,7 @@ def handle_list_devices():
     device_infos = s1.split('\n')[1:]
 
     if len(device_infos) == 0 or (
-            len(device_infos) == 1 and len(
-        device_infos[0]) == 0):
+            len(device_infos) == 1 and len(device_infos[0]) == 0):
         print_error_and_exit('No attached Android device found')
     elif len(device_infos) == 1:
         _print_device_info()
@@ -510,8 +509,14 @@ def _print_device_info(device_serial=None):
 
 
 def print_top_activity():
-    cmd = 'dumpsys activity recents'
-    execute_adb_shell_command(cmd, 'grep "Recent #0"')
+    cmd = 'dumpsys window windows'
+    output = execute_adb_shell_command(cmd)
+    result = ''
+    for line in output.split('\n'):
+        line = line.strip()
+        if line.startswith('mCurrentFocus') or line.startswith('mFocusedApp'):
+            result = result + line + '\n'
+    print(result)
 
 
 def force_stop(app_name):
