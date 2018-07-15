@@ -38,6 +38,8 @@ List of things which this enhanced adb tool does
 * adbe.py [options] permission-groups list all
 * adbe.py [options] permissions list (all | dangerous)
 * adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+* adbe.py [options] standby-bucket get <app_name>
+* adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
 * adbe.py [options] restrict-background (true | false) <app_name>
 * adbe.py [options] ls [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 * adbe.py [options] pull <remote> [local] [-a] - A smart pull which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
@@ -94,6 +96,8 @@ Usage:
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe.py [options] standby-bucket get <app_name>
+    adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-l] [-R] <file_path>
     adbe.py [options] pull [-a] <remote>
@@ -227,6 +231,13 @@ def main():
         permissions = get_permissions_in_permission_group(permission_group)
         grant_or_revoke_runtime_permissions(
             app_name, args['grant'], permissions)
+    elif args['standby-bucket']:
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
+        if args['get']:
+            get_standby_bucket(app_name)
+        elif args['set']:
+            set_standby_bucket(app_name, _calculate_standby_mode(args))
     elif args['restrict-background']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
@@ -697,6 +708,56 @@ def grant_or_revoke_runtime_permissions(
         cmd = 'pm revoke %s' % package_name
     for permission in permissions:
         execute_adb_shell_command(cmd + ' ' + permission)
+
+
+# Source: https://developer.android.com/reference/android/app/usage/UsageStatsManager#STANDBY_BUCKET_ACTIVE
+_APP_STANDBY_BUCKETS = {
+    10: 'active',
+    20: 'working',
+    30: 'frequent',
+    40: 'rare',
+}
+
+
+# Source: https://developer.android.com/preview/features/power#buckets
+def get_standby_bucket(package_name):
+    api_version = _get_device_android_api_version()
+    if api_version < 28:
+        print_error_and_exit(
+            'This command cannot be executed below API version 28, your Android version is %s' %
+            api_version)
+    cmd = 'am get-standby-bucket %s' % package_name
+    result = execute_adb_shell_command(cmd)
+    if result is None:
+        print_error_and_exit('Unknown')
+    print_verbose('App standby bucket for \"%s\" is %s' %(
+        package_name, _APP_STANDBY_BUCKETS.get(int(result), 'unknown')))
+    print(_APP_STANDBY_BUCKETS.get(int(result), 'unknown'))
+
+
+def set_standby_bucket(package_name, mode):
+    api_version = _get_device_android_api_version()
+    if api_version < 28:
+        print_error_and_exit(
+            'This command cannot be executed below API version 28, your Android version is %s' %
+            api_version)
+    cmd = 'am set-standby-bucket %s %s' % (package_name, mode)
+    result = execute_adb_shell_command(cmd)
+    if result is not None:  # Expected
+        print_error_and_exit(result)
+
+
+def _calculate_standby_mode(args):
+    if args['active']:
+        return 'active'
+    elif args['working_set']:
+        return 'working_set'
+    elif args['frequent']:
+        return 'frequent'
+    elif args['rare']:
+        return 'rare'
+    else:
+        raise ValueError('Illegal argument: %s' % args)
 
 
 # Source: https://developer.android.com/preview/features/power
