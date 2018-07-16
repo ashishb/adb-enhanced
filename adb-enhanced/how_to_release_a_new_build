@@ -8,5 +8,6 @@
 4. `python3 setup.py sdist bdist_wheel` # Create the package. Reference: https://packaging.python.org/tutorials/packaging-projects/
    This should create dist directory.
 5. This step is probably not required at all, `python3 -m pip install --user --upgrade twine`  # One time
-6. `python3 setup.py sdist upload`  # Send the package upstream
-5. Few mins later, check https://pypi.org/project/adb-enhanced/#history
+6. `twine upload dist/*`  # Send the package upstream
+7. Few mins later, check https://pypi.org/project/adb-enhanced/#history
+8. Cleanup: `rm -r build/ dist/`
