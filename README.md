@@ -67,12 +67,15 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
     adbe.py [options] screenshot <filename.png>
     adbe.py [options] screenrecord <filename.mp4>
     adbe.py [options] dont-keep-activities (on | off)
+    adbe.py [options] animations (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
     adbe.py [options] open-url <url>
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe.py [options] standby-bucket get <app_name>
+    adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-l] [-R] <file_path>
     adbe.py [options] pull [-a] <remote>
@@ -85,7 +88,7 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
     adbe.py [options] app-info <app_name>
     adbe.py [options] print-apk-path <app_name>
 
-    
+
 # Options
 
     -e, --emulator          directs command to the only running emulator
