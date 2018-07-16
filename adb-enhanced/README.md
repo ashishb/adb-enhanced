@@ -7,8 +7,11 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
 
 
 # Installation
-`pip install adb-enhanced`
+`sudo pip3 install adb-enhanced`
 
+## Note
+1. `sudo pip install adb-enhanced` for python2 based install works as well but I would recommend moving to python3 since I might deprecate python2 support at some point.
+2. If you don't have sudo access or you are installing without sudo then the tool will still be installed but `adbe` might not be configured correctly in the path.
 
 
 # Examples
@@ -44,7 +47,7 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
 * Launch an app
 `adbe start com.example`
 
-# Usage:
+# Usage
 
     adbe.py [options] rotate (landscape | portrait | left | right)
     adbe.py [options] gfx (on | off | lines)
@@ -66,11 +69,14 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
+    adbe.py [options] open-url <url>
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-l] [-R] <file_path>
+    adbe.py [options] pull [-a] <remote>
+    adbe.py [options] pull [-a] <remote> <local>
     adbe.py [options] cat <file_path>
     adbe.py [options] start <app_name>
     adbe.py [options] stop <app_name>
@@ -79,7 +85,8 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
     adbe.py [options] app-info <app_name>
     adbe.py [options] print-apk-path <app_name>
 
-# Options:
+    
+# Options
 
     -e, --emulator          directs command to the only running emulator
     -d, --device            directs command to the only connected "USB" device

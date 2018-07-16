@@ -32,12 +32,15 @@ List of things which this enhanced adb tool does
 * adbe.py [options] screenshot <filename.png>
 * adbe.py [options] screenrecord <filename.mp4>
 * adbe.py [options] dont-keep-activities (on | off)
+* adbe.py [options] animations (on | off)
 * adbe.py [options] input-text <text>
 * adbe.py [options] press back
 * adbe.py [options] open-url <url>
 * adbe.py [options] permission-groups list all
 * adbe.py [options] permissions list (all | dangerous)
 * adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+* adbe.py [options] standby-bucket get <app_name>
+* adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
 * adbe.py [options] restrict-background (true | false) <app_name>
 * adbe.py [options] ls [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 * adbe.py [options] pull <remote> [local] [-a] - A smart pull which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
@@ -88,12 +91,15 @@ Usage:
     adbe.py [options] screenshot <filename.png>
     adbe.py [options] screenrecord <filename.mp4>
     adbe.py [options] dont-keep-activities (on | off)
+    adbe.py [options] animations (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
     adbe.py [options] open-url <url>
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe.py [options] standby-bucket get <app_name>
+    adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-l] [-R] <file_path>
     adbe.py [options] pull [-a] <remote>
@@ -204,6 +210,8 @@ def main():
         dump_screenrecord(args['<filename.mp4>'])
     elif args['dont-keep-activities']:
         handle_dont_keep_activities_in_background(args['on'])
+    elif args['animations']:
+        toggle_animations(args['on'])
     elif args['input-text']:
         input_text(args['<text>'])
     elif args['back']:
@@ -227,6 +235,13 @@ def main():
         permissions = get_permissions_in_permission_group(permission_group)
         grant_or_revoke_runtime_permissions(
             app_name, args['grant'], permissions)
+    elif args['standby-bucket']:
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
+        if args['get']:
+            get_standby_bucket(app_name)
+        elif args['set']:
+            set_standby_bucket(app_name, _calculate_standby_mode(args))
     elif args['restrict-background']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
@@ -459,8 +474,7 @@ def handle_list_devices():
     device_infos = s1.split('\n')[1:]
 
     if len(device_infos) == 0 or (
-            len(device_infos) == 1 and len(
-        device_infos[0]) == 0):
+            len(device_infos) == 1 and len(device_infos[0]) == 0):
         print_error_and_exit('No attached Android device found')
     elif len(device_infos) == 1:
         _print_device_info()
@@ -495,8 +509,14 @@ def _print_device_info(device_serial=None):
 
 
 def print_top_activity():
-    cmd = 'dumpsys activity recents'
-    execute_adb_shell_command(cmd, 'grep "Recent #0"')
+    cmd = 'dumpsys window windows'
+    output = execute_adb_shell_command(cmd)
+    result = ''
+    for line in output.split('\n'):
+        line = line.strip()
+        if line.startswith('mCurrentFocus') or line.startswith('mFocusedApp'):
+            result = result + line + '\n'
+    print(result)
 
 
 def force_stop(app_name):
@@ -569,6 +589,22 @@ def handle_dont_keep_activities_in_background(turn_on):
         cmd2 = 'service call activity 43 i32 0'
     execute_adb_shell_command(cmd1)
     execute_adb_shell_command_and_poke_activity_service(cmd2)
+
+
+def toggle_animations(turn_on):
+    if turn_on:
+        cmd1 = 'settings delete global window_animation_scale'
+        cmd2 = 'settings delete global transition_animation_scale'
+        cmd3 = 'settings delete global animator_duration_scale'
+    else:
+        # Source: https://github.com/jaredsburrows/android-gif-example/blob/824c493285a2a2cf22f085662431cf0a7aa204b8/.travis.yml#L34
+        cmd1 = 'settings put global window_animation_scale 0'
+        cmd2 = 'settings put global transition_animation_scale 0'
+        cmd3 = 'settings put global animator_duration_scale 0'
+
+    execute_adb_shell_command(cmd1)
+    execute_adb_shell_command(cmd2)
+    execute_adb_shell_command(cmd3)
 
 
 def input_text(text):
@@ -697,6 +733,56 @@ def grant_or_revoke_runtime_permissions(
         cmd = 'pm revoke %s' % package_name
     for permission in permissions:
         execute_adb_shell_command(cmd + ' ' + permission)
+
+
+# Source: https://developer.android.com/reference/android/app/usage/UsageStatsManager#STANDBY_BUCKET_ACTIVE
+_APP_STANDBY_BUCKETS = {
+    10: 'active',
+    20: 'working',
+    30: 'frequent',
+    40: 'rare',
+}
+
+
+# Source: https://developer.android.com/preview/features/power#buckets
+def get_standby_bucket(package_name):
+    api_version = _get_device_android_api_version()
+    if api_version < 28:
+        print_error_and_exit(
+            'This command cannot be executed below API version 28, your Android version is %s' %
+            api_version)
+    cmd = 'am get-standby-bucket %s' % package_name
+    result = execute_adb_shell_command(cmd)
+    if result is None:
+        print_error_and_exit('Unknown')
+    print_verbose('App standby bucket for \"%s\" is %s' %(
+        package_name, _APP_STANDBY_BUCKETS.get(int(result), 'unknown')))
+    print(_APP_STANDBY_BUCKETS.get(int(result), 'unknown'))
+
+
+def set_standby_bucket(package_name, mode):
+    api_version = _get_device_android_api_version()
+    if api_version < 28:
+        print_error_and_exit(
+            'This command cannot be executed below API version 28, your Android version is %s' %
+            api_version)
+    cmd = 'am set-standby-bucket %s %s' % (package_name, mode)
+    result = execute_adb_shell_command(cmd)
+    if result is not None:  # Expected
+        print_error_and_exit(result)
+
+
+def _calculate_standby_mode(args):
+    if args['active']:
+        return 'active'
+    elif args['working_set']:
+        return 'working_set'
+    elif args['frequent']:
+        return 'frequent'
+    elif args['rare']:
+        return 'rare'
+    else:
+        raise ValueError('Illegal argument: %s' % args)
 
 
 # Source: https://developer.android.com/preview/features/power
