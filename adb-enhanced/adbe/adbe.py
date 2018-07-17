@@ -581,11 +581,19 @@ def handle_mobile_data_saver(turn_on):
 # It was in system (not global before ICS)
 # adb shell service call activity 43 i32 1 followed by that
 def handle_dont_keep_activities_in_background(turn_on):
+    # Till Api 25, the value was True/False, above API 25, 1/0 work. Source: manual testing
+    if _get_device_android_api_version() <= 25:
+        use_true_false_as_value = True
+    else:
+        use_true_false_as_value = False
+
     if turn_on:
-        cmd1 = 'settings put global always_finish_activities true'
+        value = 'true' if use_true_false_as_value else '1'
+        cmd1 = 'settings put global always_finish_activities %s' % value
         cmd2 = 'service call activity 43 i32 1'
     else:
-        cmd1 = 'settings put global always_finish_activities false'
+        value = 'false' if use_true_false_as_value else '0'
+        cmd1 = 'settings put global always_finish_activities %s' % value
         cmd2 = 'service call activity 43 i32 0'
     execute_adb_shell_command(cmd1)
     execute_adb_shell_command_and_poke_activity_service(cmd2)
