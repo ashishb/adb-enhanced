@@ -601,14 +601,14 @@ def handle_dont_keep_activities_in_background(turn_on):
 
 def toggle_animations(turn_on):
     if turn_on:
-        cmd1 = 'settings delete global window_animation_scale'
-        cmd2 = 'settings delete global transition_animation_scale'
-        cmd3 = 'settings delete global animator_duration_scale'
+        value = 1
     else:
-        # Source: https://github.com/jaredsburrows/android-gif-example/blob/824c493285a2a2cf22f085662431cf0a7aa204b8/.travis.yml#L34
-        cmd1 = 'settings put global window_animation_scale 0'
-        cmd2 = 'settings put global transition_animation_scale 0'
-        cmd3 = 'settings put global animator_duration_scale 0'
+        value = 0
+
+    # Source: https://github.com/jaredsburrows/android-gif-example/blob/824c493285a2a2cf22f085662431cf0a7aa204b8/.travis.yml#L34
+    cmd1 = 'settings put global window_animation_scale %d' % value
+    cmd2 = 'settings put global transition_animation_scale %d' % value
+    cmd3 = 'settings put global animator_duration_scale %d' % value
 
     execute_adb_shell_command(cmd1)
     execute_adb_shell_command(cmd2)
