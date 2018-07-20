@@ -505,9 +505,14 @@ def _print_device_info(device_serial=None):
     model = execute_adb_command(
         '%s shell getprop ro.product.model' %
         cmd_prefix)
+    # This worked on 4.4.3 API 19 Moto E
     display_name = execute_adb_command(
         '%s shell getprop ro.product.display' %
         cmd_prefix)
+    if display_name is None or len(display_name) == 0:
+        # This works on 4.4.4 API 19 Galaxy Grand Prime
+        display_name = execute_adb_command('%s shell settings get system device_name' % cmd_prefix)
+
     release = execute_adb_command(
         '%s shell getprop ro.build.version.release' %
         cmd_prefix)
