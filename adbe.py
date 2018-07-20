@@ -497,6 +497,9 @@ def _print_device_info(device_serial=None):
     model = execute_adb_command(
         '%s shell getprop ro.product.model' %
         cmd_prefix)
+    display_name = execute_adb_command(
+        '%s shell getprop ro.product.display' %
+        cmd_prefix)
     release = execute_adb_command(
         '%s shell getprop ro.build.version.release' %
         cmd_prefix)
@@ -504,8 +507,8 @@ def _print_device_info(device_serial=None):
         '%s shell getprop ro.build.version.sdk' %
         cmd_prefix)
     print_message(
-        'Serial ID: %s\nManufacturer: %s\nModel: %s\nRelease: %s\nSDK version: %s\n' %
-        (device_serial, manufacturer, model, release, sdk))
+        'Serial ID: %s\nManufacturer: %s\nModel: %s (%s)\nRelease: %s\nSDK version: %s\n' %
+        (device_serial, manufacturer, model, display_name, release, sdk))
 
 
 def print_top_activity():
