@@ -509,9 +509,14 @@ def _print_device_info(device_serial=None):
     display_name = execute_adb_command(
         '%s shell getprop ro.product.display' %
         cmd_prefix)
-    if display_name is None or len(display_name) == 0:
+    # First fallback: undocumented
+    if display_name is None or len(display_name) == 0 or display_name == 'null':
         # This works on 4.4.4 API 19 Galaxy Grand Prime
         display_name = execute_adb_command('%s shell settings get system device_name' % cmd_prefix)
+    # Second fallback, documented to work on API 25 and above
+    # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#DEVICE_NAME
+    if display_name is None or len(display_name) == 0 or display_name == 'null':
+        display_name = execute_adb_command('%s shell settings get global device_name' % cmd_prefix)
 
     release = execute_adb_command(
         '%s shell getprop ro.build.version.release' %
