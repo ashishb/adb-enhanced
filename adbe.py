@@ -483,7 +483,15 @@ def handle_list_devices():
             if len(device_info) == 0:
                 continue
             device_serial = device_info.split()[0]
-            _print_device_info(device_serial)
+            if 'unauthorized' in device_info:
+                device_info = ' '.join(device_info.split()[1:])
+                print_error(
+                ('Unlock Device "%s" and give USB debugging access to ' +
+                        'this PC/Laptop by unlocking and reconnecting ' +
+                        'the device. More info about this device: "%s"') % (
+                                device_serial, device_info))
+            else:
+                _print_device_info(device_serial)
 
 
 def _print_device_info(device_serial=None):
