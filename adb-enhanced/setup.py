@@ -8,7 +8,7 @@ with open('README.md', 'r') as fh:
 
 setup(name='adb-enhanced',
         version=version,
-        description='An ADB wrapper for Android developers',
+        description='Swiss-army knife for Android testing and development',
         long_description=long_description,
         long_description_content_type='text/markdown',
         classifiers=['Intended Audience :: Developers'], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
