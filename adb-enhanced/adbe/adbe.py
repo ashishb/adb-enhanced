@@ -483,7 +483,15 @@ def handle_list_devices():
             if len(device_info) == 0:
                 continue
             device_serial = device_info.split()[0]
-            _print_device_info(device_serial)
+            if 'unauthorized' in device_info:
+                device_info = ' '.join(device_info.split()[1:])
+                print_error(
+                ('Unlock Device "%s" and give USB debugging access to ' +
+                        'this PC/Laptop by unlocking and reconnecting ' +
+                        'the device. More info about this device: "%s"') % (
+                                device_serial, device_info))
+            else:
+                _print_device_info(device_serial)
 
 
 def _print_device_info(device_serial=None):
@@ -497,6 +505,19 @@ def _print_device_info(device_serial=None):
     model = execute_adb_command(
         '%s shell getprop ro.product.model' %
         cmd_prefix)
+    # This worked on 4.4.3 API 19 Moto E
+    display_name = execute_adb_command(
+        '%s shell getprop ro.product.display' %
+        cmd_prefix)
+    # First fallback: undocumented
+    if display_name is None or len(display_name) == 0 or display_name == 'null':
+        # This works on 4.4.4 API 19 Galaxy Grand Prime
+        display_name = execute_adb_command('%s shell settings get system device_name' % cmd_prefix)
+    # Second fallback, documented to work on API 25 and above
+    # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#DEVICE_NAME
+    if display_name is None or len(display_name) == 0 or display_name == 'null':
+        display_name = execute_adb_command('%s shell settings get global device_name' % cmd_prefix)
+
     release = execute_adb_command(
         '%s shell getprop ro.build.version.release' %
         cmd_prefix)
@@ -504,8 +525,8 @@ def _print_device_info(device_serial=None):
         '%s shell getprop ro.build.version.sdk' %
         cmd_prefix)
     print_message(
-        'Serial ID: %s\nManufacturer: %s\nModel: %s\nRelease: %s\nSDK version: %s\n' %
-        (device_serial, manufacturer, model, release, sdk))
+        'Serial ID: %s\nManufacturer: %s\nModel: %s (%s)\nRelease: %s\nSDK version: %s\n' %
+        (device_serial, manufacturer, model, display_name, release, sdk))
 
 
 def print_top_activity():

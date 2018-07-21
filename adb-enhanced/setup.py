@@ -1,17 +1,17 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '1.7.4'
+version = '1.7.5'
 
-with open("README.md", "r") as fh:
+with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(name='adb-enhanced',
         version=version,
-        description="An ADB wrapper for Android developers",
+        description='An ADB wrapper for Android developers',
         long_description=long_description,
         long_description_content_type='text/markdown',
-        classifiers=["Intended Audience :: Developers"], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+        classifiers=['Intended Audience :: Developers'], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
         keywords='Android ADB developer',
         author='Ashish Bhatia',
         author_email='ashishb@ashishb.net',
