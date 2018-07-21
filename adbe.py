@@ -12,6 +12,8 @@ import subprocess
 import docopt
 
 """
+Swiss-army knife for Android testing and development.
+
 List of things which this enhanced adb tool does
 
 * adbe.py [options] rotate (landscape | portrait | left | right)
@@ -71,6 +73,7 @@ Use -q[uite] for quite mode
 """
 
 USAGE_STRING = """
+Swiss-army knife for Android testing and development.
 
 Usage:
     adbe.py [options] rotate (landscape | portrait | left | right)
@@ -113,9 +116,9 @@ Usage:
     adbe.py [options] print-apk-path <app_name>
 
 Options:
-    -e, --emulator          directs command to the only running emulator
-    -d, --device            directs command to the only connected "USB" device
-    -s, --serial SERIAL     directs command to the device or emulator with the given serial number or qualifier.
+    -e, --emulator          directs the command to the only running emulator
+    -d, --device            directs the command to the only connected "USB" device
+    -s, --serial SERIAL     directs the command to the device or emulator with the given serial number or qualifier.
                             Overrides ANDROID_SERIAL environment variable.
     -l                      For long list format, only valid for "ls" command
     -R                      For recursive directory listing, only valid for "ls" command
