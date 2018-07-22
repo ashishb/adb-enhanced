@@ -23,7 +23,7 @@ cp ${DIR}/../adbe.py ${DIR}/adbe/ &&
   git add ${DIR}/README.md ${DIR}/adbe/adbe.py ${VERSION_FILENAME} &&
   git commit -m "Setup release $(cat $VERSION_FILENAME)" &&
   git tag $(cat $VERSION_FILENAME) &&
-  git push origin master &&
+  git push origin master --tags &&
   # Send the package upstream
   twine upload dist/* &&
   echo "Few mins later, check https://pypi.org/project/adb-enhanced/#history to confirm upload" &&
