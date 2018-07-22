@@ -9,7 +9,7 @@ VERSION_FILENAME=${DIR}/version.txt
 cp ${DIR}/../adbe.py ${DIR}/adbe/ && 
   cp ${DIR}/../README.md ${DIR}/README.md &&
   # Open setup file to increment the version
-  echo "Next the editor will open ${VERSION_FILENAME}, increment the version number in it" &&
+  echo -n "Next the editor will open ${VERSION_FILENAME}, increment the version number in it. Press enter to continue" &&
     # Wait for a keypress to ensure that user has seen the previous message
   read -n 1 -s &&
   vim ${VERSION_FILENAME} &&
