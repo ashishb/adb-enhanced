@@ -938,6 +938,49 @@ def print_app_info(app_name):
         app_info_dump,
         re.IGNORECASE) is not None
 
+    msg = ''
+    msg += 'App name: %s\n' % app_name
+    msg += 'Version: %s\n' % version_name
+    msg += 'Version Code: %s\n' % version_code
+    msg += 'Is debuggable: %r\n' % is_debuggable
+    msg += 'Min SDK version: %s\n' % min_sdk_version
+    msg += 'Target SDK version: %s\n' % target_sdk_version
+    if max_sdk_version is not None:
+        msg += 'Max SDK version: %s\n' % max_sdk_version
+
+    if _get_device_android_api_version() >= 23:
+        msg += _get_permissions_info_above_api_23(app_info_dump)
+    else:
+        msg += _get_permissions_info_below_api_23(app_info_dump)
+
+    msg += 'Installer package name: %s\n' % installer_package_name
+
+    # TODO: Consider adding printing the signing key support to this in the
+    # future.
+    print_message(msg)
+
+# API < 23 have no runtime permissions
+def _get_permissions_info_below_api_23(app_info_dump):
+    install_time_permissions_regex = re.search('grantedPermissions:(.*)', app_info_dump,
+                                               re.IGNORECASE | re.DOTALL)
+    if install_time_permissions_regex is None:
+        install_time_permissions_string = []
+    else:
+        install_time_permissions_string = install_time_permissions_regex.group(1).split('\n')
+
+    install_time_granted_permissions = []
+    install_time_permissions_string = filter(None, install_time_permissions_string)
+    for permission_string in install_time_permissions_string:
+        install_time_granted_permissions.append(permission_string)
+
+    permissions_info_msg = ''
+    if len(install_time_granted_permissions) > 0:
+        permissions_info_msg += 'Install time granted permissions:\n%s\n\n' % '\n'.join(
+            install_time_granted_permissions)
+    return permissions_info_msg
+
+# API 23 and have runtime permissions
+def _get_permissions_info_above_api_23(app_info_dump):
     requested_permissions_regex = \
         re.search('requested permissions:(.*)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
     if requested_permissions_regex is None:
@@ -947,18 +990,15 @@ def print_app_info(app_name):
         requested_permissions = []  # No permissions requested by the app.
     else:
         requested_permissions = requested_permissions_regex.group(1).split('\n')
-
     install_time_permissions_regex = re.search('install permissions:(.*)runtime permissions:', app_info_dump,
                                                re.IGNORECASE | re.DOTALL)
     if install_time_permissions_regex is None:
         install_time_permissions_string = []
     else:
         install_time_permissions_string = install_time_permissions_regex.group(1).split('\n')
-
     # Remove empty entries
     requested_permissions = list(filter(None, requested_permissions))
-    install_time_permissions_string = filter(
-        None, install_time_permissions_string)
+    install_time_permissions_string = filter(None, install_time_permissions_string)
     install_time_granted_permissions = []
     install_time_denied_permissions = []  # This will most likely remain empty
     for permission_string in install_time_permissions_string:
@@ -968,7 +1008,6 @@ def print_app_info(app_name):
         elif permission_string.find('granted=false') >= 0:
             permission, _ = permission_string.split(':')
             install_time_denied_permissions.append(permission)
-
     runtime_denied_permissions = []
     runtime_granted_permissions = []
     for permission in requested_permissions:
@@ -980,42 +1019,30 @@ def print_app_info(app_name):
             runtime_granted_permissions.append(permission)
         elif app_info_dump.find(denied_pattern) >= 0:
             runtime_denied_permissions.append(permission)
-
     runtime_not_granted_permissions = list(filter(
         lambda p: p not in runtime_granted_permissions and
                   p not in runtime_denied_permissions and
                   p not in install_time_granted_permissions and
                   p not in install_time_denied_permissions, requested_permissions))
 
-    msg = ''
-    msg += 'App name: %s\n' % app_name
-    msg += 'Version: %s\n' % version_name
-    msg += 'Version Code: %s\n' % version_code
-    msg += 'Is debuggable: %r\n' % is_debuggable
-    msg += 'Min SDK version: %s\n' % min_sdk_version
-    msg += 'Target SDK version: %s\n' % target_sdk_version
-    if max_sdk_version is not None:
-        msg += 'Max SDK version: %s\n' % max_sdk_version
-
-    msg += '\nPermissions:\n\n'
-    msg += 'Install time granted permissions:\n%s\n\n' % '\n'.join(
-        install_time_granted_permissions)
+    permissions_info_msg = ''
+    permissions_info_msg += '\nPermissions:\n\n'
+    if len(install_time_granted_permissions) > 0:
+        permissions_info_msg += 'Install time granted permissions:\n%s\n\n' % '\n'.join(
+            install_time_granted_permissions)
     if len(install_time_denied_permissions) > 0:
-        msg += 'Install time denied permissions:\n%s\n\n' % '\n'.join(
+        permissions_info_msg += 'Install time denied permissions:\n%s\n\n' % '\n'.join(
             install_time_denied_permissions)
-    msg += 'Runtime granted permissions:\n%s\n\n' % '\n'.join(
-        runtime_granted_permissions)
-    msg += 'Runtime denied permissions:\n%s\n\n' % '\n'.join(
-        runtime_denied_permissions)
+    if len(runtime_granted_permissions) > 0:
+        permissions_info_msg += 'Runtime granted permissions:\n%s\n\n' % '\n'.join(
+            runtime_granted_permissions)
+    if len(runtime_denied_permissions) > 0:
+        permissions_info_msg += 'Runtime denied permissions:\n%s\n\n' % '\n'.join(
+            runtime_denied_permissions)
     if len(runtime_not_granted_permissions) > 0:
-        msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(
+        permissions_info_msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(
             runtime_not_granted_permissions)
-
-    msg += 'Installer package name: %s\n' % installer_package_name
-
-    # TODO: Consider adding printing the signing key support to this in the
-    # future.
-    print_message(msg)
+    return permissions_info_msg
 
 
 def print_app_path(app_name):
