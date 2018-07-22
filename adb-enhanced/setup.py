@@ -1,7 +1,8 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '1.7.6'
+with open('version.txt', 'r') as fh:
+    version = fh.read().strip()
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
