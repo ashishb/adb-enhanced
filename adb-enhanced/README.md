@@ -1,6 +1,6 @@
 # adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced)
 
-Swiss-army knife for android testing and development, inspired from [android-scripts](https://github.com/dhelleberg/android-scripts)
+Swiss-army knife for Android testing and development, inspired from [android-scripts](https://github.com/dhelleberg/android-scripts)
 
 # Release announcement
 See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/](https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/)
@@ -11,7 +11,7 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
 
 ## Note
 1. `sudo pip install adb-enhanced` for python2 based install works as well but I would recommend moving to python3 since I might deprecate python2 support at some point.
-2. If you don't have sudo access or you are installing without sudo then the tool will still be installed but `adbe` might not be configured correctly in the path.
+2. If you don't have sudo access or you are installing without sudo then `adbe` might not be configured correctly in the path.
 
 
 # Examples
@@ -91,9 +91,9 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
 
 # Options
 
-    -e, --emulator          directs command to the only running emulator
-    -d, --device            directs command to the only connected "USB" device
-    -s, --serial SERIAL     directs command to the device or emulator with the given serial number or qualifier.
+    -e, --emulator          directs the command to the only running emulator
+    -d, --device            directs the command to the only connected "USB" device
+    -s, --serial SERIAL     directs the command to the device or emulator with the given serial number or qualifier.
                             Overrides ANDROID_SERIAL environment variable.
     -l                      For long list format, only valid for "ls" command
     -R                      For recursive directory listing, only valid for "ls" command
@@ -101,4 +101,4 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
     
 ## Python3 compatibility
 
-As of Nov 27, 2017, the code is python3 compatible and as of Jan 18, 2018, pip (python package manager) also has the updated version 
+As of Nov 27, 2017, the code is python3 compatible, and as of Jan 18, 2018, pip (python package manager) has the updated version.
