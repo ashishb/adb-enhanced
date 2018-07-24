@@ -521,6 +521,10 @@ def _print_device_info(device_serial=None):
     if display_name is None or len(display_name) == 0 or display_name == 'null':
         display_name = execute_adb_command('%s shell settings get global device_name' % cmd_prefix)
 
+    # ABI info
+    abi = execute_adb_command(
+            '%s shell getprop ro.product.cpu.abi' % cmd_prefix)
+
     release = execute_adb_command(
         '%s shell getprop ro.build.version.release' %
         cmd_prefix)
@@ -528,8 +532,8 @@ def _print_device_info(device_serial=None):
         '%s shell getprop ro.build.version.sdk' %
         cmd_prefix)
     print_message(
-        'Serial ID: %s\nManufacturer: %s\nModel: %s (%s)\nRelease: %s\nSDK version: %s\n' %
-        (device_serial, manufacturer, model, display_name, release, sdk))
+        'Serial ID: %s\nManufacturer: %s\nModel: %s (%s)\nRelease: %s\nSDK version: %s\nCPU: %s\n' %
+        (device_serial, manufacturer, model, display_name, release, sdk, abi))
 
 
 def print_top_activity():
