@@ -16,7 +16,12 @@ cp ${DIR}/../adbe.py ${DIR}/adbe/ &&
   # One time setup
   python3 -m pip install --user --upgrade setuptools wheel twine &&
   # Cleanup before creating the package
-  rm -r build/ dist/
+  if [ -e "build" ]; then
+    rm -r build/
+  fi &&
+  if [ -e "dist" ]; then
+    rm -r dist/
+  fi &&
   # Create the package. Reference: https://packaging.python.org/tutorials/packaging-projects/
   python3 setup.py sdist bdist_wheel &&
   # Commit to git before sending package upstream
