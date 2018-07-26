@@ -28,6 +28,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] jank <app_name>
 * adbe.py [options] devices
 * adbe.py [options] top-activity
+* adbe.py [options] dump-ui <xml_file>
 * adbe.py [options] mobile-data (on | off)
 * adbe.py [options] mobile-data saver (on | off)
 * adbe.py [options] rtl (on | off) - This is not working properly as of now.
@@ -88,6 +89,7 @@ Usage:
     adbe.py [options] jank <app_name>
     adbe.py [options] devices
     adbe.py [options] top-activity
+    adbe.py [options] dump-ui <xml_file>
     adbe.py [options] mobile-data (on | off)
     adbe.py [options] mobile-data saver (on | off)
     adbe.py [options] rtl (on | off)
@@ -191,6 +193,8 @@ def main():
         handle_list_devices()
     elif args['top-activity']:
         print_top_activity()
+    elif args['dump-ui']:
+        dump_ui(args['<xml_file>'])
     elif args['force-stop']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
@@ -545,6 +549,22 @@ def print_top_activity():
         if line.startswith('mCurrentFocus') or line.startswith('mFocusedApp'):
             result = result + line + '\n'
     print(result)
+
+
+def dump_ui(xml_file):
+    tmp_file = _create_tmp_file(xml_file, 'xml')
+    cmd1 = 'uiautomator dump %s' % tmp_file
+    cmd2 = 'pull %s %s' % (tmp_file, xml_file)
+    cmd3 = 'rm %s' % tmp_file
+
+    print_verbose('Writing UI to %s' % tmp_file)
+    execute_adb_shell_command(cmd1)
+    print_verbose('Pulling file %s' % xml_file)
+    execute_adb_command(cmd2)
+    print_verbose('Deleting file %s' % tmp_file)
+    print_message('XML UI dumped to %s, you might want to format it using \"xmllint --format %s\"' %
+                  (xml_file, xml_file))
+    execute_adb_shell_command(cmd3)
 
 
 def force_stop(app_name):
