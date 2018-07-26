@@ -61,6 +61,7 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
     adbe.py [options] jank <app_name>
     adbe.py [options] devices
     adbe.py [options] top-activity
+    adbe.py [options] dump-ui <xml_file>
     adbe.py [options] mobile-data (on | off)
     adbe.py [options] mobile-data saver (on | off)
     adbe.py [options] rtl (on | off)
