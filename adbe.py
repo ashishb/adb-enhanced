@@ -562,8 +562,10 @@ def dump_ui(xml_file):
     print_verbose('Pulling file %s' % xml_file)
     execute_adb_command(cmd2)
     print_verbose('Deleting file %s' % tmp_file)
-    print_message('XML UI dumped to %s' % xml_file)
+    print_message('XML UI dumped to %s, you might want to format it using \"xmllint --format %s\"' %
+                  (xml_file, xml_file))
     execute_adb_shell_command(cmd3)
+
 
 def force_stop(app_name):
     cmd = 'am force-stop %s' % app_name
