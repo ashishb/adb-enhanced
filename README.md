@@ -1,9 +1,9 @@
 # adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced)
 
-Swiss-army knife for Android testing and development, inspired from [android-scripts](https://github.com/dhelleberg/android-scripts)
+Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation.
 
 # Release announcement
-See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/](https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/)
+See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/)
 
 
 # Installation
@@ -103,3 +103,6 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
 ## Python3 compatibility
 
 As of Nov 27, 2017, the code is python3 compatible, and as of Jan 18, 2018, pip (python package manager) has the updated version.
+
+Note: The inspiration of this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
+
