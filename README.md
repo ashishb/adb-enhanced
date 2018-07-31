@@ -16,36 +16,50 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 # Examples
 
+* Launch an app
+
+	`adbe start com.example`
+
+* Kill an app
+
+	`adbe force-stop com.example`
+	
+* Clear app data - equivalent of uninstall and reinstall
+
+	`adbe clear-data com.example`
+
 * Turn doze mode on
 
-`adbe doze on`
+	`adbe doze on`
 
 * Turn mobile-data off
 
-`adbe mobile-data off`
+	`adbe mobile-data off`
 
 * Turn on battery saver
 
-`adbe battery saver on`
+	`adbe battery saver on`
 
 * Don't keep activities in the background
 
-`adbe dont-keep-activities on`
+	`adbe dont-keep-activities on`
 
 * Grant storage-related runtime permissions
 
-`adbe permissions grant com.example.android storage`
+	`adbe permissions grant com.example storage`
 
 * Revoke storage-related runtime permissions
 
-`adbe permissions revoke com.example.android storage`
+	`adbe permissions revoke com.example storage`
 
 * ls/cat any file without worrying about adding "run-as"
 
-`adbe ls /data/data/com.example/databases`  # Works as long as com.example is a debuggable package
+	`adbe ls /data/data/com.example/databases`  # Works as long as com.example is a debuggable package
 
-* Launch an app
-`adbe start com.example`
+* Detailed device info including model name, Android API version etc, device serial
+
+	`adbe devices`
+
 
 # Usage
 
