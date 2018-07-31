@@ -58,7 +58,22 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 * Detailed device info including model name, Android API version etc, device serial
 
-	`adbe devices`
+	```
+	$ adbe devices
+	Serial ID: dcc54111
+	Manufacturer: OnePlus
+	Model: ONEPLUS A5000 (OnePlus 5T)
+	Release: 8.1.0
+	SDK version: 27
+	CPU: arm64-v8a
+	
+	Serial ID: emulator-5554
+	Manufacturer: unknown
+	Model: Android SDK built for x86
+	Release: 4.4.2
+	SDK version: 19
+	CPU: x86
+	```
 
 
 # Usage
