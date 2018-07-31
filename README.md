@@ -58,7 +58,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 * Detailed device info including model name, Android API version etc, device serial
 
-	```bash
+	```
 	$ adbe devices
 	Serial ID: dcc54111
 	Manufacturer: OnePlus
@@ -78,7 +78,6 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 # Usage
 
-	```bash
     adbe.py [options] rotate (landscape | portrait | left | right)
     adbe.py [options] gfx (on | off | lines)
     adbe.py [options] overdraw (on | off | deut)
@@ -118,12 +117,10 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] clear-data <app_name>
     adbe.py [options] app-info <app_name>
     adbe.py [options] print-apk-path <app_name>
-    ```
 
 
 # Options
 
-	```bash
     -e, --emulator          directs the command to the only running emulator
     -d, --device            directs the command to the only connected "USB" device
     -s, --serial SERIAL     directs the command to the device or emulator with the given serial number or qualifier.
@@ -131,7 +128,6 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     -l                      For long list format, only valid for "ls" command
     -R                      For recursive directory listing, only valid for "ls" command
     -v, --verbose           Verbose mode
-   ``` 
     
 ## Python3 compatibility
 
