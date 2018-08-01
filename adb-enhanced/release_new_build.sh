@@ -25,7 +25,7 @@ cp ${DIR}/../adbe.py ${DIR}/adbe/ &&
   # Create the package. Reference: https://packaging.python.org/tutorials/packaging-projects/
   python3 setup.py sdist bdist_wheel &&
   # Commit to git before sending package upstream
-  git add ${DIR}/README.md ${DIR}/adbe/adbe.py ${VERSION_FILENAME} &&
+  git add ${DIR}/README.md ${DIR}/adbe/adbe.py ${DIR}/changelog.txt ${VERSION_FILENAME} &&
   git commit -m "Setup release $(cat $VERSION_FILENAME)" &&
   git tag $(cat $VERSION_FILENAME) &&
   git push origin master &&
