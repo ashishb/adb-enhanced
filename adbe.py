@@ -942,8 +942,13 @@ def launch_app(app_name):
 
 
 def stop_app(app_name):
-    adb_shell_cmd = 'am kill %s' % app_name
-    execute_adb_shell_command(adb_shell_cmd)
+    # Below API 21, stop does not kill app in the foreground.
+    # Above API 21, it seems it does.
+    if _get_device_android_api_version() < 21:
+        force_stop(app_name)
+    else:
+        adb_shell_cmd = 'am kill %s' % app_name
+        execute_adb_shell_command(adb_shell_cmd)
 
 
 def _regex_extract(regex, data):
