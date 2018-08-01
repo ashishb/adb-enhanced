@@ -1,0 +1,6 @@
+# adb-enhanced changelog
+
+## 1.7.11
+
+- Add `restart` option
+- Fix `stop` not working as expected below API 21

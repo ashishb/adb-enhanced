@@ -1,9 +1,9 @@
-# adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced)
+# adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
 
-Swiss-army knife for Android testing and development, inspired from [android-scripts](https://github.com/dhelleberg/android-scripts)
+Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation.
 
 # Release announcement
-See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/](https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/)
+See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/)
 
 
 # Installation
@@ -16,36 +16,65 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
 
 # Examples
 
+* Launch an app
+
+	`adbe start com.example`
+
+* Kill an app
+
+	`adbe force-stop com.example`
+	
+* Clear app data - equivalent of uninstall and reinstall
+
+	`adbe clear-data com.example`
+
 * Turn doze mode on
 
-`adbe doze on`
+	`adbe doze on`
 
 * Turn mobile-data off
 
-`adbe mobile-data off`
+	`adbe mobile-data off`
 
 * Turn on battery saver
 
-`adbe battery saver on`
+	`adbe battery saver on`
 
 * Don't keep activities in the background
 
-`adbe dont-keep-activities on`
+	`adbe dont-keep-activities on`
 
 * Grant storage-related runtime permissions
 
-`adbe permissions grant com.example.android storage`
+	`adbe permissions grant com.example storage`
 
 * Revoke storage-related runtime permissions
 
-`adbe permissions revoke com.example.android storage`
+	`adbe permissions revoke com.example storage`
 
 * ls/cat any file without worrying about adding "run-as"
 
-`adbe ls /data/data/com.example/databases`  # Works as long as com.example is a debuggable package
+	`adbe ls /data/data/com.example/databases`  # Works as long as com.example is a debuggable package
 
-* Launch an app
-`adbe start com.example`
+* Detailed device info including model name, Android API version etc, device serial
+
+	```
+	$ adbe devices
+	Serial ID: dcc54111
+	Manufacturer: OnePlus
+	Model: ONEPLUS A5000 (OnePlus 5T)
+	Release: 8.1.0
+	SDK version: 27
+	CPU: arm64-v8a
+	
+	Serial ID: emulator-5554
+	Manufacturer: unknown
+	Model: Android SDK built for x86
+	Release: 4.4.2
+	SDK version: 19
+	CPU: x86
+	```
+
 
 # Usage
 
@@ -61,6 +90,7 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
     adbe.py [options] jank <app_name>
     adbe.py [options] devices
     adbe.py [options] top-activity
+    adbe.py [options] dump-ui <xml_file>
     adbe.py [options] mobile-data (on | off)
     adbe.py [options] mobile-data saver (on | off)
     adbe.py [options] rtl (on | off)
@@ -102,3 +132,6 @@ See [https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-an
 ## Python3 compatibility
 
 As of Nov 27, 2017, the code is python3 compatible, and as of Jan 18, 2018, pip (python package manager) has the updated version.
+
+Note: The inspiration of this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
+
