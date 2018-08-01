@@ -49,6 +49,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] pull <remote> [local] [-a] - A smart pull which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 * adbe.py [options] start <app_name> - Launches an Android app's default launcher activity, which in most cases corresponds to how a developer wants to start the app
 * adbe.py [options] stop <app_name> - Force stop an application
+* adbe.py [options] restart <app_name>
 * adbe.py [options] force-stop <app_name>
 * adbe.py [options] clear-data <app_name>
 * adbe.py [options] app-info <app_name>
@@ -112,6 +113,7 @@ Usage:
     adbe.py [options] cat <file_path>
     adbe.py [options] start <app_name>
     adbe.py [options] stop <app_name>
+    adbe.py [options] restart <app_name>
     adbe.py [options] force-stop <app_name>
     adbe.py [options] clear-data <app_name>
     adbe.py [options] app-info <app_name>
@@ -274,6 +276,11 @@ def main():
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
         stop_app(app_name)
+    elif args['restart']:
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
+        stop_app(app_name)
+        launch_app(app_name)
     elif args['app-info']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
