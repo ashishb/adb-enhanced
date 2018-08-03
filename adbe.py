@@ -36,6 +36,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] screenrecord <filename.mp4>
 * adbe.py [options] dont-keep-activities (on | off)
 * adbe.py [options] animations (on | off)
+* adbe.py [options] stay-awake-while-charging (on | off)
 * adbe.py [options] input-text <text>
 * adbe.py [options] press back
 * adbe.py [options] open-url <url>
@@ -98,6 +99,7 @@ Usage:
     adbe.py [options] screenrecord <filename.mp4>
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] animations (on | off)
+    adbe.py [options] stay-awake-while-charging (on | off) 
     adbe.py [options] input-text <text>
     adbe.py [options] press back
     adbe.py [options] open-url <url>
@@ -221,6 +223,9 @@ def main():
         handle_dont_keep_activities_in_background(args['on'])
     elif args['animations']:
         toggle_animations(args['on'])
+    elif args['stay-awake-while-charging']:
+        # Keep screen on while the device is charging.
+        stay_awake_while_charging(args['on'])
     elif args['input-text']:
         input_text(args['<text>'])
     elif args['back']:
@@ -668,6 +673,18 @@ def toggle_animations(turn_on):
     execute_adb_shell_command(cmd1)
     execute_adb_shell_command(cmd2)
     execute_adb_shell_command(cmd3)
+
+
+# Source: https://developer.android.com/reference/android/provider/Settings.Global.html#STAY_ON_WHILE_PLUGGED_IN
+def stay_awake_while_charging(turn_on):
+    if turn_on:
+        # 1 for USB charging, 2 for AC charging, 4 for wireless charging. Or them together to get 7.
+        value = 7
+    else:
+        value = 0
+
+    cmd1 = 'settings put global stay_on_while_plugged_in %d' % value
+    execute_adb_shell_command_and_poke_activity_service(cmd1)
 
 
 def input_text(text):
