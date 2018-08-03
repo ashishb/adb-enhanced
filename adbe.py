@@ -9,6 +9,8 @@ import sys
 import os
 import random
 import subprocess
+from urllib.parse import urlparse
+
 import docopt
 
 """
@@ -699,6 +701,11 @@ def press_back():
 
 def open_url(url):
     # Let's not do any URL encoding for now, if required, we will add that in the future.
+    parsed_url = urlparse(url = url)
+    if parsed_url.scheme is None or len(parsed_url.scheme) == 0:
+        scheme = 'http'
+        parsed_url2 = urlparse(url = url, scheme = 'http')
+        url = parsed_url2.geturl()
     cmd = 'am start -a android.intent.action.VIEW -d %s' % url
     execute_adb_shell_command(cmd)
 
