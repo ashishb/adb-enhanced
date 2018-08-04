@@ -1,0 +1,4 @@
+include adbe/adbe.py
+include adbe/output_helper.py
+include adbe/apksigner.jar
+
