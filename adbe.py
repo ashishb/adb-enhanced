@@ -8,6 +8,7 @@ install_aliases()
 
 import re
 import sys
+import tempfile
 
 import os
 import random
@@ -65,7 +66,8 @@ List of things which this enhanced adb tool does
 * adbe.py [options] force-stop <app_name>
 * adbe.py [options] clear-data <app_name>
 * adbe.py [options] app-info <app_name>
-* adbe.py [options] print-apk-path <app_name>
+* adbe.py [options] app-path <app_name>
+* adbe.py [options] app-signature <app_name>
 
 
 List of things which this tool will do in the future
@@ -80,7 +82,6 @@ List of things which this tool will do in the future
 * adbe set_app_name [-f] $app_name
 * adbe reset_app_name
 * adbe apps list (debugabble | system | third-party)
-* adbe print-signature <app_name>
 
 Use -q[uite] for quite mode
 
@@ -130,7 +131,8 @@ Usage:
     adbe.py [options] force-stop <app_name>
     adbe.py [options] clear-data <app_name>
     adbe.py [options] app-info <app_name>
-    adbe.py [options] print-apk-path <app_name>
+    adbe.py [options] app-path <app_name>
+    adbe.py [options] app-signature <app_name>
 
 Options:
     -e, --emulator          directs the command to the only running emulator
@@ -301,10 +303,14 @@ def main():
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
         print_app_info(app_name)
-    elif args['print-apk-path']:
+    elif args['app-path']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
         print_app_path(app_name)
+    elif args['app-signature']:
+        app_name = args['<app_name>']
+        _ensure_package_exists(app_name)
+        print_app_signature(app_name)
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 
@@ -1114,12 +1120,34 @@ def _get_permissions_info_above_api_23(app_info_dump):
     return permissions_info_msg
 
 
-def print_app_path(app_name):
+def _get_apk_path(app_name):
     adb_shell_cmd = 'pm path %s' % app_name
     str = execute_adb_shell_command(adb_shell_cmd)
     apk_path = str.split(':', 2)[1]
+    return apk_path
+
+
+def print_app_path(app_name):
+    apk_path = _get_apk_path(app_name)
     print_verbose('Path for %s is %s' % (app_name, apk_path))
-    print(str)
+    print_message(apk_path)
+
+
+def print_app_signature(app_name):
+    apk_path = _get_apk_path(app_name)
+    # Copy apk to a temp file on the disk
+    tmp_apk_file = tempfile.NamedTemporaryFile(prefix='.apk')
+    with tmp_apk_file:
+        tmp_apk_file_name = tmp_apk_file.name
+        adb_cmd = 'pull %s %s' % (apk_path, tmp_apk_file_name)
+        execute_adb_command(adb_cmd)
+        dir_of_this_script = sys.path[0]
+        apk_signer_jar_path = os.path.join(dir_of_this_script, 'apksigner.jar')
+        print_signature_cmd = 'java -jar %s verify --print-certs %s' % (apk_signer_jar_path, tmp_apk_file_name)
+        ps1 = subprocess.Popen(print_signature_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        for line in ps1.stdout:
+            line = line.decode('utf-8').strip()
+            print_message(line)
 
 
 def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
