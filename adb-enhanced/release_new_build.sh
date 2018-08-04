@@ -31,7 +31,7 @@ cp ${DIR}/../{adbe.py,output_helper.py,apksigner.jar} ${DIR}/adbe/ &&
   git push origin master &&
   git push origin master --tags &&
   # Send the package upstream
-  twine upload dist/* &&
+  python3 -m twine upload dist/* &&
   echo "Few mins later, check https://pypi.org/project/adb-enhanced/#history to confirm upload" &&
   # Cleanup
   rm -r build/ dist/
