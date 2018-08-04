@@ -1,5 +1,10 @@
 # adb-enhanced changelog
 
+## 1.7.12
+
+- Add a new command stay-awake-while-charging
+- Fix a bug in open-url
+
 ## 1.7.11
 
 - Add `restart` option
