@@ -98,6 +98,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] screenrecord <filename.mp4>
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] animations (on | off)
+    adbe.py [options] stay-awake-while-charging (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
     adbe.py [options] open-url <url>
@@ -116,7 +117,8 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] force-stop <app_name>
     adbe.py [options] clear-data <app_name>
     adbe.py [options] app-info <app_name>
-    adbe.py [options] print-apk-path <app_name>
+    adbe.py [options] app-path <app_name>
+    adbe.py [options] app-signature <app_name>
 
 
 # Options
