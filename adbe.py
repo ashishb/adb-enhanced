@@ -15,10 +15,15 @@ import random
 import subprocess
 from urllib.parse import urlparse
 
-import output_helper
-# Don't import print_verbose explicitly since we call it via print_verbose
-# define in this module
-from output_helper import print_message, print_error, print_error_and_exit
+
+try:
+    # This fails when the code is part of Python module, I definitely need a better way to
+    # handle this.
+    from adbe.output_helper import print_message, print_error, print_error_and_exit
+    from adbe.output_helper import print_verbose as output_helper_print_verbose
+except ImportError as e:
+    from output_helper import print_message, print_error, print_error_and_exit
+    from output_helper import print_verbose as output_helper_print_verbose
 
 
 import docopt
@@ -1200,7 +1205,7 @@ def _get_prop(property_name):
 
 def print_verbose(message):
     if _verbose:
-        output_helper.print_verbose(message)
+        output_helper_print_verbose(message)
 
 
 if __name__ == '__main__':
