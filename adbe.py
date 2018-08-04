@@ -17,11 +17,12 @@ from urllib.parse import urlparse
 
 
 try:
-    # This fails when the code is part of Python module, I definitely need a better way to
-    # handle this.
+    # This fails when the code is executed directly and not as a part of python package installation,
+    # I definitely need a better way to handle this.
     from adbe.output_helper import print_message, print_error, print_error_and_exit
     from adbe.output_helper import print_verbose as output_helper_print_verbose
 except ImportError as e:
+    # This works when the code is executed directly.
     from output_helper import print_message, print_error, print_error_and_exit
     from output_helper import print_verbose as output_helper_print_verbose
 
