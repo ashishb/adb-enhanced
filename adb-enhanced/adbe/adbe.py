@@ -1146,13 +1146,17 @@ def print_app_signature(app_name):
         tmp_apk_file_name = tmp_apk_file.name
         adb_cmd = 'pull %s %s' % (apk_path, tmp_apk_file_name)
         execute_adb_command(adb_cmd)
-        dir_of_this_script = sys.path[0]
+        dir_of_this_script = os.path.split(__file__)[0]
         apk_signer_jar_path = os.path.join(dir_of_this_script, 'apksigner.jar')
         print_signature_cmd = 'java -jar %s verify --print-certs %s' % (apk_signer_jar_path, tmp_apk_file_name)
+        print_verbose('Executing command %s' % print_signature_cmd)
         ps1 = subprocess.Popen(print_signature_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         for line in ps1.stdout:
             line = line.decode('utf-8').strip()
             print_message(line)
+        for line in ps1.stderr:
+            line = line.decode('utf-8').strip()
+            print_error(line)
 
 
 def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
