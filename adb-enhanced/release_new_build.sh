@@ -35,3 +35,9 @@ cp ${DIR}/../{adbe.py,output_helper.py,apksigner.jar} ${DIR}/adbe/ &&
   echo "Few mins later, check https://pypi.org/project/adb-enhanced/#history to confirm upload" &&
   # Cleanup
   rm -r build/ dist/
+
+
+# To upload to test network and try:
+# rm -r build/ dist/ ; python3 setup.py sdist bdist_wheel && python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+# And then install it using
+# sudo pip3 install --upgrade --index-url https://test.pypi.org/simple/ adb-enhanced
