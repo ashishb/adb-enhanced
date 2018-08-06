@@ -88,8 +88,9 @@ List of things which this tool will do in the future
 * adbe set_app_name [-f] $app_name
 * adbe reset_app_name
 * adbe apps list (debugabble | system | third-party)
-
-Use -q[uite] for quite mode
+* Use -q[uite] for quite mode
+* Add IMEI, IMSI, phone number, and WI-Fi MAC address to devices info command - I think the best way to implement this
+  will be via a companion app. And while we are on that, we can implement locale change via the companion app as well.
 
 """
 
