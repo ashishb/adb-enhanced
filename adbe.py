@@ -129,6 +129,7 @@ Usage:
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-l] [-R] <file_path>
+    adbe.py [options] rm [-f] [-R] [-r] <file_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
     adbe.py [options] cat <file_path>
@@ -147,7 +148,9 @@ Options:
     -s, --serial SERIAL     directs the command to the device or emulator with the given serial number or qualifier.
                             Overrides ANDROID_SERIAL environment variable.
     -l                      For long list format, only valid for "ls" command
-    -R                      For recursive directory listing, only valid for "ls" command
+    -R                      For recursive directory listing, only valid for "ls" and "rm" command
+    -r                      For delete file, only valid for "ls" and "rm" command
+    -f                      For forced deletion of a file, only valid for "rm" command
     -v, --verbose           Verbose mode
 
 """
@@ -283,8 +286,13 @@ def main():
     elif args['ls']:
         file_path = args['<file_path>']
         long_format = args['-l']
-        recursive = args['-R']
+        recursive = args['-R'] or args['-r']
         list_directory(file_path, long_format, recursive)
+    elif args['rm']:
+        file_path = args['<file_path>']
+        force_delete = args['-f']
+        recursive = args['-R'] or args['-r']
+        delete_file(file_path, force_delete, recursive)
     elif args['pull']:
         remote_file_path = args['<remote>']
         local_file_path = args['<local>']
@@ -915,6 +923,18 @@ def list_directory(file_path, long_format, recursive):
         cmd_prefix += ' -l'
     if recursive:
         cmd_prefix += ' -R'
+    cmd = '%s %s' % (cmd_prefix, file_path)
+    cmd = _may_be_wrap_with_run_as(cmd, file_path)
+
+    print_message(execute_adb_shell_command(cmd))
+
+
+def delete_file(file_path, force, recursive):
+    cmd_prefix = 'rm'
+    if force:
+        cmd_prefix += ' -f'
+    if recursive:
+        cmd_prefix += ' -r'
     cmd = '%s %s' % (cmd_prefix, file_path)
     cmd = _may_be_wrap_with_run_as(cmd, file_path)
 
