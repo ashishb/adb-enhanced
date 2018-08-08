@@ -762,7 +762,9 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
         filename_prefix = 'file'
     if filename_suffix is None:
         filename_suffix = 'tmp'
-    filepath_on_device = '/sdcard/%s-%d.%s' % (
+    # TODO(ashishb): Automate this
+    # adb shell chmod 777 /data/local/tmp might be required before this
+    filepath_on_device = '/data/local/tmp/%s-%d.%s' % (
         filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
     if _file_exists(filepath_on_device):
         # Retry if the file already exists
