@@ -765,19 +765,23 @@ def _package_exists(package_name):
     response = execute_adb_shell_command(cmd)
     return response is not None and len(response.strip()) != 0
 
+
 def _create_tmp_file(filename_prefix = None, filename_suffix = None):
     if filename_prefix is None:
         filename_prefix = 'file'
     if filename_suffix is None:
         filename_suffix = 'tmp'
-    # TODO(ashishb): Automate this
-    # adb shell chmod 777 /data/local/tmp might be required before this
     filepath_on_device = '/data/local/tmp/%s-%d.%s' % (
         filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
     if _file_exists(filepath_on_device):
         # Retry if the file already exists
         print_verbose('Tmp File %s already exists, trying a new random name' % filepath_on_device)
         return _create_tmp_file(filename_prefix, filename_suffix)
+
+    # Create the file
+    execute_adb_shell_command('touch %s' % filepath_on_device)
+    # Make the tmp file world-writable or else, run-as command might fail to write on it.
+    execute_adb_shell_command('chmod 777 %s' % filepath_on_device)
     return filepath_on_device
 
 
