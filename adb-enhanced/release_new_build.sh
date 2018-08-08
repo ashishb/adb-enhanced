@@ -6,7 +6,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 VERSION_FILENAME=${DIR}/version.txt
 
 # Copy the relevant files
-cp ${DIR}/../{adbe.py,output_helper.py,apksigner.jar} ${DIR}/adbe/ && 
+cp ${DIR}/../{adbe.py,output_helper.py,adb_helper.py,apksigner.jar} ${DIR}/adbe/ && 
   cp ${DIR}/../README.md ${DIR}/README.md &&
   # Open setup file to increment the version
   echo -n "Next the editor will open ${VERSION_FILENAME}, increment the version number in it. Press enter to continue:" &&
@@ -25,7 +25,7 @@ cp ${DIR}/../{adbe.py,output_helper.py,apksigner.jar} ${DIR}/adbe/ &&
   # Create the package. Reference: https://packaging.python.org/tutorials/packaging-projects/
   python3 setup.py sdist bdist_wheel &&
   # Commit to git before sending package upstream
-  git add ${DIR}/README.md ${DIR}/adbe/{adbe.py,output_helper.py,apksigner.jar} ${DIR}/changelog.txt ${VERSION_FILENAME} &&
+  git add ${DIR}/README.md ${DIR}/adbe/{adbe.py,output_helper.py,adb_helper.py,apksigner.jar} ${DIR}/changelog.txt ${VERSION_FILENAME} &&
   git commit -m "Setup release $(cat $VERSION_FILENAME)" &&
   git tag $(cat $VERSION_FILENAME) &&
   git push origin master &&

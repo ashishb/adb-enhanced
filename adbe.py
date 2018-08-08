@@ -12,19 +12,22 @@ import tempfile
 
 import os
 import random
-import subprocess
 from urllib.parse import urlparse
 
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
-    from adbe.output_helper import print_message, print_error, print_error_and_exit
-    from adbe.output_helper import print_verbose as output_helper_print_verbose
+    from adbe import adb_helper
+    from adbe import output_helper
+    from adbe.adb_helper import execute_adb_command, execute_adb_shell_command
+    from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
 except ImportError as e:
     # This works when the code is executed directly.
-    from output_helper import print_message, print_error, print_error_and_exit
-    from output_helper import print_verbose as output_helper_print_verbose
+    import adb_helper
+    import output_helper
+    from adb_helper import execute_adb_command, execute_adb_shell_command
+    from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
 import docopt
@@ -158,13 +161,8 @@ Options:
 _KEYCODE_BACK = 4
 _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 
-_verbose = False
-_adb_prefix = 'adb'
-
 
 def main():
-    global _verbose
-    global _adb_prefix
     args = docopt.docopt(USAGE_STRING, version='1.0.0rc2')
 
     validate_options(args)
@@ -175,10 +173,12 @@ def main():
         options += '-d '
     if args['--serial']:
         options += '-s %s ' % args['--serial']
-    _verbose = args['--verbose']
+
+    output_helper.set_verbose(args['--verbose'])
 
     if len(options) > 0:
-        _adb_prefix = '%s %s' % (_adb_prefix, options)
+        adb_prefix = '%s %s' % (_adb_prefix, options)
+        adb_helper.set_adb_prefix(adb_prefix)
 
     if args['rotate']:
         direction = 'portrait' if args['portrait'] else \
@@ -1193,36 +1193,6 @@ def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
     return return_value
 
 
-def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
-    return execute_adb_command('shell %s' % adb_cmd, piped_into_cmd, ignore_stderr)
-
-
-def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
-    final_cmd = ('%s %s' % (_adb_prefix, adb_cmd))
-    if piped_into_cmd:
-        print_verbose("Executing \"%s | %s\"" % (final_cmd, piped_into_cmd))
-        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE,
-                               stderr=None if ignore_stderr is False else open(os.devnull, 'w'))
-        output = subprocess.check_output(
-            piped_into_cmd, shell=True, stdin=ps1.stdout)
-        print_message(output)
-        return output
-    else:
-        print_verbose("Executing \"%s\"" % final_cmd)
-        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE,
-                               stderr=None if ignore_stderr is False else open(os.devnull, 'w'))
-        output = ''
-        first_line = True
-        for line in ps1.stdout:
-            if first_line:
-                output += line.decode('utf-8').strip()
-                first_line = False
-            else:
-                output += '\n' + line.decode('utf-8').strip()
-        print_verbose("Result is \"%s\"" % output)
-        return output
-
-
 # adb shell getprop ro.build.version.sdk
 def _get_device_android_api_version():
     version_string = _get_prop('ro.build.version.sdk')
@@ -1233,11 +1203,6 @@ def _get_device_android_api_version():
 
 def _get_prop(property_name):
     return execute_adb_shell_command('getprop %s' % property_name)
-
-
-def print_verbose(message):
-    if _verbose:
-        output_helper_print_verbose(message)
 
 
 if __name__ == '__main__':

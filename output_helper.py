@@ -1,3 +1,9 @@
+_verbose = False
+
+def set_verbose(enabled):
+    global _verbose
+    _verbose = enabled
+
 def print_message(message):
     print(message)
 
@@ -12,7 +18,8 @@ def print_error(error_string):
 
 
 def print_verbose(message):
-    print('%s%s%s' % (bcolors.WARNING, message, bcolors.ENDC))
+    if _verbose:
+        print('%s%s%s' % (bcolors.WARNING, message, bcolors.ENDC))
 
 
 # Coloring approach inspired from https://stackoverflow.com/a/287944
