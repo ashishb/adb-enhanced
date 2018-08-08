@@ -312,7 +312,7 @@ def main():
     elif args['restart']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
-        stop_app(app_name)
+        force_stop(app_name)
         launch_app(app_name)
     elif args['app-info']:
         app_name = args['<app_name>']
