@@ -59,6 +59,7 @@ def _check_for_more_than_one_device_error(stderr):
         return
     for line in stderr:
         line = line.decode('utf-8').strip()
+        print_verbose('stderr: %s' % line)
         if line.find('error: more than one') != -1:
             message = ''
             message += 'More than one device/emulator are connected.\n'
