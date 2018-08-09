@@ -818,7 +818,7 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
 def _file_exists(file_path):
     exists_cmd = "'ls %s > /dev/null && echo exists'" % file_path
     exists_cmd = _may_be_wrap_with_run_as(exists_cmd, file_path)
-    output = execute_adb_shell_command(exists_cmd, ignore_stderr=True)
+    output = execute_adb_shell_command(exists_cmd)
     return output.find('exists') != -1
 
 
