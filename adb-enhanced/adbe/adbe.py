@@ -12,18 +12,22 @@ import tempfile
 
 import os
 import random
-import subprocess
 from urllib.parse import urlparse
 
 
 try:
-    # This fails when the code is part of Python module, I definitely need a better way to
-    # handle this.
-    from adbe.output_helper import print_message, print_error, print_error_and_exit
-    from adbe.output_helper import print_verbose as output_helper_print_verbose
+    # This fails when the code is executed directly and not as a part of python package installation,
+    # I definitely need a better way to handle this.
+    from adbe import adb_helper
+    from adbe import output_helper
+    from adbe.adb_helper import execute_adb_command, execute_adb_shell_command
+    from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
 except ImportError as e:
-    from output_helper import print_message, print_error, print_error_and_exit
-    from output_helper import print_verbose as output_helper_print_verbose
+    # This works when the code is executed directly.
+    import adb_helper
+    import output_helper
+    from adb_helper import execute_adb_command, execute_adb_shell_command
+    from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
 import docopt
@@ -87,8 +91,9 @@ List of things which this tool will do in the future
 * adbe set_app_name [-f] $app_name
 * adbe reset_app_name
 * adbe apps list (debugabble | system | third-party)
-
-Use -q[uite] for quite mode
+* Use -q[uite] for quite mode
+* Add IMEI, IMSI, phone number, and WI-Fi MAC address to devices info command - I think the best way to implement this
+  will be via a companion app. And while we are on that, we can implement locale change via the companion app as well.
 
 """
 
@@ -127,6 +132,7 @@ Usage:
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-l] [-R] <file_path>
+    adbe.py [options] rm [-f] [-R] [-r] <file_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
     adbe.py [options] cat <file_path>
@@ -145,7 +151,9 @@ Options:
     -s, --serial SERIAL     directs the command to the device or emulator with the given serial number or qualifier.
                             Overrides ANDROID_SERIAL environment variable.
     -l                      For long list format, only valid for "ls" command
-    -R                      For recursive directory listing, only valid for "ls" command
+    -R                      For recursive directory listing, only valid for "ls" and "rm" command
+    -r                      For delete file, only valid for "ls" and "rm" command
+    -f                      For forced deletion of a file, only valid for "rm" command
     -v, --verbose           Verbose mode
 
 """
@@ -153,13 +161,8 @@ Options:
 _KEYCODE_BACK = 4
 _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 
-_verbose = False
-_adb_prefix = 'adb'
-
 
 def main():
-    global _verbose
-    global _adb_prefix
     args = docopt.docopt(USAGE_STRING, version='1.0.0rc2')
 
     validate_options(args)
@@ -170,10 +173,12 @@ def main():
         options += '-d '
     if args['--serial']:
         options += '-s %s ' % args['--serial']
-    _verbose = args['--verbose']
+
+    output_helper.set_verbose(args['--verbose'])
 
     if len(options) > 0:
-        _adb_prefix = '%s %s' % (_adb_prefix, options)
+        adb_prefix = '%s %s' % (_adb_prefix, options)
+        adb_helper.set_adb_prefix(adb_prefix)
 
     if args['rotate']:
         direction = 'portrait' if args['portrait'] else \
@@ -281,8 +286,13 @@ def main():
     elif args['ls']:
         file_path = args['<file_path>']
         long_format = args['-l']
-        recursive = args['-R']
+        recursive = args['-R'] or args['-r']
         list_directory(file_path, long_format, recursive)
+    elif args['rm']:
+        file_path = args['<file_path>']
+        force_delete = args['-f']
+        recursive = args['-R'] or args['-r']
+        delete_file(file_path, force_delete, recursive)
     elif args['pull']:
         remote_file_path = args['<remote>']
         local_file_path = args['<local>']
@@ -302,7 +312,7 @@ def main():
     elif args['restart']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
-        stop_app(app_name)
+        force_stop(app_name)
         launch_app(app_name)
     elif args['app-info']:
         app_name = args['<app_name>']
@@ -755,17 +765,23 @@ def _package_exists(package_name):
     response = execute_adb_shell_command(cmd)
     return response is not None and len(response.strip()) != 0
 
+
 def _create_tmp_file(filename_prefix = None, filename_suffix = None):
     if filename_prefix is None:
         filename_prefix = 'file'
     if filename_suffix is None:
         filename_suffix = 'tmp'
-    filepath_on_device = '/sdcard/%s-%d.%s' % (
+    filepath_on_device = '/data/local/tmp/%s-%d.%s' % (
         filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
     if _file_exists(filepath_on_device):
         # Retry if the file already exists
         print_verbose('Tmp File %s already exists, trying a new random name' % filepath_on_device)
         return _create_tmp_file(filename_prefix, filename_suffix)
+
+    # Create the file
+    execute_adb_shell_command('touch %s' % filepath_on_device)
+    # Make the tmp file world-writable or else, run-as command might fail to write on it.
+    execute_adb_shell_command('chmod 777 %s' % filepath_on_device)
     return filepath_on_device
 
 
@@ -911,6 +927,18 @@ def list_directory(file_path, long_format, recursive):
         cmd_prefix += ' -l'
     if recursive:
         cmd_prefix += ' -R'
+    cmd = '%s %s' % (cmd_prefix, file_path)
+    cmd = _may_be_wrap_with_run_as(cmd, file_path)
+
+    print_message(execute_adb_shell_command(cmd))
+
+
+def delete_file(file_path, force, recursive):
+    cmd_prefix = 'rm'
+    if force:
+        cmd_prefix += ' -f'
+    if recursive:
+        cmd_prefix += ' -r'
     cmd = '%s %s' % (cmd_prefix, file_path)
     cmd = _may_be_wrap_with_run_as(cmd, file_path)
 
@@ -1165,36 +1193,6 @@ def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
     return return_value
 
 
-def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
-    return execute_adb_command('shell %s' % adb_cmd, piped_into_cmd, ignore_stderr)
-
-
-def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
-    final_cmd = ('%s %s' % (_adb_prefix, adb_cmd))
-    if piped_into_cmd:
-        print_verbose("Executing \"%s | %s\"" % (final_cmd, piped_into_cmd))
-        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE,
-                               stderr=None if ignore_stderr is False else open(os.devnull, 'w'))
-        output = subprocess.check_output(
-            piped_into_cmd, shell=True, stdin=ps1.stdout)
-        print_message(output)
-        return output
-    else:
-        print_verbose("Executing \"%s\"" % final_cmd)
-        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE,
-                               stderr=None if ignore_stderr is False else open(os.devnull, 'w'))
-        output = ''
-        first_line = True
-        for line in ps1.stdout:
-            if first_line:
-                output += line.decode('utf-8').strip()
-                first_line = False
-            else:
-                output += '\n' + line.decode('utf-8').strip()
-        print_verbose("Result is \"%s\"" % output)
-        return output
-
-
 # adb shell getprop ro.build.version.sdk
 def _get_device_android_api_version():
     version_string = _get_prop('ro.build.version.sdk')
@@ -1205,11 +1203,6 @@ def _get_device_android_api_version():
 
 def _get_prop(property_name):
     return execute_adb_shell_command('getprop %s' % property_name)
-
-
-def print_verbose(message):
-    if _verbose:
-        output_helper_print_verbose(message)
 
 
 if __name__ == '__main__':
