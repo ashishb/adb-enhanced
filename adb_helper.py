@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
