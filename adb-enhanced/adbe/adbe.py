@@ -22,7 +22,7 @@ try:
     from adbe import output_helper
     from adbe.adb_helper import execute_adb_command, execute_adb_shell_command
     from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
-except ImportError as e:
+except ImportError:
     # This works when the code is executed directly.
     import adb_helper
     import output_helper
@@ -515,8 +515,37 @@ def get_battery_unplug_cmd():
 
 
 def handle_get_jank(app_name):
-    cmd = 'dumpsys gfxinfo %s ' % app_name
-    execute_adb_shell_command(cmd, 'grep Janky')
+    running = _is_app_running(app_name)
+    if not running:
+        # Jank information cannot be fetched unless the app is running
+        print_verbose('Starting the app %s to get its jank information' % app_name)
+        launch_app(app_name)
+
+    try:
+        cmd = 'dumpsys gfxinfo %s ' % app_name
+        result = execute_adb_shell_command(cmd)
+        print_verbose(result)
+        found = False
+        for line in result.split('\n'):
+            if line.find('Janky') != -1:
+                print(line)
+                found = True
+                break
+        if not found:
+            print_error('No jank information found for %s' % app_name)
+    finally:
+        # If app was not running then kill app after getting the jank information.
+        if not running:
+            print_verbose('Stopping the app %s after getting its jank information' % app_name)
+            force_stop(app_name)
+
+
+def _is_app_running(app_name):
+    result = execute_adb_shell_command('ps -o NAME')
+    if not result:
+        return False
+    result = result.strip()
+    return result.find(app_name) != -1
 
 
 def handle_list_devices():
@@ -789,7 +818,7 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
 def _file_exists(file_path):
     exists_cmd = "'ls %s > /dev/null && echo exists'" % file_path
     exists_cmd = _may_be_wrap_with_run_as(exists_cmd, file_path)
-    output = execute_adb_shell_command(exists_cmd, ignore_stderr=True)
+    output = execute_adb_shell_command(exists_cmd)
     return output.find('exists') != -1
 
 
