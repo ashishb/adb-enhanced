@@ -1,5 +1,10 @@
 # adb-enhanced changelog
 
+## 1.8.4
+
+- Implement temp file handling properly
+- Implement "rm" to delete files
+
 ## 1.7.12
 
 - Add a new command stay-awake-while-charging
