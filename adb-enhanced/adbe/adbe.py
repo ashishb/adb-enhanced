@@ -177,7 +177,7 @@ def main():
     output_helper.set_verbose(args['--verbose'])
 
     if len(options) > 0:
-        adb_prefix = '%s %s' % (_adb_prefix, options)
+        adb_prefix = '%s %s' % (adb_helper.get_adb_prefix(), options)
         adb_helper.set_adb_prefix(adb_prefix)
 
     if args['rotate']:

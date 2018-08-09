@@ -11,6 +11,9 @@ except ImportError as e:
 
 _adb_prefix = 'adb'
 
+def get_adb_prefix():
+    return _adb_prefix
+
 def set_adb_prefix(adb_prefix):
     global _adb_prefix
     _adb_prefix = adb_prefix
