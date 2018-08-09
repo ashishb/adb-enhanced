@@ -1,4 +1,4 @@
-# adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
+# adb-enhanced [![Backers on Open Collective](https://opencollective.com/adb-enhanced/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/adb-enhanced/sponsors/badge.svg)](#sponsors) [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
 
 Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation.
 
@@ -138,4 +138,34 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 As of Nov 27, 2017, the code is python3 compatible, and as of Jan 18, 2018, pip (python package manager) has the updated version.
 
 Note: The inspiration of this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
+
+
+## Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="graphs/contributors"><img src="https://opencollective.com/adb-enhanced/contributors.svg?width=890&button=false" /></a>
+
+
+## Backers
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/adb-enhanced#backer)]
+
+<a href="https://opencollective.com/adb-enhanced#backers" target="_blank"><img src="https://opencollective.com/adb-enhanced/backers.svg?width=890"></a>
+
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/adb-enhanced#sponsor)]
+
+<a href="https://opencollective.com/adb-enhanced/sponsor/0/website" target="_blank"><img src="https://opencollective.com/adb-enhanced/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/adb-enhanced/sponsor/1/website" target="_blank"><img src="https://opencollective.com/adb-enhanced/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/adb-enhanced/sponsor/2/website" target="_blank"><img src="https://opencollective.com/adb-enhanced/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/adb-enhanced/sponsor/3/website" target="_blank"><img src="https://opencollective.com/adb-enhanced/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/adb-enhanced/sponsor/4/website" target="_blank"><img src="https://opencollective.com/adb-enhanced/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/adb-enhanced/sponsor/5/website" target="_blank"><img src="https://opencollective.com/adb-enhanced/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/adb-enhanced/sponsor/6/website" target="_blank"><img src="https://opencollective.com/adb-enhanced/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/adb-enhanced/sponsor/7/website" target="_blank"><img src="https://opencollective.com/adb-enhanced/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/adb-enhanced/sponsor/8/website" target="_blank"><img src="https://opencollective.com/adb-enhanced/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/adb-enhanced/sponsor/9/website" target="_blank"><img src="https://opencollective.com/adb-enhanced/sponsor/9/avatar.svg"></a>
+
 
