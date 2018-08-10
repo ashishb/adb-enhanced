@@ -1035,11 +1035,11 @@ def _may_be_wrap_with_run_as(cmd, file_path):
             cmd_with_run_as = 'run-as %s %s' % (run_as_package, cmd)
             cmd_with_su = 'su root %s' % cmd
             # First try with run-as and if that fails, try directly, and if that fails, try with su
-            return '\'%s 2>/dev/null  || %s 2>/dev/null || %s\'' % (
-                cmd_with_run_as,
-                cmd_with_su,
-                cmd)
-    return cmd
+            return '\'%s 2>/dev/null  || %s 2>/dev/null || %s\'' % (cmd_with_run_as, cmd_with_su, cmd)
+
+    # Try with su as well.
+    cmd_with_su = 'su root %s' % cmd
+    return '\'%s 2>/dev/null || %s\'' % (cmd_with_su, cmd)
 
 
 # Source: https://stackoverflow.com/a/25398877
