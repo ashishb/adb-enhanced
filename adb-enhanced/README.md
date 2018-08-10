@@ -109,11 +109,13 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-l] [-R] <file_path>
+    adbe.py [options] rm [-f] [-R] [-r] <file_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
     adbe.py [options] cat <file_path>
     adbe.py [options] start <app_name>
     adbe.py [options] stop <app_name>
+    adbe.py [options] restart <app_name>
     adbe.py [options] force-stop <app_name>
     adbe.py [options] clear-data <app_name>
     adbe.py [options] app-info <app_name>

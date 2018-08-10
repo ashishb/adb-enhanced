@@ -1032,7 +1032,9 @@ def _may_be_wrap_with_run_as(cmd, file_path):
         run_as_package = file_path.split('/')[3]
         if run_as_package is not None and len(run_as_package.strip()) > 0:
             print_verbose('Running as package: %s' % run_as_package)
-            cmd = 'run-as %s %s' % (run_as_package, cmd)
+            cmd_with_run_as = 'run-as %s %s' % (run_as_package, cmd)
+            # First try with run-as and if that fails, try directly
+            return '\'%s 2>/dev/null  || %s\'' % (cmd_with_run_as, cmd)
     return cmd
 
 
