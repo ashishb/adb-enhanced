@@ -16,17 +16,8 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 # Examples
 
-* Launch an app
-
-	`adbe start com.example`
-
-* Kill an app
-
-	`adbe force-stop com.example`
 	
-* Clear app data - equivalent of uninstall and reinstall
-
-	`adbe clear-data com.example`
+### Device configuration
 
 * Turn doze mode on
 
@@ -43,6 +34,9 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 * Don't keep activities in the background
 
 	`adbe dont-keep-activities on`
+	
+### Permisions
+
 
 * Grant storage-related runtime permissions
 
@@ -51,10 +45,26 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 * Revoke storage-related runtime permissions
 
 	`adbe permissions revoke com.example storage`
+	
+	
+### Interacting with app
+* Start an app
 
-* ls/cat any file without worrying about adding "run-as"
+	`adbe start com.example`
 
-	`adbe ls /data/data/com.example/databases`  # Works as long as com.example is a debuggable package
+* Kill an app
+
+	`adbe force-stop com.example`
+	
+* Clear app data - equivalent of uninstall and reinstall
+
+	`adbe clear-data com.example`
+	
+* ls/cat/rm any file without worrying about adding "run-as" or "su root"
+
+	`adbe ls /data/data/com.example/databases`  # Works as long as com.example is a debuggable package, or shell has the root permission or directory has been made publicly accessible	
+	
+### Device info
 
 * Detailed device info including model name, Android API version etc, device serial
 
@@ -73,6 +83,62 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 	Release: 4.4.2
 	SDK version: 19
 	CPU: x86
+	```
+
+### App info
+
+* Detailed information about app version, target SDK version, permissions (requested, granted, denied), installer package name etc.
+
+	```
+	$ adbe app-info com.google.android.youtube
+	App name: com.google.android.youtube
+	Version: 12.17.41
+	Version Code: 121741370
+	Is debuggable: False
+	Min SDK version: 21
+	Target SDK version: 26
+	
+	Permissions:
+	
+	Install time granted permissions:
+	com.google.android.c2dm.permission.RECEIVE
+	android.permission.USE_CREDENTIALS
+	com.google.android.providers.gsf.permission.READ_GSERVICES
+	com.google.android.youtube.permission.C2D_MESSAGE
+	android.permission.MANAGE_ACCOUNTS
+	android.permission.SYSTEM_ALERT_WINDOW
+	android.permission.NFC
+	android.permission.CHANGE_NETWORK_STATE
+	android.permission.RECEIVE_BOOT_COMPLETED
+	com.google.android.gms.permission.AD_ID_NOTIFICATION
+	android.permission.INTERNET
+	android.permission.GET_PACKAGE_SIZE
+	android.permission.ACCESS_NETWORK_STATE
+	android.permission.VIBRATE
+	android.permission.ACCESS_WIFI_STATE
+	android.permission.WAKE_LOCK
+	
+	Runtime Permissions not granted and not yet requested:
+	android.permission.WRITE_EXTERNAL_STORAGE
+	android.permission.MANAGE_DOCUMENTS
+	android.permission.GET_ACCOUNTS
+	android.permission.CAMERA
+	android.permission.RECORD_AUDIO
+	android.permission.READ_CONTACTS
+	android.permission.ACCESS_FINE_LOCATION
+	android.permission.ACCESS_COARSE_LOCATION
+	android.permission.READ_PHONE_STATE
+	android.permission.SEND_SMS
+	android.permission.RECEIVE_SMS
+	com.sec.android.provider.badge.permission.READ
+	com.sec.android.provider.badge.permission.WRITE
+	com.htc.launcher.permission.READ_SETTINGS
+	com.htc.launcher.permission.UPDATE_SHORTCUT
+	com.sonyericsson.home.permission.BROADCAST_BADGE
+	com.sonymobile.home.permission.PROVIDER_INSERT_BADGE
+	android.permission.READ_EXTERNAL_STORAGE
+	
+	Installer package name: None
 	```
 
 
