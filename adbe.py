@@ -1166,6 +1166,7 @@ def print_app_info(app_name):
     # future.
     print_message(msg)
 
+
 # API < 23 have no runtime permissions
 def _get_permissions_info_below_api_23(app_info_dump):
     install_time_permissions_regex = re.search('grantedPermissions:(.*)', app_info_dump,
@@ -1185,6 +1186,7 @@ def _get_permissions_info_below_api_23(app_info_dump):
         permissions_info_msg += 'Install time granted permissions:\n%s\n\n' % '\n'.join(
             install_time_granted_permissions)
     return permissions_info_msg
+
 
 # API 23 and have runtime permissions
 def _get_permissions_info_above_api_23(app_info_dump):
