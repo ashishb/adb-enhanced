@@ -64,6 +64,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] permission-groups list all
 * adbe.py [options] permissions list (all | dangerous)
 * adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+* adbe.py [options] apps list (all | system | third-party | debug)
 * adbe.py [options] standby-bucket get <app_name>
 * adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
 * adbe.py [options] restrict-background (true | false) <app_name>
@@ -90,7 +91,6 @@ List of things which this tool will do in the future
 * adbe press up
 * adbe set_app_name [-f] $app_name
 * adbe reset_app_name
-* adbe apps list (debugabble | system | third-party)
 * Use -q[uite] for quite mode
 * Add IMEI, IMSI, phone number, and WI-Fi MAC address to devices info command - I think the best way to implement this
   will be via a companion app. And while we are on that, we can implement locale change via the companion app as well.
@@ -128,6 +128,7 @@ Usage:
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe.py [options] apps list (all | system | third-party | debug)
     adbe.py [options] standby-bucket get <app_name>
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
@@ -272,6 +273,15 @@ def main():
         permissions = get_permissions_in_permission_group(permission_group)
         grant_or_revoke_runtime_permissions(
             app_name, args['grant'], permissions)
+    elif args['apps'] and args['list']:
+        if args['all']:
+            list_all_apps()
+        elif args['system']:
+            list_system_apps()
+        elif args['third-party']:
+            list_non_system_apps()
+        elif args['debug']:
+            list_debug_apps()
     elif args['standby-bucket']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
@@ -885,6 +895,60 @@ def grant_or_revoke_runtime_permissions(
         cmd = 'pm revoke %s' % package_name
     for permission in permissions:
         execute_adb_shell_command(cmd + ' ' + permission)
+
+
+def _get_all_packages(pm_cmd):
+    result = execute_adb_shell_command(pm_cmd)
+    packages = []
+    for line in result.split('\n'):
+        _, package_name = line.split(':', 2)
+        packages.append(package_name)
+    return packages
+
+
+def list_all_apps():
+    cmd = 'pm list packages'
+    packages = _get_all_packages(cmd)
+    print('\n'.join(packages))
+
+
+def list_system_apps():
+    cmd = 'pm list packages -s'
+    packages = _get_all_packages(cmd)
+    print('\n'.join(packages))
+
+
+def list_non_system_apps():
+    cmd = 'pm list packages -3'
+    packages = _get_all_packages(cmd)
+    print('\n'.join(packages))
+
+
+def list_debug_apps():
+    cmd = 'pm list packages'
+    packages = _get_all_packages(cmd)
+    debug_packages = []
+    count = 0
+    num_packages = len(packages)
+    for package in packages:
+        count += 1
+        print_verbose("Checking package: %d/%s" %(count, num_packages))
+        # No faster way to do this except to check each and every package individually
+        if _is_debug_package(package):
+            debug_packages.append(package)
+    print('\n'.join(debug_packages))
+
+
+def _is_debug_package(app_name):
+    pm_cmd = 'dumpsys package %s' % app_name
+    grep_cmd = '(grep -c -E pkgFlags.*DEBUGGABLE || true)'
+    app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
+    if app_info_dump is None or app_info_dump.strip() == '0':
+        return False
+    elif app_info_dump.strip() == '1':
+        return True
+    else:
+        print_error_and_exit('Unexpected output for %s | %s = %s', pm_cmd, grep_cmd, app_info_dump)
 
 
 # Source: https://developer.android.com/reference/android/app/usage/UsageStatsManager#STANDBY_BUCKET_ACTIVE
