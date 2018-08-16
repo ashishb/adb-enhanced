@@ -27,39 +27,41 @@ def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False)
 def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
     final_cmd = ('%s %s' % (_adb_prefix, adb_cmd))
     if piped_into_cmd:
-        print_verbose("Executing \"%s | %s\"" % (final_cmd, piped_into_cmd))
-        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE if ignore_stderr is False else open(os.devnull, 'w'))
-        output = subprocess.check_output(piped_into_cmd, shell=True, stdin=ps1.stdout)
-        _check_for_more_than_one_device_error(ps1.stderr)
-        if output is not None:
-            output = output.decode('utf-8').strip()
-        print_verbose(output)
-        return output
-    else:
-        print_verbose("Executing \"%s\"" % final_cmd)
-        ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE if ignore_stderr is False else open(os.devnull, 'w'))
-        _check_for_more_than_one_device_error(ps1.stderr)
-        output = ''
-        first_line = True
-        for line in ps1.stdout:
+        final_cmd = '%s | %s' % (final_cmd, piped_into_cmd)
+
+    print_verbose("Executing \"%s\"" % final_cmd)
+    ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout_data, stderr_data = ps1.communicate()
+    stdout_data = stdout_data.decode('utf-8')
+    stderr_data = stderr_data.decode('utf-8')
+
+    _check_for_more_than_one_device_error(stderr_data)
+    if not ignore_stderr and stderr_data and len(stderr_data) > 0:
+        print_error(stderr_data)
+
+    output = ''
+    first_line = True
+    if stdout_data:
+        for line in stdout_data.split('\n'):
+            line = line.strip()
+            if not line or len(line) == 0:
+                continue
             if first_line:
-                output += line.decode('utf-8').strip()
+                output += line
                 first_line = False
             else:
-                output += '\n' + line.decode('utf-8').strip()
-        print_verbose("Result is \"%s\"" % output)
-        return output
+                output += '\n' + line
+    print_verbose("Result is \"%s\"" % output)
+    return output
 
 
-
-def _check_for_more_than_one_device_error(stderr):
-    if not stderr:
+def _check_for_more_than_one_device_error(stderr_data):
+    if not stderr_data:
         return
-    for line in stderr:
-        line = line.decode('utf-8').strip()
-        print_message(line)
+    for line in stderr_data.split('\n'):
+        line = line.strip()
+        if line and len(line) > 0:
+            print_verbose(line)
         if line.find('error: more than one') != -1:
             message = ''
             message += 'More than one device/emulator are connected.\n'
