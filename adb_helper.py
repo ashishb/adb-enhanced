@@ -38,6 +38,7 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
     stderr_data = stderr_data.decode('utf-8')
 
     _check_for_more_than_one_device_error(stderr_data)
+    _check_for_device_not_found_error(stderr_data)
     if not ignore_stderr and stderr_data and len(stderr_data) > 0:
         print_error(stderr_data)
 
@@ -71,3 +72,13 @@ def _check_for_more_than_one_device_error(stderr_data):
             message += 'You can list all connected devices/emulators via \"devices\" subcommand.'
             print_error_and_exit(message)
 
+
+def _check_for_device_not_found_error(stderr_data):
+    if not stderr_data:
+        return
+    for line in stderr_data.split('\n'):
+        line = line.strip()
+        if line and len(line) > 0:
+            print_verbose(line)
+        if line.find('error: device') > -1 and line.find('not found') > -1:
+            print_error_and_exit(line)
