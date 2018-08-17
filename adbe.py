@@ -941,7 +941,7 @@ def list_debug_apps():
 
 def _is_debug_package(app_name):
     pm_cmd = 'dumpsys package %s' % app_name
-    grep_cmd = '(grep -c -E pkgFlags.*DEBUGGABLE || true)'
+    grep_cmd = '(grep -c -E \'(pkgFlags|flags).*DEBUGGABLE\' || true)'
     app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
     if app_info_dump is None or app_info_dump.strip() == '0':
         return False
@@ -1141,7 +1141,7 @@ def print_app_info(app_name):
     max_sdk_version = _regex_extract('maxSdk=(\\d+)?', app_info_dump)
     installer_package_name = _regex_extract('installerPackageName=(\\S+)?', app_info_dump)
     is_debuggable = re.search(
-        'pkgFlags.*DEBUGGABLE',
+        '(pkgFlags|flags).*DEBUGGABLE',
         app_info_dump,
         re.IGNORECASE) is not None
 
