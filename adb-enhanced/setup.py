@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '1.8.9'
+version = '1.8.12'
 # This seems to be broken for Python 2.
 # with open('adbe/version.txt', 'r') as fh:
 #     version = fh.read().strip()
