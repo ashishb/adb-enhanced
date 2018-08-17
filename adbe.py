@@ -1191,15 +1191,15 @@ def _get_permissions_info_below_api_23(app_info_dump):
 # API 23 and have runtime permissions
 def _get_permissions_info_above_api_23(app_info_dump):
     requested_permissions_regex = \
-        re.search('requested permissions:(.*)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+        re.search('requested permissions:(.*?)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
     if requested_permissions_regex is None:
-        requested_permissions_regex = re.search('requested permissions:(.*)runtime permissions:', app_info_dump,
+        requested_permissions_regex = re.search('requested permissions:(.*?)runtime permissions:', app_info_dump,
                                                 re.IGNORECASE | re.DOTALL)
     if requested_permissions_regex is None:
         requested_permissions = []  # No permissions requested by the app.
     else:
         requested_permissions = requested_permissions_regex.group(1).split('\n')
-    install_time_permissions_regex = re.search('install permissions:(.*)runtime permissions:', app_info_dump,
+    install_time_permissions_regex = re.search('install permissions:(.*?)runtime permissions:', app_info_dump,
                                                re.IGNORECASE | re.DOTALL)
     if install_time_permissions_regex is None:
         install_time_permissions_string = []
