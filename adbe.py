@@ -14,6 +14,15 @@ import os
 import random
 from urllib.parse import urlparse
 
+try:
+    # This check will succeed only on Python 3.5 and later.
+    import asyncio
+    import asyncio_helper
+    _ASYNCIO_AVAILABLE = True
+except ImportError:
+    # This is to deal with python versions below 3.5
+    _ASYNCIO_AVAILABLE = False
+
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
@@ -927,14 +936,30 @@ def list_non_system_apps():
 def list_debug_apps():
     cmd = 'pm list packages'
     packages = _get_all_packages(cmd)
+
+    if _ASYNCIO_AVAILABLE:
+        method_to_call = _is_debug_package
+        params_list = packages
+        result_list = asyncio_helper.execute_in_parallel(method_to_call, params_list)
+        debug_packages = []
+        for (package_name, debuggable) in result_list:
+            if debuggable:
+                debug_packages.append(package_name)
+        print('\n'.join(debug_packages))
+    else:
+        print_message('Use python3 for faster execution of this call')
+        _list_debug_apps_no_async(packages)
+
+
+def _list_debug_apps_no_async(packages):
     debug_packages = []
     count = 0
     num_packages = len(packages)
     for package in packages:
         count += 1
-        print_verbose("Checking package: %d/%s" %(count, num_packages))
+        print_verbose("Checking package: %d/%s" % (count, num_packages))
         # No faster way to do this except to check each and every package individually
-        if _is_debug_package(package):
+        if _is_debug_package(package)[1]:
             debug_packages.append(package)
     print('\n'.join(debug_packages))
 
@@ -947,9 +972,9 @@ def _is_debug_package(app_name):
     grep_cmd = '(grep -c -E \'%s\' || true)' % _REGEX_DEBUGGABLE
     app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
     if app_info_dump is None or app_info_dump.strip() == '0':
-        return False
+        return app_name, False
     elif app_info_dump.strip() == '1' or app_info_dump.strip() == '2':
-        return True
+        return app_name, True
     else:
         print_error_and_exit('Unexpected output for %s | %s = %s' % (pm_cmd, grep_cmd, app_info_dump))
 
