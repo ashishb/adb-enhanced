@@ -1164,9 +1164,6 @@ def print_app_info(app_name):
         msg += _get_permissions_info_below_api_23(app_info_dump)
 
     msg += 'Installer package name: %s\n' % installer_package_name
-
-    # TODO: Consider adding printing the signing key support to this in the
-    # future.
     print_message(msg)
 
 
