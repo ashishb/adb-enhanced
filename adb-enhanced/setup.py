@@ -1,8 +1,10 @@
 from setuptools import setup, find_packages
 import sys, os
 
-with open('version.txt', 'r') as fh:
-    version = fh.read().strip()
+version = '1.8.9'
+# This seems to be broken for Python 2.
+# with open('adbe/version.txt', 'r') as fh:
+#     version = fh.read().strip()
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
