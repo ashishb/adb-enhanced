@@ -951,7 +951,7 @@ def _is_debug_package(app_name):
     elif app_info_dump.strip() == '1':
         return True
     else:
-        print_error_and_exit('Unexpected output for %s | %s = %s', pm_cmd, grep_cmd, app_info_dump)
+        print_error_and_exit('Unexpected output for %s | %s = %s' % (pm_cmd, grep_cmd, app_info_dump))
 
 
 # Source: https://developer.android.com/reference/android/app/usage/UsageStatsManager#STANDBY_BUCKET_ACTIVE
