@@ -6,10 +6,12 @@ from __future__ import print_function
 from future.standard_library import install_aliases
 install_aliases()
 
+import psutil
 import re
+import signal
 import sys
 import tempfile
-
+import time
 import os
 import random
 from urllib.parse import urlparse
@@ -708,13 +710,48 @@ def dump_screenrecord(filepath):
         print_error_and_exit('screenrecord is not supported on emulator\nSource: %s'
                              % 'https://issuetracker.google.com/issues/36982354')
 
-    file_path_on_device = _create_tmp_file('screenrecord', 'mp4')
-    dump_cmd = 'screenrecord %s --time-limit 10 ' % file_path_on_device
-    execute_adb_shell_command(dump_cmd)
-    pull_cmd = 'pull %s %s' % (file_path_on_device, filepath)
-    execute_adb_command(pull_cmd)
-    del_cmd = 'rm %s' % file_path_on_device
-    execute_adb_shell_command(del_cmd)
+    file_path_on_device = None
+
+    def _start_recording():
+        global file_path_on_device
+        print_message('Recording video, press Ctrl+C to end...')
+        file_path_on_device = _create_tmp_file('screenrecord', 'mp4')
+        dump_cmd = 'screenrecord --verbose %s ' % file_path_on_device
+        execute_adb_shell_command(dump_cmd)
+
+    def _pull_and_delete_file_from_device():
+        global file_path_on_device
+        pull_cmd = 'pull %s %s' % (file_path_on_device, filepath)
+        execute_adb_command(pull_cmd)
+        del_cmd = 'rm %s' % file_path_on_device
+        execute_adb_shell_command(del_cmd)
+
+    def _kill_all_child_processes():
+        current_process = psutil.Process()
+        children = current_process.children(recursive=True)
+        for child in children:
+            print_verbose('Child process is %s' % child)
+            os.kill(child.pid, signal.SIGTERM)
+
+    def _handle_recording_ended():
+        print_message('Finishing...')
+        # Kill all child processes.
+        # This is not neat but it is OK for now since we know that we have only one adb child process which is
+        # running screen recording.
+        _kill_all_child_processes()
+        # Wait for one second.
+        time.sleep(1)
+        # Finish rest of the processing.
+        _pull_and_delete_file_from_device()
+        # And exit
+        sys.exit(0)
+
+    def signal_handler(sig, frame):
+        _handle_recording_ended()
+
+    signal.signal(signal.SIGINT, signal_handler)
+
+    _start_recording()
 
 
 # https://developer.android.com/training/basics/network-ops/data-saver.html

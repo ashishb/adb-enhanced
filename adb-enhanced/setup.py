@@ -31,6 +31,7 @@ setup(name='adb-enhanced',
                 # -*- Extra requirements: -*-
                 'docopt',
                 'future',
+                'psutil',
                 ],
         entry_points={
                 # -*- Entry points: -*-
