@@ -1120,18 +1120,25 @@ def cat_file(file_path):
 
 def _may_be_wrap_with_run_as(cmd, file_path):
     # This is hacky but works for the cases I am looking for.
+    cmd = _escape_quotes(cmd)
+
     if file_path.startswith('/data/data/'):
         run_as_package = file_path.split('/')[3]
         if run_as_package is not None and len(run_as_package.strip()) > 0:
             print_verbose('Running as package: %s' % run_as_package)
-            cmd_with_run_as = 'run-as %s %s' % (run_as_package, cmd)
-            cmd_with_su = 'su root %s' % cmd
-            # First try with run-as and if that fails, try directly, and if that fails, try with su
-            return '\'%s 2>/dev/null  || %s 2>/dev/null || %s\'' % (cmd_with_run_as, cmd_with_su, cmd)
+            cmd_with_run_as = 'run-as %s \" %s \"' % (run_as_package, cmd)
+            cmd_with_su = 'su root \" %s \"' % cmd
+            # First try with run-as and if that fails, try with su , and if that fails, try directly.
+            return '\" { %s; } 2>/dev/null || { %s; } 2>/dev/null || { %s; } \"' % (
+                cmd_with_run_as, cmd_with_su, cmd)
 
     # Try with su as well.
     cmd_with_su = 'su root %s' % cmd
-    return '\'%s 2>/dev/null || %s\'' % (cmd_with_su, cmd)
+    return '\" { %s; } 2>/dev/null \" || \" { %s; } \"' % (cmd_with_su, cmd)
+
+
+def _escape_quotes(cmd):
+    return cmd.replace('\'', '\\\'').replace('\"', '\\\"')
 
 
 # Source: https://stackoverflow.com/a/25398877
