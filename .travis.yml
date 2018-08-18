@@ -7,8 +7,8 @@ python:
   - 3.6
 
 install:
-  pip install docopt
-  pip install future
+  - pip install docopt
+  - pip install future
 
 script:
   - python adb-enhanced/setup.py install
