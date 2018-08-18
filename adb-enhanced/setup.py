@@ -1,7 +1,11 @@
 from setuptools import setup, find_packages
 import sys, os
 
-with open('version.txt', 'r') as fh:
+_DIR_OF_THIS_SCRIPT = os.path.split(__file__)[0]
+_VERSION_FILE_NAME = 'version.txt'
+_VERSION_FILE_PATH = os.path.join(_DIR_OF_THIS_SCRIPT, _VERSION_FILE_NAME)
+
+with open(_VERSION_FILE_PATH, 'r') as fh:
     version = fh.read().strip()
 
 with open('README.md', 'r') as fh:
