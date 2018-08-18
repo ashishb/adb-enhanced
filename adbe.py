@@ -698,6 +698,12 @@ def dump_screenshot(filepath):
 
 
 def dump_screenrecord(filepath):
+    api_version = _get_device_android_api_version()
+    if api_version < 19:
+        print_error_and_exit(
+            'This command cannot be executed below API version 19, your Android version is %s' %
+            api_version)
+        
     file_path_on_device = _create_tmp_file('screenrecord', 'mp4')
     dump_cmd = 'screenrecord %s --time-limit 10 ' % file_path_on_device
     execute_adb_shell_command(dump_cmd)
