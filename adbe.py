@@ -703,7 +703,11 @@ def dump_screenrecord(filepath):
         print_error_and_exit(
             'This command cannot be executed below API version 19, your Android version is %s' %
             api_version)
-        
+
+    if _is_emulator():
+        print_error_and_exit('screenrecord is not supported on emulator\nSource: %s'
+                             % 'https://issuetracker.google.com/issues/36982354')
+
     file_path_on_device = _create_tmp_file('screenrecord', 'mp4')
     dump_cmd = 'screenrecord %s --time-limit 10 ' % file_path_on_device
     execute_adb_shell_command(dump_cmd)
@@ -1338,6 +1342,10 @@ def _get_device_android_api_version():
     if version_string is None:
         return -1
     return int(version_string)
+
+def _is_emulator():
+    qemu = _get_prop('ro.kernel.qemu')
+    return qemu is not None and qemu.strip() == '1'
 
 
 def _get_prop(property_name):
