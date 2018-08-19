@@ -1,15 +1,33 @@
-sudo: false
+matrix:
+  sudo: false
 
-language: python
+  language: python
+  
+  python:
+    - 2.7
+    - 3.6
 
-python:
-  - 2.7
-  - 3.6
+  install:
+    - pip install docopt
+    - pip install future
+    - pip install psutil
 
-install:
-  - pip install docopt
-  - pip install future
-  - pip install psutil
+  script:
+    - python adb-enhanced/setup.py install
 
-script:
-  - python adb-enhanced/setup.py install
+  language: android
+
+  android:
+    
+    components:
+      - build-tools-26.0.2
+      - android-26
+      - sys-img-armeabi-v7a-android-16
+
+    before_script:
+      - echo no | android create avd --force -n test -t android-26 --abi armeabi-v7a
+      - emulator -avd test -no-audio -no-window &
+      - android-wait-for-emulator
+
+    script:
+      - python adbe.py app-signature android
