@@ -1347,7 +1347,7 @@ def print_app_path(app_name):
 def print_app_signature(app_name):
     apk_path = _get_apk_path(app_name)
     # Copy apk to a temp file on the disk
-    tmp_apk_file = tempfile.NamedTemporaryFile(prefix='.apk')
+    tmp_apk_file = tempfile.NamedTemporaryFile(prefix=app_name, suffix='.apk')
     with tmp_apk_file:
         tmp_apk_file_name = tmp_apk_file.name
         adb_cmd = 'pull %s %s' % (apk_path, tmp_apk_file_name)
