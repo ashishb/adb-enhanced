@@ -176,7 +176,7 @@ _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 
 
 def main():
-    args = docopt.docopt(USAGE_STRING, version='1.0.0rc2')
+    args = docopt.docopt(USAGE_STRING, version='1.8.14')
 
     validate_options(args)
     options = ''
