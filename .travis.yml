@@ -59,6 +59,7 @@ matrix:
       script:
         - python adbe.py app-signature com.android.phone
         - python adbe.py app-info com.android.phone
+        - python3 adbe.py screenshot tmp1.png -v
       # Default installation is python 2. Let's force python3 and test the code against it.
       # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
       addons:
