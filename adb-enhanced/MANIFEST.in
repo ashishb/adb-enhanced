@@ -1,4 +1,4 @@
-include version.txt
+include adbe/version.txt
 include adbe/adbe.py
 include adbe/asyncio_helper.py
 include adbe/output_helper.py
