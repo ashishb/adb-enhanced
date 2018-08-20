@@ -171,12 +171,13 @@ Options:
 
 """
 
+_VERSION_FILE_NAME = 'version.txt'
 _KEYCODE_BACK = 4
 _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 
 
 def main():
-    args = docopt.docopt(USAGE_STRING, version='1.8.14')
+    args = docopt.docopt(USAGE_STRING, version=get_version())
 
     validate_options(args)
     options = ''
@@ -407,6 +408,12 @@ def handle_overdraw(value):
 
     execute_adb_shell_command_and_poke_activity_service(cmd)
 
+
+def get_version():
+    dir_of_this_script = os.path.split(__file__)[0]
+    version_file_path = os.path.join(dir_of_this_script, _VERSION_FILE_NAME)
+    with open(version_file_path, 'r') as fh:
+        return fh.read().strip()
 
 # Source:
 # https://stackoverflow.com/questions/25864385/changing-android-device-orientation-with-adb

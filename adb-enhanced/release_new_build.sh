@@ -3,14 +3,15 @@ set -e
 
 # Works on both Mac and GNU/Linux.
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-VERSION_FILENAME=${DIR}/version.txt
+VERSION_FILENAME=${DIR}/../version.txt
+SRC_FILES={adbe.py,output_helper.py,adb_helper.py,asyncio_helper.py,apksigner.jar,version.txt} 
 
-# Copy the relevant files
-cp ${DIR}/../{adbe.py,output_helper.py,adb_helper.py,asyncio_helper.py,apksigner.jar} ${DIR}/adbe/ && 
-  cp ${DIR}/../README.md ${DIR}/README.md &&
-  # Open setup file to increment the version
+# Open setup file to increment the version
   echo -n "Next the editor will open ${VERSION_FILENAME}, increment the version number in it. Press enter to continue:" &&
-    # Wait for a keypress to ensure that user has seen the previous message
+    # Copy the relevant files
+    cp ${DIR}/../${SRC_FILES} ${DIR}/adbe/ && 
+    cp ${DIR}/../README.md ${DIR}/README.md &&
+  # Wait for a keypress to ensure that user has seen the previous message
   read -n 1 -s &&
   vim ${VERSION_FILENAME} &&
   # One time setup
@@ -26,7 +27,7 @@ cp ${DIR}/../{adbe.py,output_helper.py,adb_helper.py,asyncio_helper.py,apksigner
   python3 setup.py sdist bdist_wheel &&
   # Commit to git before sending package upstream
   git add ${DIR}/README.md \
-    ${DIR}/adbe/{adbe.py,output_helper.py,adb_helper.py,asyncio_helper.py,apksigner.jar} ${DIR}/changelog.txt ${VERSION_FILENAME} &&
+    ${DIR}/adbe/${SRC_FILES} ${DIR}/changelog.txt ${VERSION_FILENAME} &&
   git commit -m "Setup release $(cat $VERSION_FILENAME)" &&
   git tag $(cat $VERSION_FILENAME) &&
   git push origin master &&
@@ -36,7 +37,6 @@ cp ${DIR}/../{adbe.py,output_helper.py,adb_helper.py,asyncio_helper.py,apksigner
   echo "Few mins later, check https://pypi.org/project/adb-enhanced/#history to confirm upload" &&
   # Cleanup
   rm -r build/ dist/
-
 
 # To upload to test network and try:
 # rm -r build/ dist/ ; python3 setup.py sdist bdist_wheel && python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
