@@ -6,10 +6,13 @@ from __future__ import print_function
 from future.standard_library import install_aliases
 install_aliases()
 
+import psutil
 import re
+import signal
+import subprocess
 import sys
 import tempfile
-
+import time
 import os
 import random
 from urllib.parse import urlparse
@@ -173,7 +176,7 @@ _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 
 
 def main():
-    args = docopt.docopt(USAGE_STRING, version='1.0.0rc2')
+    args = docopt.docopt(USAGE_STRING, version='1.8.14')
 
     validate_options(args)
     options = ''
@@ -698,13 +701,58 @@ def dump_screenshot(filepath):
 
 
 def dump_screenrecord(filepath):
-    file_path_on_device = _create_tmp_file('screenrecord', 'mp4')
-    dump_cmd = 'screenrecord %s --time-limit 10 ' % file_path_on_device
-    execute_adb_shell_command(dump_cmd)
-    pull_cmd = 'pull %s %s' % (file_path_on_device, filepath)
-    execute_adb_command(pull_cmd)
-    del_cmd = 'rm %s' % file_path_on_device
-    execute_adb_shell_command(del_cmd)
+    api_version = _get_device_android_api_version()
+    if api_version < 19:
+        print_error_and_exit(
+            'This command cannot be executed below API version 19, your Android version is %s' %
+            api_version)
+
+    if _is_emulator():
+        print_error_and_exit('screenrecord is not supported on emulator\nSource: %s'
+                             % 'https://issuetracker.google.com/issues/36982354')
+
+    file_path_on_device = None
+
+    def _start_recording():
+        global file_path_on_device
+        print_message('Recording video, press Ctrl+C to end...')
+        file_path_on_device = _create_tmp_file('screenrecord', 'mp4')
+        dump_cmd = 'screenrecord --verbose %s ' % file_path_on_device
+        execute_adb_shell_command(dump_cmd)
+
+    def _pull_and_delete_file_from_device():
+        global file_path_on_device
+        pull_cmd = 'pull %s %s' % (file_path_on_device, filepath)
+        execute_adb_command(pull_cmd)
+        del_cmd = 'rm %s' % file_path_on_device
+        execute_adb_shell_command(del_cmd)
+
+    def _kill_all_child_processes():
+        current_process = psutil.Process()
+        children = current_process.children(recursive=True)
+        for child in children:
+            print_verbose('Child process is %s' % child)
+            os.kill(child.pid, signal.SIGTERM)
+
+    def _handle_recording_ended():
+        print_message('Finishing...')
+        # Kill all child processes.
+        # This is not neat but it is OK for now since we know that we have only one adb child process which is
+        # running screen recording.
+        _kill_all_child_processes()
+        # Wait for one second.
+        time.sleep(1)
+        # Finish rest of the processing.
+        _pull_and_delete_file_from_device()
+        # And exit
+        sys.exit(0)
+
+    def signal_handler(sig, frame):
+        _handle_recording_ended()
+
+    signal.signal(signal.SIGINT, signal_handler)
+
+    _start_recording()
 
 
 # https://developer.android.com/training/basics/network-ops/data-saver.html
@@ -835,7 +883,7 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
 
 # Returns true if the file_path exists on the device, false if it does not exists or is inaccessible.
 def _file_exists(file_path):
-    exists_cmd = "'ls %s > /dev/null && echo exists'" % file_path
+    exists_cmd = "\"ls %s 1>/dev/null 2>/dev/null && echo exists\"" % file_path
     exists_cmd = _may_be_wrap_with_run_as(exists_cmd, file_path)
     output = execute_adb_shell_command(exists_cmd)
     return output.find('exists') != -1
@@ -1119,19 +1167,23 @@ def cat_file(file_path):
 
 
 def _may_be_wrap_with_run_as(cmd, file_path):
-    # This is hacky but works for the cases I am looking for.
     if file_path.startswith('/data/data/'):
         run_as_package = file_path.split('/')[3]
         if run_as_package is not None and len(run_as_package.strip()) > 0:
             print_verbose('Running as package: %s' % run_as_package)
-            cmd_with_run_as = 'run-as %s %s' % (run_as_package, cmd)
-            cmd_with_su = 'su root %s' % cmd
-            # First try with run-as and if that fails, try directly, and if that fails, try with su
-            return '\'%s 2>/dev/null  || %s 2>/dev/null || %s\'' % (cmd_with_run_as, cmd_with_su, cmd)
+            cmd_with_run_as = 'run-as %s %s ' % (run_as_package, _escape_quotes(cmd))
+            cmd_with_su = 'su root %s ' % _escape_quotes(cmd)
+            # First try with run-as and if that fails, try with su , and if that fails, try directly.
+            return '\" %s 2>/dev/null || %s 2>/dev/null || %s \"' % (
+                cmd_with_run_as, cmd_with_su, cmd)
 
     # Try with su as well.
-    cmd_with_su = 'su root %s' % cmd
-    return '\'%s 2>/dev/null || %s\'' % (cmd_with_su, cmd)
+    cmd_with_su = 'su root %s' % _escape_quotes(cmd)
+    return '\"  %s 2>/dev/null ||  %s\"' % (cmd_with_su, cmd)
+
+
+def _escape_quotes(cmd):
+    return cmd.replace('\'', '\\\'').replace('\"', '\\\"')
 
 
 # Source: https://stackoverflow.com/a/25398877
@@ -1295,7 +1347,7 @@ def print_app_path(app_name):
 def print_app_signature(app_name):
     apk_path = _get_apk_path(app_name)
     # Copy apk to a temp file on the disk
-    tmp_apk_file = tempfile.NamedTemporaryFile(prefix='.apk')
+    tmp_apk_file = tempfile.NamedTemporaryFile(prefix=app_name, suffix='.apk')
     with tmp_apk_file:
         tmp_apk_file_name = tmp_apk_file.name
         adb_cmd = 'pull %s %s' % (apk_path, tmp_apk_file_name)
@@ -1325,6 +1377,10 @@ def _get_device_android_api_version():
     if version_string is None:
         return -1
     return int(version_string)
+
+def _is_emulator():
+    qemu = _get_prop('ro.kernel.qemu')
+    return qemu is not None and qemu.strip() == '1'
 
 
 def _get_prop(property_name):

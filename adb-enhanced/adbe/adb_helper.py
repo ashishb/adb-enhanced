@@ -11,6 +11,9 @@ except ImportError:
 
 
 _adb_prefix = 'adb'
+_IGNORED_LINES = [
+    'WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.'
+]
 
 
 def get_adb_prefix():
@@ -48,6 +51,8 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
         for line in stdout_data.split('\n'):
             line = line.strip()
             if not line or len(line) == 0:
+                continue
+            if line in _IGNORED_LINES:
                 continue
             if first_line:
                 output += line
