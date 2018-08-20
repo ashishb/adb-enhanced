@@ -3,7 +3,7 @@ import sys, os
 
 _DIR_OF_THIS_SCRIPT = os.path.split(__file__)[0]
 _VERSION_FILE_NAME = 'version.txt'
-_VERSION_FILE_PATH = os.path.join(_DIR_OF_THIS_SCRIPT, _VERSION_FILE_NAME)
+_VERSION_FILE_PATH = os.path.join(_DIR_OF_THIS_SCRIPT, 'adbe', _VERSION_FILE_NAME)
 _README_FILE_NAME = 'README.md'
 _README_FILE_PATH =  os.path.join(_DIR_OF_THIS_SCRIPT, _README_FILE_NAME)
 
