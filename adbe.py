@@ -883,7 +883,9 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
 
 # Returns true if the file_path exists on the device, false if it does not exists or is inaccessible.
 def _file_exists(file_path):
-    exists_cmd = "\"ls %s 1>/dev/null 2>/dev/null && echo exists\"" % file_path
+    exists_cmd = "ls %s 1>/dev/null 2>/dev/null && echo exists" % file_path
+    # The second command "echo exists" will not be wrapped with run-as but that's OK in this case.
+    # Since it is perfectly fine to output "exists" as a shell user.
     exists_cmd = _may_be_wrap_with_run_as(exists_cmd, file_path)
     output = execute_adb_shell_command(exists_cmd)
     return output.find('exists') != -1
