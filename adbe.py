@@ -714,7 +714,10 @@ def dump_screenrecord(filepath):
             'This command cannot be executed below API version 19, your Android version is %s' %
             api_version)
 
-    if _is_emulator():
+    # I have tested that on API 28 emulator this works. On API 19 emulator, it does not.
+    # More testing is required to decide the Android OS version range where this does not work on
+    # emulator.
+    if api_version < 28 and _is_emulator():
         print_error_and_exit('screenrecord is not supported on emulator\nSource: %s'
                              % 'https://issuetracker.google.com/issues/36982354')
 
