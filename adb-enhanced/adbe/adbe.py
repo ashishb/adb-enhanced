@@ -714,11 +714,13 @@ def dump_screenrecord(filepath):
             'This command cannot be executed below API version 19, your Android version is %s' %
             api_version)
 
-    if _is_emulator():
-        print_error_and_exit('screenrecord is not supported on emulator\nSource: %s'
-                             % 'https://issuetracker.google.com/issues/36982354')
+    # I have tested that on API 23 and above this works. Till Api 22, on emulator, it does not.
+    if api_version < 23 and _is_emulator():
+        print_error_and_exit('screenrecord is not supported on emulator below API 23\n' +
+                             'Source: %s ' % 'https://issuetracker.google.com/issues/36982354')
 
     file_path_on_device = None
+    original_sigint_handler = None
 
     def _start_recording():
         global file_path_on_device
@@ -729,6 +731,7 @@ def dump_screenrecord(filepath):
 
     def _pull_and_delete_file_from_device():
         global file_path_on_device
+        print_message('Saving recording to %s' % filepath)
         pull_cmd = 'pull %s %s' % (file_path_on_device, filepath)
         execute_adb_command(pull_cmd)
         del_cmd = 'rm %s' % file_path_on_device
@@ -755,8 +758,11 @@ def dump_screenrecord(filepath):
         sys.exit(0)
 
     def signal_handler(sig, frame):
+        # Restore the original handler for Ctrl-C
+        signal.signal(signal.SIGINT, original_sigint_handler)
         _handle_recording_ended()
 
+    original_sigint_handler = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, signal_handler)
 
     _start_recording()
