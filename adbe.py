@@ -1398,6 +1398,7 @@ def _get_device_android_api_version():
         return -1
     return int(version_string)
 
+
 def _is_emulator():
     qemu = _get_prop('ro.kernel.qemu')
     return qemu is not None and qemu.strip() == '1'
