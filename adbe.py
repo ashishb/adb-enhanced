@@ -416,6 +416,7 @@ def get_version():
     with open(version_file_path, 'r') as fh:
         return fh.read().strip()
 
+
 # Perform screen rotation. Accepts four direction types - left, right, portrait, and landscape.
 # Source:
 # https://stackoverflow.com/questions/25864385/changing-android-device-orientation-with-adb
