@@ -12,6 +12,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 ## Note
 1. `sudo pip install adb-enhanced` for python2 based install works as well but I would recommend moving to python3 since I might deprecate python2 support at some point.
 2. If you don't have sudo access or you are installing without sudo then `adbe` might not be configured correctly in the path.
+3. To setup bash/z-sh auto-completion, execute `sudo pip3 install infi.docopt-completion && docopt-completion $(which adbe)` after installing adb-enhanced.
 
 
 # Examples
