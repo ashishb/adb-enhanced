@@ -70,6 +70,8 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 	```
 	$ adbe devices
+	Unlock Device "dcc54112" and give USB debugging access to this PC/Laptop by unlocking and reconnecting the device. More info about this device: "unauthorized usb:339869696X transport_id:17"
+
 	Serial ID: dcc54111
 	Manufacturer: OnePlus
 	Model: ONEPLUS A5000 (OnePlus 5T)
