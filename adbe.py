@@ -597,7 +597,7 @@ def handle_list_devices():
                 print_error(
                 ('Unlock Device "%s" and give USB debugging access to ' +
                         'this PC/Laptop by unlocking and reconnecting ' +
-                        'the device. More info about this device: "%s"') % (
+                        'the device. More info about this device: "%s"\n') % (
                                 device_serial, device_info))
             else:
                 _print_device_info(device_serial)
