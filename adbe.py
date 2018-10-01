@@ -80,7 +80,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] standby-bucket get <app_name>
 * adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
 * adbe.py [options] restrict-background (true | false) <app_name>
-* adbe.py [options] ls [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
+* adbe.py [options] ls [-a] [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 * adbe.py [options] pull <remote> [local] [-a] - A smart pull which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 * adbe.py [options] start <app_name> - Launches an Android app's default launcher activity, which in most cases corresponds to how a developer wants to start the app
 * adbe.py [options] stop <app_name> - Force stop an application
@@ -144,7 +144,7 @@ Usage:
     adbe.py [options] standby-bucket get <app_name>
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
-    adbe.py [options] ls [-l] [-R] <file_path>
+    adbe.py [options] ls [-a] [-l] [-R] <file_path>
     adbe.py [options] rm [-f] [-R] [-r] <file_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
@@ -309,8 +309,9 @@ def main():
     elif args['ls']:
         file_path = args['<file_path>']
         long_format = args['-l']
+        include_hidden_files = args['-a']
         recursive = args['-R'] or args['-r']
-        list_directory(file_path, long_format, recursive)
+        list_directory(file_path, long_format, recursive, include_hidden_files)
     elif args['rm']:
         file_path = args['<file_path>']
         force_delete = args['-f']
@@ -1105,12 +1106,14 @@ def apply_or_remove_background_restriction(package_name, set_restriction):
     execute_adb_shell_command(appops_cmd)
 
 
-def list_directory(file_path, long_format, recursive):
+def list_directory(file_path, long_format, recursive, include_hidden_files):
     cmd_prefix = 'ls'
     if long_format:
         cmd_prefix += ' -l'
     if recursive:
         cmd_prefix += ' -R'
+    if include_hidden_files:
+        cmd_prefix += ' -a'
     cmd = '%s %s' % (cmd_prefix, file_path)
     cmd = _may_be_wrap_with_run_as(cmd, file_path)
 
