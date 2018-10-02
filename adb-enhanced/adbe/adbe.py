@@ -69,6 +69,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] screenrecord <filename.mp4>
 * adbe.py [options] dont-keep-activities (on | off)
 * adbe.py [options] animations (on | off)
+* adbe.py [options] show-taps (on | off)
 * adbe.py [options] stay-awake-while-charging (on | off)
 * adbe.py [options] input-text <text>
 * adbe.py [options] press back
@@ -80,7 +81,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] standby-bucket get <app_name>
 * adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
 * adbe.py [options] restrict-background (true | false) <app_name>
-* adbe.py [options] ls [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
+* adbe.py [options] ls [-a] [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 * adbe.py [options] pull <remote> [local] [-a] - A smart pull which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
 * adbe.py [options] start <app_name> - Launches an Android app's default launcher activity, which in most cases corresponds to how a developer wants to start the app
 * adbe.py [options] stop <app_name> - Force stop an application
@@ -133,6 +134,7 @@ Usage:
     adbe.py [options] screenrecord <filename.mp4>
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] animations (on | off)
+    adbe.py [options] show-taps (on | off)
     adbe.py [options] stay-awake-while-charging (on | off) 
     adbe.py [options] input-text <text>
     adbe.py [options] press back
@@ -144,7 +146,7 @@ Usage:
     adbe.py [options] standby-bucket get <app_name>
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
-    adbe.py [options] ls [-l] [-R] <file_path>
+    adbe.py [options] ls [-a] [-l] [-R] <file_path>
     adbe.py [options] rm [-f] [-R] [-r] <file_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
@@ -260,6 +262,8 @@ def main():
         handle_dont_keep_activities_in_background(args['on'])
     elif args['animations']:
         toggle_animations(args['on'])
+    elif args['show-taps']:
+        toggle_show_taps(turn_on=args['on'])
     elif args['stay-awake-while-charging']:
         # Keep screen on while the device is charging.
         stay_awake_while_charging(args['on'])
@@ -309,8 +313,9 @@ def main():
     elif args['ls']:
         file_path = args['<file_path>']
         long_format = args['-l']
+        include_hidden_files = args['-a']
         recursive = args['-R'] or args['-r']
-        list_directory(file_path, long_format, recursive)
+        list_directory(file_path, long_format, recursive, include_hidden_files)
     elif args['rm']:
         file_path = args['<file_path>']
         force_delete = args['-f']
@@ -415,6 +420,8 @@ def get_version():
     with open(version_file_path, 'r') as fh:
         return fh.read().strip()
 
+
+# Perform screen rotation. Accepts four direction types - left, right, portrait, and landscape.
 # Source:
 # https://stackoverflow.com/questions/25864385/changing-android-device-orientation-with-adb
 def handle_rotate(direction):
@@ -597,7 +604,7 @@ def handle_list_devices():
                 print_error(
                 ('Unlock Device "%s" and give USB debugging access to ' +
                         'this PC/Laptop by unlocking and reconnecting ' +
-                        'the device. More info about this device: "%s"') % (
+                        'the device. More info about this device: "%s"\n') % (
                                 device_serial, device_info))
             else:
                 _print_device_info(device_serial)
@@ -814,6 +821,17 @@ def toggle_animations(turn_on):
     execute_adb_shell_command(cmd1)
     execute_adb_shell_command(cmd2)
     execute_adb_shell_command(cmd3)
+
+
+def toggle_show_taps(turn_on):
+    if turn_on:
+        value = 1
+    else:
+        value = 0
+
+    # Source: https://stackoverflow.com/a/32621809/434196
+    cmd = 'settings put system show_touches %d' % value
+    execute_adb_shell_command(cmd)
 
 
 # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#STAY_ON_WHILE_PLUGGED_IN
@@ -1105,12 +1123,14 @@ def apply_or_remove_background_restriction(package_name, set_restriction):
     execute_adb_shell_command(appops_cmd)
 
 
-def list_directory(file_path, long_format, recursive):
+def list_directory(file_path, long_format, recursive, include_hidden_files):
     cmd_prefix = 'ls'
     if long_format:
         cmd_prefix += ' -l'
     if recursive:
         cmd_prefix += ' -R'
+    if include_hidden_files:
+        cmd_prefix += ' -a'
     cmd = '%s %s' % (cmd_prefix, file_path)
     cmd = _may_be_wrap_with_run_as(cmd, file_path)
 
@@ -1392,6 +1412,7 @@ def _get_device_android_api_version():
     if version_string is None:
         return -1
     return int(version_string)
+
 
 def _is_emulator():
     qemu = _get_prop('ro.kernel.qemu')

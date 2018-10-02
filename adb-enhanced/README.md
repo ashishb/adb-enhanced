@@ -1,4 +1,4 @@
-# adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
+# adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced) [![Build Status](https://travis-ci.org/ashishb/adb-enhanced.svg?branch=master)](https://travis-ci.org/ashishb/adb-enhanced)
 
 Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation.
 
@@ -12,6 +12,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 ## Note
 1. `sudo pip install adb-enhanced` for python2 based install works as well but I would recommend moving to python3 since I might deprecate python2 support at some point.
 2. If you don't have sudo access or you are installing without sudo then `adbe` might not be configured correctly in the path.
+3. To setup bash/z-sh auto-completion, execute `sudo pip3 install infi.docopt-completion && docopt-completion $(which adbe)` after installing adb-enhanced.
 
 
 # Examples
@@ -70,6 +71,8 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 	```
 	$ adbe devices
+	Unlock Device "dcc54112" and give USB debugging access to this PC/Laptop by unlocking and reconnecting the device. More info about this device: "unauthorized usb:339869696X transport_id:17"
+
 	Serial ID: dcc54111
 	Manufacturer: OnePlus
 	Model: ONEPLUS A5000 (OnePlus 5T)
@@ -144,7 +147,6 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 # Usage
 
-    Usage:
     adbe.py [options] rotate (landscape | portrait | left | right)
     adbe.py [options] gfx (on | off | lines)
     adbe.py [options] overdraw (on | off | deut)
@@ -165,6 +167,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] screenrecord <filename.mp4>
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] animations (on | off)
+    adbe.py [options] show-taps (on | off)
     adbe.py [options] stay-awake-while-charging (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
@@ -176,7 +179,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] standby-bucket get <app_name>
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
-    adbe.py [options] ls [-l] [-R] <file_path>
+    adbe.py [options] ls [-a] [-l] [-R] <file_path>
     adbe.py [options] rm [-f] [-R] [-r] <file_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
@@ -189,7 +192,6 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] app-info <app_name>
     adbe.py [options] app-path <app_name>
     adbe.py [options] app-signature <app_name>
-
 
 # Options
 
