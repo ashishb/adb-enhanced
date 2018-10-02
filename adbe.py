@@ -69,6 +69,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] screenrecord <filename.mp4>
 * adbe.py [options] dont-keep-activities (on | off)
 * adbe.py [options] animations (on | off)
+* adbe.py [options] show-taps (on | off)
 * adbe.py [options] stay-awake-while-charging (on | off)
 * adbe.py [options] input-text <text>
 * adbe.py [options] press back
@@ -133,6 +134,7 @@ Usage:
     adbe.py [options] screenrecord <filename.mp4>
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] animations (on | off)
+    adbe.py [options] show-taps (on | off)
     adbe.py [options] stay-awake-while-charging (on | off) 
     adbe.py [options] input-text <text>
     adbe.py [options] press back
@@ -260,6 +262,8 @@ def main():
         handle_dont_keep_activities_in_background(args['on'])
     elif args['animations']:
         toggle_animations(args['on'])
+    elif args['show-taps']:
+        toggle_show_taps(turn_on=args['on'])
     elif args['stay-awake-while-charging']:
         # Keep screen on while the device is charging.
         stay_awake_while_charging(args['on'])
@@ -817,6 +821,17 @@ def toggle_animations(turn_on):
     execute_adb_shell_command(cmd1)
     execute_adb_shell_command(cmd2)
     execute_adb_shell_command(cmd3)
+
+
+def toggle_show_taps(turn_on):
+    if turn_on:
+        value = 1
+    else:
+        value = 0
+
+    # Source: https://stackoverflow.com/a/32621809/434196
+    cmd = 'settings put system show_touches %d' % value
+    execute_adb_shell_command(cmd)
 
 
 # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#STAY_ON_WHILE_PLUGGED_IN
