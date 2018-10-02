@@ -147,7 +147,6 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 # Usage
 
-    Usage:
     adbe.py [options] rotate (landscape | portrait | left | right)
     adbe.py [options] gfx (on | off | lines)
     adbe.py [options] overdraw (on | off | deut)
@@ -168,6 +167,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] screenrecord <filename.mp4>
     adbe.py [options] dont-keep-activities (on | off)
     adbe.py [options] animations (on | off)
+    adbe.py [options] show-taps (on | off)
     adbe.py [options] stay-awake-while-charging (on | off)
     adbe.py [options] input-text <text>
     adbe.py [options] press back
@@ -179,7 +179,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] standby-bucket get <app_name>
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
-    adbe.py [options] ls [-l] [-R] <file_path>
+    adbe.py [options] ls [-a] [-l] [-R] <file_path>
     adbe.py [options] rm [-f] [-R] [-r] <file_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
@@ -192,7 +192,6 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] app-info <app_name>
     adbe.py [options] app-path <app_name>
     adbe.py [options] app-signature <app_name>
-
 
 # Options
 
