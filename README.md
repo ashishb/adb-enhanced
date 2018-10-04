@@ -36,6 +36,12 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 	`adbe dont-keep-activities on`
 	
+* Take a screenshot
+	`adbe screenshot ~/Downloads/screenshot1.png`
+	
+* Take a video
+	`adbe screenrecord video.mp4 # Press ^C when finished`
+	
 ### Permisions
 
 
