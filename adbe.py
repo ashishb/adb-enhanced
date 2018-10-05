@@ -661,7 +661,7 @@ def print_top_activity():
 
 
 def dump_ui(xml_file):
-    tmp_file = _create_tmp_file(xml_file, 'xml')
+    tmp_file = _create_tmp_file('dump-ui', 'xml')
     cmd1 = 'uiautomator dump %s' % tmp_file
     cmd2 = 'pull %s %s' % (tmp_file, xml_file)
     cmd3 = 'rm %s' % tmp_file
@@ -898,6 +898,10 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
         filename_prefix = 'file'
     if filename_suffix is None:
         filename_suffix = 'tmp'
+    if filename_prefix.find('/') != -1:
+	print_error_and_exit('Filename prefix "%s" contains illegal character: "/"' % filename_prefix)
+    if filename_suffix.find('/') != -1:
+	print_error_and_exit('Filename suffix "%s" contains illegal character: "/"' % filename_suffix)
     filepath_on_device = '/data/local/tmp/%s-%d.%s' % (
         filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
     if _file_exists(filepath_on_device):
@@ -919,7 +923,7 @@ def _file_exists(file_path):
     # Since it is perfectly fine to output "exists" as a shell user.
     exists_cmd = _may_be_wrap_with_run_as(exists_cmd, file_path)
     output = execute_adb_shell_command(exists_cmd)
-    return output.find('exists') != -1
+    return output is not None and output.find('exists') != -1
 
 
 def _is_sqlite_database(file_path):
