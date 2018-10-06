@@ -26,16 +26,18 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
+          - v1-dependencies-{{ checksum "requirements.txt" }}-28
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
       - run:
           name: install Python dependencies
           command: |
-            sudo apt-get install python3
-            sudo apt-get install python3-pip
-            sudo apt-get install python3-venv
+            sudo apt-get install python3 python3-pip python3-venv
+            sudo apt-get install python python-pip
+            # Delete this # Setup python2 - we cannot install from requirements.txt since it contains asyncio as well.
+            sudo pip install -r requirements.txt
+            # Setup python3
             python3 -m venv venv
             . venv/bin/activate
             pip3 install -r requirements.txt
@@ -50,7 +52,7 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-28
 
       - run:
           name: Launch emulator
@@ -58,14 +60,27 @@ jobs:
           background: true
         
       - run:
-          name: run tests
-          command: |
+          name: Wait for emulator
+          command: 
             circle-android wait-for-boot
+
+
+      - run:
+          name: Python 3 tests
+          command: |
+            # Any failure is a failure
+            set -e
             python3 -m venv venv
             . venv/bin/activate
-
-            # Some things to test
-            python3 adbe.py apps list all
             python3 adbe.py app-signature com.android.phone
             python3 adbe.py app-info com.android.phone
             python3 adbe.py screenshot tmp1.png -v
+
+      - run:
+          name: Python 2 tests
+          command: |
+            # Any failure is a failure
+            set -e
+            python adbe.py app-signature com.android.phone
+            python adbe.py app-info com.android.phone
+            python adbe.py screenshot tmp1.png -v

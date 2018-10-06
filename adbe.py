@@ -17,13 +17,17 @@ import os
 import random
 from urllib.parse import urlparse
 
-try:
-    # This check will succeed only on Python 3.5 and later.
-    import asyncio
-    import asyncio_helper
-    _ASYNCIO_AVAILABLE = True
-except ImportError:
-    # This is to deal with python versions below 3.5
+# asyncio was introduced in version 3.5
+if sys.version_info > (3, 4):
+    try:
+        # This check will succeed only on Python 3.5 and later.
+        import asyncio
+        import asyncio_helper
+        _ASYNCIO_AVAILABLE = True
+    except ImportError:
+        # This is to deal with python versions below 3.5
+        _ASYNCIO_AVAILABLE = False
+else:
     _ASYNCIO_AVAILABLE = False
 
 
