@@ -7,9 +7,10 @@ matrix:
         - 2.7
         - 3.6
       install:
-        - sudo pip install docopt
-        - sudo pip install future
-        - sudo pip install psutil
+        # sudo not required here
+        - pip install docopt
+        - pip install future
+        - pip install psutil
       script:
         - python adb-enhanced/setup.py install
 
@@ -47,6 +48,10 @@ matrix:
           # Specify at least one system image
           - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
       before_script:
+        # Python setup - for some weird reason, sudo is required here
+        - pip install docopt
+        - pip install future
+        - pip install psutil
         # Android setup
         - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
         # -noaudio is not supported by this version of the emulator 
