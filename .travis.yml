@@ -7,9 +7,9 @@ matrix:
         - 2.7
         - 3.6
       install:
-        - pip install docopt
-        - pip install future
-        - pip install psutil
+        - sudo pip install docopt
+        - sudo pip install future
+        - sudo pip install psutil
       script:
         - python adb-enhanced/setup.py install
 
