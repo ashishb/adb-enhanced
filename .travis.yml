@@ -49,9 +49,9 @@ matrix:
           - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
       before_script:
         # Python setup - for some weird reason, sudo is required here
-        - pip install docopt
-        - pip install future
-        - pip install psutil
+        - sudo pip install docopt
+        - sudo pip install future
+        - sudo pip install psutil
         # Android setup
         - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
         # -noaudio is not supported by this version of the emulator 
