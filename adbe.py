@@ -899,9 +899,10 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
     if filename_suffix is None:
         filename_suffix = 'tmp'
     if filename_prefix.find('/') != -1:
-	print_error_and_exit('Filename prefix "%s" contains illegal character: "/"' % filename_prefix)
+        print_error_and_exit('Filename prefix "%s" contains illegal character: "/"' % filename_prefix)
     if filename_suffix.find('/') != -1:
-	print_error_and_exit('Filename suffix "%s" contains illegal character: "/"' % filename_suffix)
+        print_error_and_exit('Filename suffix "%s" contains illegal character: "/"' % filename_suffix)
+
     filepath_on_device = '/data/local/tmp/%s-%d.%s' % (
         filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
     if _file_exists(filepath_on_device):
