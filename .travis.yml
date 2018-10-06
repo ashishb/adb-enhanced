@@ -47,9 +47,6 @@ matrix:
           # Specify at least one system image
           - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
       before_script:
-        # Python setup
-        - sudo python -m pip install -r requirements.txt
-
         # Android setup
         - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
         # -noaudio is not supported by this version of the emulator 
