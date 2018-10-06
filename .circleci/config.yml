@@ -3,19 +3,22 @@
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
 version: 2
+
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:3.7.0
-      
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
       - image: circleci/android:api-28-alpha
+        environment:
+          JVM_OPTS: -Xmx3200m
+      # specify the version you desire here
+      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
+      - image: circleci/python:3.7.0
+      
 
-    working_directory: ~/repo
+    working_directory: ~/adb-enhanced-code-checkout-directory
 
     steps:
       - checkout
@@ -28,31 +31,41 @@ jobs:
           - v1-dependencies-
 
       - run:
-          name: install dependencies
+          name: install Python dependencies
           command: |
+            sudo apt-get install python3
+            sudo apt-get install python3-pip
+            sudo apt-get install python3-venv
             python3 -m venv venv
             . venv/bin/activate
-            pip install -r requirements.txt
+            pip3 install -r requirements.txt
+
+      - run:
+          name: Setup Android emulator
+          command: |
+            # echo "Listing of /opt/android/sdk"
+            # ls /opt/android/sdk
+            sdkmanager "system-images;android-22;default;armeabi-v7a" && echo "no" | avdmanager create avd -n test -k "system-images;android-22;default;armeabi-v7a"
 
       - save_cache:
           paths:
             - ./venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
+
+      - run:
+          name: Launch emulator
+          command: export LD_LIBRARY_PATH=${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/qt/lib && emulator64-arm -avd test -noaudio -no-boot-anim -no-window -accel on
+          background: true
         
-      # run tests!
-      # this example uses Django's built-in test-runner
-      # other common Python testing frameworks include pytest and nose
-      # https://pytest.org
-      # https://nose.readthedocs.io
       - run:
           name: run tests
-          command:
-            - python adbe.py apps list all
-            - python adbe.py app-signature com.android.phone
-            - python adbe.py app-info com.android.phone
-            - python adbe.py screenshot tmp1.png -v
+          command: |
+            circle-android wait-for-boot
+            python3 -m venv venv
+            . venv/bin/activate
 
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
-          
+            # Some things to test
+            python3 adbe.py apps list all
+            python3 adbe.py app-signature com.android.phone
+            python3 adbe.py app-info com.android.phone
+            python3 adbe.py screenshot tmp1.png -v
