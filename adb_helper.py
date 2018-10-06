@@ -52,7 +52,8 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
         if isinstance(stdout_data, bytes):
             print_verbose("Result is \"%s\"" % stdout_data)
             return stdout_data
-        elif isinstance(stdout_data, str):
+        # str for Python 3 and unicode for Python 2
+        elif isinstance(stdout_data, str) or isinstance(stdout_data, unicode):
             output = ''
             first_line = True
             for line in stdout_data.split('\n'):
