@@ -52,7 +52,8 @@ matrix:
 
         # Android setup
         - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
-        - emulator -avd test -no-window -noaudio -no-boot-anim &
+        # -noaudio is not supported by this version of the emulator 
+        - emulator -avd test -no-window -no-boot-anim &
         - android-wait-for-emulator
       script:
         - python adbe.py app-signature com.android.phone
