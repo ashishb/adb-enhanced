@@ -54,9 +54,7 @@ matrix:
         - emulator -avd test -no-window -no-boot-anim &
         - android-wait-for-emulator
       script:
-        - python adbe.py app-signature com.android.phone
-        - python adbe.py app-info com.android.phone
-        - python adbe.py screenshot tmp1.png -v
+        - bash ./run_tests.sh python
       # Default installation is python 2. Let's force python3 and test the code against it.
       # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
       addons:

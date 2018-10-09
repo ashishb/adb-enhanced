@@ -72,15 +72,12 @@ jobs:
             set -e
             python3 -m venv venv
             . venv/bin/activate
-            python3 adbe.py app-signature com.android.phone
-            python3 adbe.py app-info com.android.phone
-            python3 adbe.py screenshot tmp1.png -v
+            echo "Doing an ls"
+            bash ./run_tests.sh python3
 
       - run:
           name: Python 2 tests
           command: |
             # Any failure is a failure
             set -e
-            python adbe.py app-signature com.android.phone
-            python adbe.py app-info com.android.phone
-            python adbe.py screenshot tmp1.png -v
+            bash ./run_tests.sh python
