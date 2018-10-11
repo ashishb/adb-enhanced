@@ -6,6 +6,7 @@ from __future__ import print_function
 from future.standard_library import install_aliases
 install_aliases()
 
+import docopt
 import psutil
 import re
 import signal
@@ -18,7 +19,7 @@ import random
 from urllib.parse import urlparse
 
 # asyncio was introduced in version 3.5
-if sys.version_info > (3, 4):
+if sys.version_info >= (3, 5):
     try:
         # This check will succeed only on Python 3.5 and later.
         import asyncio
@@ -29,7 +30,6 @@ if sys.version_info > (3, 4):
         _ASYNCIO_AVAILABLE = False
 else:
     _ASYNCIO_AVAILABLE = False
-
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
@@ -46,7 +46,6 @@ except ImportError:
     from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
-import docopt
 
 """
 Swiss-army knife for Android testing and development.
@@ -998,6 +997,8 @@ def grant_or_revoke_runtime_permissions(
 
 def _get_all_packages(pm_cmd):
     result = execute_adb_shell_command(pm_cmd)
+    if result is None:
+        print_error_and_exit('Empty output, something is wrong')
     packages = []
     for line in result.split('\n'):
         _, package_name = line.split(':', 2)

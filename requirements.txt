@@ -2,3 +2,4 @@ asyncio
 docopt
 future
 psutil
+pytest
