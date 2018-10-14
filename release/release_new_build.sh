@@ -3,7 +3,7 @@ set -e
 
 # Works on both Mac and GNU/Linux.
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-VERSION_FILENAME=${DIR}/../version.txt
+VERSION_FILENAME=${DIR}/../src/version.txt
 SRC_FILES=$(echo -n ${DIR}/../src/{adbe.py,output_helper.py,adb_helper.py,asyncio_helper.py,apksigner.jar,version.txt})
 DST_FILES=$(echo -n ${DIR}/adbe/{adbe.py,output_helper.py,adb_helper.py,asyncio_helper.py,apksigner.jar,version.txt})
 
