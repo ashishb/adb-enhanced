@@ -185,8 +185,8 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] standby-bucket get <app_name>
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
-    adbe.py [options] ls [-a] [-l] [-R] <file_path>
-    adbe.py [options] rm [-f] [-R] [-r] <file_path>
+    adbe.py [options] ls [-a] [-l] [-R|-r] <file_path>
+    adbe.py [options] rm [-f] [-R|-r] <file_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
     adbe.py [options] cat <file_path>
@@ -206,7 +206,9 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     -s, --serial SERIAL     directs the command to the device or emulator with the given serial number or qualifier.
                             Overrides ANDROID_SERIAL environment variable.
     -l                      For long list format, only valid for "ls" command
-    -R                      For recursive directory listing, only valid for "ls" command
+    -R                      For recursive directory listing, only valid for "ls" and "rm" command
+    -r                      For delete file, only valid for "ls" and "rm" command
+    -f                      For forced deletion of a file, only valid for "rm" command
     -v, --verbose           Verbose mode
     
 ## Python3 compatibility
