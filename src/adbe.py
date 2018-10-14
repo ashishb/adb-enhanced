@@ -80,7 +80,7 @@ List of things which this enhanced adb tool does
 * adbe.py [options] permission-groups list all
 * adbe.py [options] permissions list (all | dangerous)
 * adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-* adbe.py [options] apps list (all | system | third-party | debug)
+* adbe.py [options] apps list (all | system | third-party | debug | backup-enabled)
 * adbe.py [options] standby-bucket get <app_name>
 * adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
 * adbe.py [options] restrict-background (true | false) <app_name>
@@ -145,7 +145,7 @@ Usage:
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-    adbe.py [options] apps list (all | system | third-party | debug)
+    adbe.py [options] apps list (all | system | third-party | debug | backup-enabled)
     adbe.py [options] standby-bucket get <app_name>
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
@@ -302,6 +302,8 @@ def main():
             list_non_system_apps()
         elif args['debug']:
             list_debug_apps()
+        elif args['backup-enabled']:
+            list_allow_backup_apps()
     elif args['standby-bucket']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
@@ -1063,6 +1065,52 @@ _REGEX_DEBUGGABLE = '(pkgFlags|flags).*DEBUGGABLE'
 def _is_debug_package(app_name):
     pm_cmd = 'dumpsys package %s' % app_name
     grep_cmd = '(grep -c -E \'%s\' || true)' % _REGEX_DEBUGGABLE
+    app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
+    if app_info_dump is None or app_info_dump.strip() == '0':
+        return app_name, False
+    elif app_info_dump.strip() == '1' or app_info_dump.strip() == '2':
+        return app_name, True
+    else:
+        print_error_and_exit('Unexpected output for %s | %s = %s' % (pm_cmd, grep_cmd, app_info_dump))
+
+
+def list_allow_backup_apps():
+    cmd = 'pm list packages'
+    packages = _get_all_packages(cmd)
+
+    if _ASYNCIO_AVAILABLE:
+        method_to_call = _is_allow_backup_package
+        params_list = packages
+        result_list = asyncio_helper.execute_in_parallel(method_to_call, params_list)
+        debug_packages = []
+        for (package_name, debuggable) in result_list:
+            if debuggable:
+                debug_packages.append(package_name)
+        print('\n'.join(debug_packages))
+    else:
+        print_message('Use python3 for faster execution of this call')
+        _list_allow_backup_apps_no_async(packages)
+
+
+def _list_allow_backup_apps_no_async(packages):
+    debug_packages = []
+    count = 0
+    num_packages = len(packages)
+    for package in packages:
+        count += 1
+        print_verbose("Checking package: %d/%s" % (count, num_packages))
+        # No faster way to do this except to check each and every package individually
+        if _is_allow_backup_package(package)[1]:
+            debug_packages.append(package)
+    print('\n'.join(debug_packages))
+
+
+_REGEX_BACKUP_ALLOWED = '(pkgFlags|flags).*ALLOW_BACKUP'
+
+
+def _is_allow_backup_package(app_name):
+    pm_cmd = 'dumpsys package %s' % app_name
+    grep_cmd = '(grep -c -E \'%s\' || true)' % _REGEX_BACKUP_ALLOWED
     app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
     if app_info_dump is None or app_info_dump.strip() == '0':
         return app_name, False
