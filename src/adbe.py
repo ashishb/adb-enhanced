@@ -46,73 +46,7 @@ except ImportError:
     from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
-
-"""
-Swiss-army knife for Android testing and development.
-
-List of things which this enhanced adb tool does
-
-* adbe.py [options] rotate (landscape | portrait | left | right)
-* adbe.py [options] gfx (on | off | lines)
-* adbe.py [options] overdraw (on | off | deut)
-* adbe.py [options] layout (on | off)
-* adbe.py [options] airplane (on | off)
-* adbe.py [options] battery level <percentage>
-* adbe.py [options] battery saver (on | off)
-* adbe.py [options] battery reset
-* adbe.py [options] doze (on | off)
-* adbe.py [options] jank <app_name>
-* adbe.py [options] devices
-* adbe.py [options] top-activity
-* adbe.py [options] dump-ui <xml_file>
-* adbe.py [options] mobile-data (on | off)
-* adbe.py [options] mobile-data saver (on | off)
-* adbe.py [options] rtl (on | off) - This is not working properly as of now.
-* adbe.py [options] screenshot <filename.png>
-* adbe.py [options] screenrecord <filename.mp4>
-* adbe.py [options] dont-keep-activities (on | off)
-* adbe.py [options] animations (on | off)
-* adbe.py [options] show-taps (on | off)
-* adbe.py [options] stay-awake-while-charging (on | off)
-* adbe.py [options] input-text <text>
-* adbe.py [options] press back
-* adbe.py [options] open-url <url>
-* adbe.py [options] permission-groups list all
-* adbe.py [options] permissions list (all | dangerous)
-* adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-* adbe.py [options] apps list (all | system | third-party | debug | backup-enabled)
-* adbe.py [options] standby-bucket get <app_name>
-* adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
-* adbe.py [options] restrict-background (true | false) <app_name>
-* adbe.py [options] ls [-a] [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
-* adbe.py [options] pull <remote> [local] [-a] - A smart pull which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
-* adbe.py [options] start <app_name> - Launches an Android app's default launcher activity, which in most cases corresponds to how a developer wants to start the app
-* adbe.py [options] stop <app_name> - Force stop an application
-* adbe.py [options] restart <app_name>
-* adbe.py [options] force-stop <app_name>
-* adbe.py [options] clear-data <app_name>
-* adbe.py [options] app-info <app_name>
-* adbe.py [options] app-path <app_name>
-* adbe.py [options] app-signature <app_name>
-
-
-List of things which this tool will do in the future
-
-* adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
-* adbe app-standby $app_name
-* adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
-* adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
-* adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
-* adb shell input keyevent KEYCODE_POWER can do the toggle
-* adbe press up
-* adbe set_app_name [-f] $app_name
-* adbe reset_app_name
-* Use -q[uite] for quite mode
-* Add IMEI, IMSI, phone number, and WI-Fi MAC address to devices info command - I think the best way to implement this
-  will be via a companion app. And while we are on that, we can implement locale change via the companion app as well.
-
-"""
-
+# List of things which this enhanced adb tool does as of today.
 USAGE_STRING = """
 Swiss-army knife for Android testing and development.
 
@@ -175,6 +109,25 @@ Options:
     -v, --verbose           Verbose mode
 
 """
+
+"""
+List of things which this tool will do in the future
+
+* adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
+* adbe app-standby $app_name
+* adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
+* adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
+* adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
+* adb shell input keyevent KEYCODE_POWER can do the toggle
+* adbe press up
+* adbe set_app_name [-f] $app_name
+* adbe reset_app_name
+* Use -q[uite] for quite mode
+* Add IMEI, IMSI, phone number, and WI-Fi MAC address to devices info command - I think the best way to implement this
+  will be via a companion app. And while we are on that, we can implement locale change via the companion app as well.
+
+"""
+
 
 _VERSION_FILE_NAME = 'version.txt'
 _KEYCODE_BACK = 4
