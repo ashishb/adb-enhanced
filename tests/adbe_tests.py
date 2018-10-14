@@ -161,8 +161,8 @@ def _assert_success(sub_cmd):
 
 def _execute(sub_cmd):
     print('Executing cmd: %s' % sub_cmd)
-    cwd = os.getcwd()
-    adbe_py = os.path.join(cwd, 'adbe.py')
+    dir_of_this_script = os.path.split(__file__)[0]
+    adbe_py = os.path.join(dir_of_this_script, '../src/adbe.py')
     ps = subprocess.Popen('%s %s %s' % (_PYTHON_CMD, adbe_py, sub_cmd),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout_data, stderr_data = ps.communicate()
