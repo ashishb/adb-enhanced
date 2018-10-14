@@ -74,11 +74,11 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             # echo "Doing an ls"
-            python3 -m pytest -v tests/adbe_tests.py
+            python3 -m pytest -v tests/adbe_tests.py  --durations=0
 
       - run:
           name: Python 2 tests
           command: |
             # Any failure is a failure
             set -e
-            python -m pytest -v tests/adbe_tests.py
+            python -m pytest -v tests/adbe_tests.py  --durations=0
