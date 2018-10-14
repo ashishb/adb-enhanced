@@ -10,7 +10,7 @@ matrix:
         # sudo not required here
         - pip install -r requirements.txt
       script:
-        - python adb-enhanced/setup.py install
+        - python release/setup.py install
 
     # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
     # Source: https://stackoverflow.com/a/28751112/434196
