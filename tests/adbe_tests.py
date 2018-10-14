@@ -24,6 +24,7 @@ def test_overdraw():
     _assert_success('overdraw on')
     _assert_success('overdraw off')
     _assert_success('overdraw deut')
+    _assert_success('overdraw off')
 
 
 def test_layout():
@@ -97,10 +98,11 @@ def test_apps():
     _assert_success('apps list backup-enabled')
 
 
-def test_app_related_cmds():
-    _TEST_APP_ID = 'com.android.phone'
-    _DIR_PATH = '/data/data/%s' % _TEST_APP_ID
+_TEST_APP_ID = 'com.android.phone'
+_DIR_PATH = '/data/data/%s' % _TEST_APP_ID
 
+
+def test_app_start_related_cmds():
     _assert_success('start %s' % _TEST_APP_ID)
     # Jank requires app to be running.
     _assert_success('jank %s' % _TEST_APP_ID)
@@ -108,13 +110,14 @@ def test_app_related_cmds():
     _assert_success('restart %s' % _TEST_APP_ID)
     _assert_success('force-stop %s' % _TEST_APP_ID)
     _assert_success('clear-data %s' % _TEST_APP_ID)
-    _assert_success('app-info %s' % _TEST_APP_ID)
-    _assert_success('app-signature %s' % _TEST_APP_ID)
-    app_path, _ = _assert_success('app-path %s' % _TEST_APP_ID)
-    print('app path is %s' % app_path)
-    _assert_success('ls -l -R /data/local/tmp')
-    _assert_success('rm -rf /data/local/tmp')
 
+
+def test_app_info_related_cmds():
+    _assert_success('app info %s' % _TEST_APP_ID)
+    _assert_success('app signature %s' % _TEST_APP_ID)
+    _assert_success('app backup %s %s-backup.tar' % (_TEST_APP_ID, _TEST_APP_ID))
+    app_path, _ = _assert_success('app path %s' % _TEST_APP_ID)
+    print('app path is %s' % app_path)
 
 # TODO: For some reasons, these are not working. Disabled for now.
 # See https://circleci.com/gh/ashishb/adb-enhanced/106
@@ -132,19 +135,45 @@ def test_app_related_cmds():
 #     _assert_success('cat %s' % tmp_file)
 
 
-def test_misc():
+def test_list_devices():
     _assert_success('devices')
+
+
+def test_list_top_activity():
     _assert_success('top-activity')
+
+
+def test_dump_ui():
     _assert_success('dump-ui tmp1.xml -v')
+
+
+def test_take_screenshot():
     _assert_success('screenshot tmp1.png -v')
-    # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
+
+
+def test_keep_acivities():
     _assert_success('dont-keep-activities on')
     _assert_success('dont-keep-activities off')
+
+
+def test_misc():
+    _assert_success('ls -l -R /data/local/tmp')
+    _assert_success('rm -rf /data/local/tmp')
+    # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
     _assert_success('stay-awake-while-charging on')
     # This causes Circle CI to hang.
     # _assert_success('stay-awake-while-charging off')
+
+
+def test_input_test():
     _assert_success('input-text "Hello"')
+
+
+def test_press_back():
     _assert_success('press back')
+
+
+def test_open_url():
     _assert_success('open-url google.com')
 
 

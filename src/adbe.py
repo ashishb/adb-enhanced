@@ -13,6 +13,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import os
 import random
@@ -93,9 +94,10 @@ Usage:
     adbe.py [options] restart <app_name>
     adbe.py [options] force-stop <app_name>
     adbe.py [options] clear-data <app_name>
-    adbe.py [options] app-info <app_name>
-    adbe.py [options] app-path <app_name>
-    adbe.py [options] app-signature <app_name>
+    adbe.py [options] app info <app_name>
+    adbe.py [options] app path <app_name>
+    adbe.py [options] app signature <app_name>
+    adbe.py [options] app backup <app_name> <backup_tar_file_path>
 
 Options:
     -e, --emulator          directs the command to the only running emulator
@@ -300,18 +302,17 @@ def main():
         _ensure_package_exists(app_name)
         force_stop(app_name)
         launch_app(app_name)
-    elif args['app-info']:
+    elif args['app']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
-        print_app_info(app_name)
-    elif args['app-path']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        print_app_path(app_name)
-    elif args['app-signature']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        print_app_signature(app_name)
+        if args['info']:
+            print_app_info(app_name)
+        elif args['path']:
+            print_app_path(app_name)
+        elif args['signature']:
+            print_app_signature(app_name)
+        elif args['backup']:
+            perform_app_backup(app_name, args['<backup_tar_file_path>'])
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 
@@ -608,6 +609,16 @@ def _print_device_info(device_serial=None):
 
 
 def print_top_activity():
+    result = _get_top_activity_data()
+    print(result)
+
+
+# As of now, this returns something similar to the following. If required, in the future, we can return a better
+# formatted result
+#
+# mCurrentFocus=Window{1725ce58 u0 com.android.backupconfirm/com.android.backupconfirm.BackupRestoreConfirmation}
+# mFocusedApp=AppWindowToken{259dd2c3 token=Token{d1fce72 ActivityRecord{8e8bf7d u0 com.android.backupconfirm/.BackupRestoreConfirmation t31}}}
+def _get_top_activity_data():
     cmd = 'dumpsys window windows'
     output = execute_adb_shell_command(cmd)
     if not output:
@@ -617,7 +628,7 @@ def print_top_activity():
         line = line.strip()
         if line.startswith('mCurrentFocus') or line.startswith('mFocusedApp'):
             result = result + line + '\n'
-    print(result)
+    return result
 
 
 def dump_ui(xml_file):
@@ -1411,6 +1422,73 @@ def print_app_signature(app_name):
         for line in ps1.stderr:
             line = line.decode('utf-8').strip()
             print_error(line)
+
+
+# Uses abe.jar taken from https://sourceforge.net/projects/adbextractor/
+def perform_app_backup(app_name, backup_tar_file):
+    # TODO: Add a check to ensure that the screen is unlocked
+
+    print_verbose('Performing backup to backup.ab file')
+    print_message('you might have to confirm the backup manually on your device\'s screen')
+
+    def backup_func():
+        # Create backup.ab
+        adb_backup_cmd = 'backup -noapk %s' % app_name
+        execute_adb_command(adb_backup_cmd)
+
+    backup_thread = threading.Thread(target=backup_func)
+    backup_thread.start()
+    # Get the location of "backup data" button and tap it.
+    window_size_x, window_size_y = _get_window_size()
+    while _get_top_activity_data().find('com.android.backupconfirm') == -1:
+        print_verbose('Waiting for the backup activity to start')
+        time.sleep(1)
+    time.sleep(1)
+    # These numbers are purely derived from heuristics and can be improved.
+    _perform_tap(window_size_x - 200, window_size_y - 100)
+    backup_thread.join(timeout=5)
+    if backup_thread.is_alive():
+        print_error('Backup failed in first attempt, trying again...')
+        _perform_tap(window_size_x - 200, window_size_y - 100)
+        backup_thread.join(timeout=10)
+        if backup_thread.is_alive():
+            print_error_and_exit('Backup failed')
+
+    # Convert ".ab" to ".tar" using Android Backup Extractor (ABE)
+    try:
+        dir_of_this_script = os.path.split(__file__)[0]
+        abe_jar_path = os.path.join(dir_of_this_script, 'abe.jar')
+        abe_cmd = 'java -jar %s unpack backup.ab %s' % (abe_jar_path, backup_tar_file)
+        print_verbose('Executing command %s' % abe_cmd)
+        ps = subprocess.Popen(abe_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ps.communicate()
+        if ps.returncode == 0:
+            print_message('Successfully backed up data of app %s to %s' % (app_name, backup_tar_file))
+        else:
+            print_error('Failed to convert backup.ab to tar file. Please ensure that it is not password protected')
+    finally:
+        print_verbose('Deleting backup.ab')
+        ps = subprocess.Popen('rm backup.ab', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ps.communicate()
+
+
+def _get_window_size():
+    adb_cmd = 'shell wm size'
+    result = execute_adb_command(adb_cmd)
+
+    if result is None:
+        return -1, -1
+
+    regex_data = re.search('size: ([0-9]+)x([0-9]+)', result)
+    if regex_data is None:
+        return -1, -1
+
+    return int(regex_data.group(1)), int(regex_data.group(2))
+
+
+def _perform_tap(x, y):
+    adb_shell_cmd = 'input tap %d %d' % (x, y)
+    execute_adb_shell_command(adb_shell_cmd)
 
 
 def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
