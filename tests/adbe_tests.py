@@ -94,6 +94,7 @@ def test_apps():
     _assert_success('apps list system')
     _assert_success('apps list third-party')
     _assert_success('apps list debug')
+    _assert_success('apps list backup-enabled')
 
 
 def test_app_related_cmds():
