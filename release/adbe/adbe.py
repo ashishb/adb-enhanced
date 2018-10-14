@@ -6,6 +6,7 @@ from __future__ import print_function
 from future.standard_library import install_aliases
 install_aliases()
 
+import docopt
 import psutil
 import re
 import signal
@@ -17,15 +18,18 @@ import os
 import random
 from urllib.parse import urlparse
 
-try:
-    # This check will succeed only on Python 3.5 and later.
-    import asyncio
-    import asyncio_helper
-    _ASYNCIO_AVAILABLE = True
-except ImportError:
-    # This is to deal with python versions below 3.5
+# asyncio was introduced in version 3.5
+if sys.version_info >= (3, 5):
+    try:
+        # This check will succeed only on Python 3.5 and later.
+        import asyncio
+        import asyncio_helper
+        _ASYNCIO_AVAILABLE = True
+    except ImportError:
+        # This is to deal with python versions below 3.5
+        _ASYNCIO_AVAILABLE = False
+else:
     _ASYNCIO_AVAILABLE = False
-
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
@@ -42,7 +46,6 @@ except ImportError:
     from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
-import docopt
 
 """
 Swiss-army knife for Android testing and development.
@@ -661,7 +664,7 @@ def print_top_activity():
 
 
 def dump_ui(xml_file):
-    tmp_file = _create_tmp_file(xml_file, 'xml')
+    tmp_file = _create_tmp_file('dump-ui', 'xml')
     cmd1 = 'uiautomator dump %s' % tmp_file
     cmd2 = 'pull %s %s' % (tmp_file, xml_file)
     cmd3 = 'rm %s' % tmp_file
@@ -898,6 +901,11 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
         filename_prefix = 'file'
     if filename_suffix is None:
         filename_suffix = 'tmp'
+    if filename_prefix.find('/') != -1:
+        print_error_and_exit('Filename prefix "%s" contains illegal character: "/"' % filename_prefix)
+    if filename_suffix.find('/') != -1:
+        print_error_and_exit('Filename suffix "%s" contains illegal character: "/"' % filename_suffix)
+
     filepath_on_device = '/data/local/tmp/%s-%d.%s' % (
         filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
     if _file_exists(filepath_on_device):
@@ -919,7 +927,7 @@ def _file_exists(file_path):
     # Since it is perfectly fine to output "exists" as a shell user.
     exists_cmd = _may_be_wrap_with_run_as(exists_cmd, file_path)
     output = execute_adb_shell_command(exists_cmd)
-    return output.find('exists') != -1
+    return output is not None and output.find('exists') != -1
 
 
 def _is_sqlite_database(file_path):
@@ -989,6 +997,8 @@ def grant_or_revoke_runtime_permissions(
 
 def _get_all_packages(pm_cmd):
     result = execute_adb_shell_command(pm_cmd)
+    if result is None:
+        print_error_and_exit('Empty output, something is wrong')
     packages = []
     for line in result.split('\n'):
         _, package_name = line.split(':', 2)

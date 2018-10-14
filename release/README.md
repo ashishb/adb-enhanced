@@ -1,4 +1,4 @@
-# adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced) [![Build Status](https://travis-ci.org/ashishb/adb-enhanced.svg?branch=master)](https://travis-ci.org/ashishb/adb-enhanced)
+# adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced) [![Build Status](https://travis-ci.org/ashishb/adb-enhanced.svg?branch=master)](https://travis-ci.org/ashishb/adb-enhanced) [![CircleCI](https://circleci.com/gh/ashishb/adb-enhanced.svg?style=svg)](https://circleci.com/gh/ashishb/adb-enhanced)
 
 Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation.
 
@@ -35,6 +35,12 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 * Don't keep activities in the background
 
 	`adbe dont-keep-activities on`
+	
+* Take a screenshot
+	`adbe screenshot ~/Downloads/screenshot1.png`
+	
+* Take a video
+	`adbe screenrecord video.mp4 # Press ^C when finished`
 	
 ### Permisions
 

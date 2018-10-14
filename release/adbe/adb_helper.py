@@ -37,7 +37,10 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
     print_verbose("Executing \"%s\"" % final_cmd)
     ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout_data, stderr_data = ps1.communicate()
-    stdout_data = stdout_data.decode('utf-8')
+    try:
+        stdout_data = stdout_data.decode('utf-8')
+    except UnicodeDecodeError as e:
+        print_error('Unable to decode data as UTF-8, defaulting to printing the binary data')
     stderr_data = stderr_data.decode('utf-8')
 
     _check_for_more_than_one_device_error(stderr_data)
@@ -45,22 +48,27 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
     if not ignore_stderr and stderr_data and len(stderr_data) > 0:
         print_error(stderr_data)
 
-    output = ''
-    first_line = True
     if stdout_data:
-        for line in stdout_data.split('\n'):
-            line = line.strip()
-            if not line or len(line) == 0:
-                continue
-            if line in _IGNORED_LINES:
-                continue
-            if first_line:
-                output += line
-                first_line = False
-            else:
-                output += '\n' + line
-    print_verbose("Result is \"%s\"" % output)
-    return output
+        if isinstance(stdout_data, bytes):
+            print_verbose("Result is \"%s\"" % stdout_data)
+            return stdout_data
+        # str for Python 3 and unicode for Python 2
+        elif isinstance(stdout_data, str) or isinstance(stdout_data, unicode):
+            output = ''
+            first_line = True
+            for line in stdout_data.split('\n'):
+                line = line.strip()
+                if not line or len(line) == 0:
+                    continue
+                if line in _IGNORED_LINES:
+                    continue
+                if first_line:
+                    output += line
+                    first_line = False
+                else:
+                    output += '\n' + line
+            print_verbose("Result is \"%s\"" % output)
+            return output
 
 
 def _check_for_more_than_one_device_error(stderr_data):
