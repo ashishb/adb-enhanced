@@ -149,8 +149,8 @@ Usage:
     adbe.py [options] standby-bucket get <app_name>
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
-    adbe.py [options] ls [-a] [-l] [-R] <file_path>
-    adbe.py [options] rm [-f] [-R] [-r] <file_path>
+    adbe.py [options] ls [-a] [-l] [-R|-r] <file_path>
+    adbe.py [options] rm [-f] [-R|-r] <file_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
     adbe.py [options] cat <file_path>
@@ -655,6 +655,8 @@ def _print_device_info(device_serial=None):
 def print_top_activity():
     cmd = 'dumpsys window windows'
     output = execute_adb_shell_command(cmd)
+    if not output:
+        print_error_and_exit('Device returned no response, is it still connected?')
     result = ''
     for line in output.split('\n'):
         line = line.strip()
@@ -1420,7 +1422,7 @@ def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
 def _get_device_android_api_version():
     version_string = _get_prop('ro.build.version.sdk')
     if version_string is None:
-        return -1
+        print_error_and_exit('Unable to get Android device version, is it still connected?')
     return int(version_string)
 
 
