@@ -99,7 +99,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 * Detailed information about app version, target SDK version, permissions (requested, granted, denied), installer package name etc.
 
 	```
-	$ adbe app-info com.google.android.youtube
+	$ adbe app info com.google.android.youtube
 	App name: com.google.android.youtube
 	Version: 12.17.41
 	Version Code: 121741370
@@ -150,6 +150,11 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 	Installer package name: None
 	```
 
+* App backup to a tar file unlike the Android-specific .ab format
+
+	```
+	$ adbe app backup com.google.android.youtube backup.tar
+	```
 
 # Usage
 
@@ -181,7 +186,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-    adbe.py [options] apps list (all | system | third-party | debug)
+    adbe.py [options] apps list (all | system | third-party | debug | backup-enabled)
     adbe.py [options] standby-bucket get <app_name>
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
@@ -195,10 +200,11 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] restart <app_name>
     adbe.py [options] force-stop <app_name>
     adbe.py [options] clear-data <app_name>
-    adbe.py [options] app-info <app_name>
-    adbe.py [options] app-path <app_name>
-    adbe.py [options] app-signature <app_name>
-
+    adbe.py [options] app info <app_name>
+    adbe.py [options] app path <app_name>
+    adbe.py [options] app signature <app_name>
+    adbe.py [options] app backup <app_name> <backup_tar_file_path>
+    
 # Options
 
     -e, --emulator          directs the command to the only running emulator
