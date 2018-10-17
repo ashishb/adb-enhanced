@@ -110,6 +110,7 @@ Options:
     -r                      For delete file, only valid for "ls" and "rm" command
     -f                      For forced deletion of a file, only valid for "rm" command
     -v, --verbose           Verbose mode
+    --no-python2-warn       Don't warn about Python 2 deprecation
 
 """
 
@@ -148,6 +149,8 @@ def main():
         options += '-d '
     if args['--serial']:
         options += '-s %s ' % args['--serial']
+    if _using_python2() and not args['--no-python2-warn']:
+        _warn_about_python2_deprecation()
 
     output_helper.set_verbose(args['--verbose'])
 
@@ -1528,6 +1531,17 @@ def _is_emulator():
 
 def _get_prop(property_name):
     return execute_adb_shell_command('getprop %s' % property_name)
+
+
+def _using_python2():
+    return sys.version_info < (3, 0)
+
+
+def _warn_about_python2_deprecation():
+    msg = ('You are using Python 2, ADB-enhanced would stop supporting Python 2 after Dec 31, 2018\n' +
+        'First install Python 3 and then re-install this tool using\n' +
+        '\"sudo pip uninstall adb-enhanced && sudo pip3 install adb-enhanced\"')
+    output_helper.print_error(msg)
 
 
 if __name__ == '__main__':
