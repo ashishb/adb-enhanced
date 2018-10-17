@@ -1,29 +1,42 @@
-_verbose = False
+import sys
+
+__VERBOSE_MODE = False
+
 
 def set_verbose(enabled):
-    global _verbose
-    _verbose = enabled
+    global __VERBOSE_MODE
+    __VERBOSE_MODE = enabled
+
 
 def print_message(message):
     print(message)
 
 
 def print_error_and_exit(error_string):
-    print('%s%s%s' % (bcolors.FAIL, error_string, bcolors.ENDC))
+    print_error(error_string)
     quit(1)
 
 
 def print_error(error_string):
-    print('%s%s%s' % (bcolors.FAIL, error_string, bcolors.ENDC))
+    if _is_interactive_terminal():
+        error_string = '%s%s%s' % (BashColors.FAIL, error_string, BashColors.ENDC)
+    print(error_string)
 
 
 def print_verbose(message):
-    if _verbose:
-        print('%s%s%s' % (bcolors.WARNING, message, bcolors.ENDC))
+    global __VERBOSE_MODE
+    if __VERBOSE_MODE:
+        if _is_interactive_terminal():
+            message = '%s%s%s' % (BashColors.WARNING, message, BashColors.ENDC)
+        print(message)
+
+
+def _is_interactive_terminal():
+    return sys.stdout.isatty()
 
 
 # Coloring approach inspired from https://stackoverflow.com/a/287944
-class bcolors:
+class BashColors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKGREEN = '\033[92m'
