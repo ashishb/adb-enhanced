@@ -163,13 +163,15 @@ def test_file_move1():
     assert ps2.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
     print('Stdout of \"%s\" is \"%s\"' % (file_creation_cmd, stdout))
     print('Stderr of \"%s\" is \"%s\"' % (file_creation_cmd, stderr))
-    
+
     _assert_success('mv %s %s' % (tmp_file1, tmp_file2))
     _assert_fail('pull %s' % tmp_file1)
     stdout, stderr = _assert_success('ls /data/local/tmp')
     print('Stdout of "adbe ls /data/local/tmp" is \"%s\"' % stdout)
     print('Stderr of "adbe ls /data/local/tmp" is \"%s\"' % stderr)
     _assert_success('pull %s' % tmp_file2)
+    # Cleanup
+    _delete_local_file('tmp_file2')
 
 
 def test_file_move2():
@@ -193,11 +195,17 @@ def test_list_top_activity():
 
 
 def test_dump_ui():
-    _assert_success('dump-ui tmp1.xml -v')
+    xml_file = 'tmp1.xml'
+    _assert_success('dump-ui %s -v' % xml_file)
+    # Cleanup
+    _delete_local_file(xml_file)
 
 
 def test_take_screenshot():
-    _assert_success('screenshot tmp1.png -v')
+    png_file = 'tmp1.png'
+    _assert_success('screenshot %s -v' % png_file)
+    # Cleanup
+    _delete_local_file(png_file)
 
 
 def test_keep_acivities():
@@ -251,6 +259,19 @@ def _execute(sub_cmd):
     if exit_code != 0:
         print('Stderr is "%s"' % stderr_data)
     return exit_code, stdout_data, stderr_data
+
+
+def _delete_local_file(local_file_path):
+    cmd = 'rm %s' % local_file_path
+    ps = subprocess.Popen(cmd,
+                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout_data, stderr_data = ps.communicate()
+    stdout_data = stdout_data.decode('utf-8').strip()
+    stderr_data = stderr_data.decode('utf-8').strip()
+    exit_code = ps.returncode
+    assert exit_code == 0, 'Command "%s" failed with stdout: "%s" and stderr: "%s"' % (
+        cmd, stdout_data, stderr_data)
+
 
 
 def main():
