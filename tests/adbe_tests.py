@@ -150,12 +150,17 @@ def test_file_delete():
 def test_file_move1():
     tmp_file1 = '/data/local/tmp/tmp_file1'
     tmp_file2 = '/data/local/tmp/tmp_file2'
-    ps = subprocess.Popen('adb shell touch %s' % tmp_file1,
-                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    file_creation_cmd = 'adb shell mkdir /data/local/tmp && adb shell touch %s' % tmp_file1
+    ps = subprocess.Popen(file_creation_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = ps.communicate()
     assert ps.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
+    print('Stdout of \"%s\" is \"%s\"' % (file_creation_cmd, stdout))
+    print('Stderr of \"%s\" is \"%s\"' % (file_creation_cmd, stderr))
     _assert_success('mv %s %s' % (tmp_file1, tmp_file2))
     _assert_fail('pull %s' % tmp_file1)
+    stdout, stderr = _assert_success('ls /data/local/tmp')
+    print('Stdout of "adbe ls /data/local/tmp" is \"%s\"' % stdout)
+    print('Stderr of "adbe ls /data/local/tmp" is \"%s\"' % stderr)
     _assert_success('pull %s' % tmp_file2)
 
 
@@ -194,7 +199,6 @@ def test_keep_acivities():
 
 def test_misc():
     _assert_success('ls -l -R /data/local/tmp')
-    _assert_success('rm -rf /data/local/tmp')
     # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
     _assert_success('stay-awake-while-charging on')
     # This causes Circle CI to hang.
