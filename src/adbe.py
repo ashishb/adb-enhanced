@@ -99,6 +99,8 @@ Usage:
     adbe.py [options] app path <app_name>
     adbe.py [options] app signature <app_name>
     adbe.py [options] app backup <app_name> <backup_tar_file_path>
+    adbe.py [options] install <file_path>
+    adbe.py [options] uninstall <app_name>
 
 Options:
     -e, --emulator          directs the command to the only running emulator
@@ -322,6 +324,12 @@ def main():
             print_app_signature(app_name)
         elif args['backup']:
             perform_app_backup(app_name, args['<backup_tar_file_path>'])
+    elif args['install']:
+        file_path = args['<file_path>']
+        perform_install(file_path)
+    elif args['uninstall']:
+        app_name = args['<app_name>']
+        perform_uninstall(app_name)
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 
@@ -1489,6 +1497,18 @@ def perform_app_backup(app_name, backup_tar_file):
         print_verbose('Deleting backup.ab')
         ps = subprocess.Popen('rm backup.ab', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         ps.communicate()
+
+
+def perform_install(file_path):
+    print_verbose('Installing %s' % file_path)
+    # -r: replace existing application
+    execute_adb_command('install -r %s' % file_path)
+
+
+def perform_uninstall(app_name):
+    _ensure_package_exists(app_name)
+    print_verbose('Uninstalling %s' % app_name)
+    execute_adb_command('uninstall %s' % app_name)
 
 
 def _get_window_size():
