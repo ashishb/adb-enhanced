@@ -86,6 +86,7 @@ Usage:
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-a] [-l] [-R|-r] <file_path>
     adbe.py [options] rm [-f] [-R|-r] <file_path>
+    adbe.py [options] mv [-f] <src_path> <dest_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
     adbe.py [options] cat <file_path>
@@ -281,6 +282,11 @@ def main():
         force_delete = args['-f']
         recursive = args['-R'] or args['-r']
         delete_file(file_path, force_delete, recursive)
+    elif args['mv']:
+        src_path = args['<src_path>']
+        dest_path = args['<dest_path>']
+        force_move = args['-f']
+        move_file(src_path, dest_path, force_move)
     elif args['pull']:
         remote_file_path = args['<remote>']
         local_file_path = args['<local>']
@@ -1157,7 +1163,6 @@ def list_directory(file_path, long_format, recursive, include_hidden_files):
         cmd_prefix += ' -a'
     cmd = '%s %s' % (cmd_prefix, file_path)
     cmd = _may_be_wrap_with_run_as(cmd, file_path)
-
     print_message(execute_adb_shell_command(cmd))
 
 
@@ -1169,7 +1174,18 @@ def delete_file(file_path, force, recursive):
         cmd_prefix += ' -r'
     cmd = '%s %s' % (cmd_prefix, file_path)
     cmd = _may_be_wrap_with_run_as(cmd, file_path)
+    print_message(execute_adb_shell_command(cmd))
 
+
+# Limitation: This command will only do run-as for the src file so, if a file is being copied from pkg1 to pkg2
+# on a non-rooted device with both pkg1 and pkg2 being debuggable, this will fail. This can be improved by
+# first copying the file to /data/local/tmp but as of now, I don't think that's required.
+def move_file(src_path, dest_path, force):
+    cmd_prefix = 'mv'
+    if force:
+        cmd_prefix += '-f'
+    cmd = '%s %s %s' % (cmd_prefix, src_path, dest_path)
+    cmd = _may_be_wrap_with_run_as(cmd, src_path)
     print_message(execute_adb_shell_command(cmd))
 
 

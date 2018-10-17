@@ -120,8 +120,9 @@ def test_app_info_related_cmds():
     app_path, _ = _assert_success('app path %s' % _TEST_APP_ID)
     print('app path is %s' % app_path)
 
-# TODO: For some reasons, these are not working. Disabled for now.
-# See https://circleci.com/gh/ashishb/adb-enhanced/106
+
+# # TODO: For some reasons, these are not working. Disabled for now.
+# # See https://circleci.com/gh/ashishb/adb-enhanced/106
 # def test_file_related_cmds():
 #     # Create a temporary file
 #     tmp_file = ' /data/local/tmp/tmp_file'
@@ -134,6 +135,40 @@ def test_app_info_related_cmds():
 #     _assert_success('pull %s' % tmp_file)
 #     _assert_success('pull %s tmp2' % tmp_file)
 #     _assert_success('cat %s' % tmp_file)
+
+
+def test_file_delete():
+    tmp_file = '/data/local/tmp/tmp_file'
+    ps = subprocess.Popen('adb shell touch %s' % tmp_file,
+                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = ps.communicate()
+    assert ps.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
+    _assert_success('rm %s' % tmp_file)
+    _assert_fail('pull %s' % tmp_file)
+
+
+def test_file_move1():
+    tmp_file1 = '/data/local/tmp/tmp_file1'
+    tmp_file2 = '/data/local/tmp/tmp_file2'
+    ps = subprocess.Popen('adb shell touch %s' % tmp_file1,
+                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = ps.communicate()
+    assert ps.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
+    _assert_success('mv %s %s' % (tmp_file1, tmp_file2))
+    _assert_fail('pull %s' % tmp_file1)
+    _assert_success('pull %s' % tmp_file2)
+
+
+def test_file_move2():
+    tmp_file1 = '/data/data/com.android.settings/development.xml'
+    tmp_file2 = '/data/data/com.android.contacts'
+    ps = subprocess.Popen('adb shell touch %s' % tmp_file1,
+                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = ps.communicate()
+    assert ps.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
+    _assert_success('mv %s %s' % (tmp_file1, tmp_file2))
+    _assert_fail('pull %s' % tmp_file1)
+    _assert_success('pull %s' % tmp_file2)
 
 
 def test_list_devices():
@@ -219,8 +254,20 @@ def main():
     test_animations()
     test_permissions()
     test_apps()
-    test_app_related_cmds()
+    test_app_start_related_cmds()
+    test_app_info_related_cmds()
+    test_file_delete()
+    test_file_move1()
+    test_file_move2()
+    test_list_devices()
+    test_list_top_activity()
+    test_dump_ui()
+    test_take_screenshot()
+    test_keep_acivities()
     test_misc()
+    test_input_test()
+    test_press_back()
+    test_open_url()
 
 
 if __name__ == '__main__':
