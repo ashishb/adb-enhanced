@@ -192,6 +192,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] restrict-background (true | false) <app_name>
     adbe.py [options] ls [-a] [-l] [-R|-r] <file_path>
     adbe.py [options] rm [-f] [-R|-r] <file_path>
+    adbe.py [options] mv [-f] <src_path> <dest_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
     adbe.py [options] cat <file_path>
@@ -204,6 +205,8 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe.py [options] app path <app_name>
     adbe.py [options] app signature <app_name>
     adbe.py [options] app backup <app_name> <backup_tar_file_path>
+    adbe.py [options] install <file_path>
+    adbe.py [options] uninstall <app_name>
     
 # Options
 
