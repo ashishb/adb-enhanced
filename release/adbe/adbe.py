@@ -13,6 +13,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import os
 import random
@@ -46,73 +47,7 @@ except ImportError:
     from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
-
-"""
-Swiss-army knife for Android testing and development.
-
-List of things which this enhanced adb tool does
-
-* adbe.py [options] rotate (landscape | portrait | left | right)
-* adbe.py [options] gfx (on | off | lines)
-* adbe.py [options] overdraw (on | off | deut)
-* adbe.py [options] layout (on | off)
-* adbe.py [options] airplane (on | off)
-* adbe.py [options] battery level <percentage>
-* adbe.py [options] battery saver (on | off)
-* adbe.py [options] battery reset
-* adbe.py [options] doze (on | off)
-* adbe.py [options] jank <app_name>
-* adbe.py [options] devices
-* adbe.py [options] top-activity
-* adbe.py [options] dump-ui <xml_file>
-* adbe.py [options] mobile-data (on | off)
-* adbe.py [options] mobile-data saver (on | off)
-* adbe.py [options] rtl (on | off) - This is not working properly as of now.
-* adbe.py [options] screenshot <filename.png>
-* adbe.py [options] screenrecord <filename.mp4>
-* adbe.py [options] dont-keep-activities (on | off)
-* adbe.py [options] animations (on | off)
-* adbe.py [options] show-taps (on | off)
-* adbe.py [options] stay-awake-while-charging (on | off)
-* adbe.py [options] input-text <text>
-* adbe.py [options] press back
-* adbe.py [options] open-url <url>
-* adbe.py [options] permission-groups list all
-* adbe.py [options] permissions list (all | dangerous)
-* adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-* adbe.py [options] apps list (all | system | third-party | debug)
-* adbe.py [options] standby-bucket get <app_name>
-* adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
-* adbe.py [options] restrict-background (true | false) <app_name>
-* adbe.py [options] ls [-a] [-l] <file_path> - A smart ls which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
-* adbe.py [options] pull <remote> [local] [-a] - A smart pull which automatically configures "run-as" for accessing files under app-private directories like /data/data/com.example/
-* adbe.py [options] start <app_name> - Launches an Android app's default launcher activity, which in most cases corresponds to how a developer wants to start the app
-* adbe.py [options] stop <app_name> - Force stop an application
-* adbe.py [options] restart <app_name>
-* adbe.py [options] force-stop <app_name>
-* adbe.py [options] clear-data <app_name>
-* adbe.py [options] app-info <app_name>
-* adbe.py [options] app-path <app_name>
-* adbe.py [options] app-signature <app_name>
-
-
-List of things which this tool will do in the future
-
-* adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
-* adbe app-standby $app_name
-* adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
-* adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
-* adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
-* adb shell input keyevent KEYCODE_POWER can do the toggle
-* adbe press up
-* adbe set_app_name [-f] $app_name
-* adbe reset_app_name
-* Use -q[uite] for quite mode
-* Add IMEI, IMSI, phone number, and WI-Fi MAC address to devices info command - I think the best way to implement this
-  will be via a companion app. And while we are on that, we can implement locale change via the companion app as well.
-
-"""
-
+# List of things which this enhanced adb tool does as of today.
 USAGE_STRING = """
 Swiss-army knife for Android testing and development.
 
@@ -145,12 +80,13 @@ Usage:
     adbe.py [options] permission-groups list all
     adbe.py [options] permissions list (all | dangerous)
     adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-    adbe.py [options] apps list (all | system | third-party | debug)
+    adbe.py [options] apps list (all | system | third-party | debug | backup-enabled)
     adbe.py [options] standby-bucket get <app_name>
     adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
     adbe.py [options] restrict-background (true | false) <app_name>
-    adbe.py [options] ls [-a] [-l] [-R] <file_path>
-    adbe.py [options] rm [-f] [-R] [-r] <file_path>
+    adbe.py [options] ls [-a] [-l] [-R|-r] <file_path>
+    adbe.py [options] rm [-f] [-R|-r] <file_path>
+    adbe.py [options] mv [-f] <src_path> <dest_path>
     adbe.py [options] pull [-a] <remote>
     adbe.py [options] pull [-a] <remote> <local>
     adbe.py [options] cat <file_path>
@@ -159,9 +95,12 @@ Usage:
     adbe.py [options] restart <app_name>
     adbe.py [options] force-stop <app_name>
     adbe.py [options] clear-data <app_name>
-    adbe.py [options] app-info <app_name>
-    adbe.py [options] app-path <app_name>
-    adbe.py [options] app-signature <app_name>
+    adbe.py [options] app info <app_name>
+    adbe.py [options] app path <app_name>
+    adbe.py [options] app signature <app_name>
+    adbe.py [options] app backup <app_name> <backup_tar_file_path>
+    adbe.py [options] install <file_path>
+    adbe.py [options] uninstall <app_name>
 
 Options:
     -e, --emulator          directs the command to the only running emulator
@@ -173,8 +112,28 @@ Options:
     -r                      For delete file, only valid for "ls" and "rm" command
     -f                      For forced deletion of a file, only valid for "rm" command
     -v, --verbose           Verbose mode
+    --no-python2-warn       Don't warn about Python 2 deprecation
 
 """
+
+"""
+List of things which this tool will do in the future
+
+* adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
+* adbe app-standby $app_name
+* adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
+* adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
+* adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
+* adb shell input keyevent KEYCODE_POWER can do the toggle
+* adbe press up
+* adbe set_app_name [-f] $app_name
+* adbe reset_app_name
+* Use -q[uite] for quite mode
+* Add IMEI, IMSI, phone number, and WI-Fi MAC address to devices info command - I think the best way to implement this
+  will be via a companion app. And while we are on that, we can implement locale change via the companion app as well.
+
+"""
+
 
 _VERSION_FILE_NAME = 'version.txt'
 _KEYCODE_BACK = 4
@@ -192,6 +151,8 @@ def main():
         options += '-d '
     if args['--serial']:
         options += '-s %s ' % args['--serial']
+    if _using_python2() and not args['--no-python2-warn']:
+        _warn_about_python2_deprecation()
 
     output_helper.set_verbose(args['--verbose'])
 
@@ -302,6 +263,8 @@ def main():
             list_non_system_apps()
         elif args['debug']:
             list_debug_apps()
+        elif args['backup-enabled']:
+            list_allow_backup_apps()
     elif args['standby-bucket']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
@@ -324,6 +287,11 @@ def main():
         force_delete = args['-f']
         recursive = args['-R'] or args['-r']
         delete_file(file_path, force_delete, recursive)
+    elif args['mv']:
+        src_path = args['<src_path>']
+        dest_path = args['<dest_path>']
+        force_move = args['-f']
+        move_file(src_path, dest_path, force_move)
     elif args['pull']:
         remote_file_path = args['<remote>']
         local_file_path = args['<local>']
@@ -345,18 +313,23 @@ def main():
         _ensure_package_exists(app_name)
         force_stop(app_name)
         launch_app(app_name)
-    elif args['app-info']:
+    elif args['app']:
         app_name = args['<app_name>']
         _ensure_package_exists(app_name)
-        print_app_info(app_name)
-    elif args['app-path']:
+        if args['info']:
+            print_app_info(app_name)
+        elif args['path']:
+            print_app_path(app_name)
+        elif args['signature']:
+            print_app_signature(app_name)
+        elif args['backup']:
+            perform_app_backup(app_name, args['<backup_tar_file_path>'])
+    elif args['install']:
+        file_path = args['<file_path>']
+        perform_install(file_path)
+    elif args['uninstall']:
         app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        print_app_path(app_name)
-    elif args['app-signature']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        print_app_signature(app_name)
+        perform_uninstall(app_name)
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 
@@ -653,14 +626,26 @@ def _print_device_info(device_serial=None):
 
 
 def print_top_activity():
+    result = _get_top_activity_data()
+    print(result)
+
+
+# As of now, this returns something similar to the following. If required, in the future, we can return a better
+# formatted result
+#
+# mCurrentFocus=Window{1725ce58 u0 com.android.backupconfirm/com.android.backupconfirm.BackupRestoreConfirmation}
+# mFocusedApp=AppWindowToken{259dd2c3 token=Token{d1fce72 ActivityRecord{8e8bf7d u0 com.android.backupconfirm/.BackupRestoreConfirmation t31}}}
+def _get_top_activity_data():
     cmd = 'dumpsys window windows'
     output = execute_adb_shell_command(cmd)
+    if not output:
+        print_error_and_exit('Device returned no response, is it still connected?')
     result = ''
     for line in output.split('\n'):
         line = line.strip()
         if line.startswith('mCurrentFocus') or line.startswith('mFocusedApp'):
             result = result + line + '\n'
-    print(result)
+    return result
 
 
 def dump_ui(xml_file):
@@ -1070,6 +1055,52 @@ def _is_debug_package(app_name):
         print_error_and_exit('Unexpected output for %s | %s = %s' % (pm_cmd, grep_cmd, app_info_dump))
 
 
+def list_allow_backup_apps():
+    cmd = 'pm list packages'
+    packages = _get_all_packages(cmd)
+
+    if _ASYNCIO_AVAILABLE:
+        method_to_call = _is_allow_backup_package
+        params_list = packages
+        result_list = asyncio_helper.execute_in_parallel(method_to_call, params_list)
+        debug_packages = []
+        for (package_name, debuggable) in result_list:
+            if debuggable:
+                debug_packages.append(package_name)
+        print('\n'.join(debug_packages))
+    else:
+        print_message('Use python3 for faster execution of this call')
+        _list_allow_backup_apps_no_async(packages)
+
+
+def _list_allow_backup_apps_no_async(packages):
+    debug_packages = []
+    count = 0
+    num_packages = len(packages)
+    for package in packages:
+        count += 1
+        print_verbose("Checking package: %d/%s" % (count, num_packages))
+        # No faster way to do this except to check each and every package individually
+        if _is_allow_backup_package(package)[1]:
+            debug_packages.append(package)
+    print('\n'.join(debug_packages))
+
+
+_REGEX_BACKUP_ALLOWED = '(pkgFlags|flags).*ALLOW_BACKUP'
+
+
+def _is_allow_backup_package(app_name):
+    pm_cmd = 'dumpsys package %s' % app_name
+    grep_cmd = '(grep -c -E \'%s\' || true)' % _REGEX_BACKUP_ALLOWED
+    app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
+    if app_info_dump is None or app_info_dump.strip() == '0':
+        return app_name, False
+    elif app_info_dump.strip() == '1' or app_info_dump.strip() == '2':
+        return app_name, True
+    else:
+        print_error_and_exit('Unexpected output for %s | %s = %s' % (pm_cmd, grep_cmd, app_info_dump))
+
+
 # Source: https://developer.android.com/reference/android/app/usage/UsageStatsManager#STANDBY_BUCKET_ACTIVE
 _APP_STANDBY_BUCKETS = {
     10: 'active',
@@ -1143,7 +1174,6 @@ def list_directory(file_path, long_format, recursive, include_hidden_files):
         cmd_prefix += ' -a'
     cmd = '%s %s' % (cmd_prefix, file_path)
     cmd = _may_be_wrap_with_run_as(cmd, file_path)
-
     print_message(execute_adb_shell_command(cmd))
 
 
@@ -1155,7 +1185,18 @@ def delete_file(file_path, force, recursive):
         cmd_prefix += ' -r'
     cmd = '%s %s' % (cmd_prefix, file_path)
     cmd = _may_be_wrap_with_run_as(cmd, file_path)
+    print_message(execute_adb_shell_command(cmd))
 
+
+# Limitation: This command will only do run-as for the src file so, if a file is being copied from pkg1 to pkg2
+# on a non-rooted device with both pkg1 and pkg2 being debuggable, this will fail. This can be improved by
+# first copying the file to /data/local/tmp but as of now, I don't think that's required.
+def move_file(src_path, dest_path, force):
+    cmd_prefix = 'mv'
+    if force:
+        cmd_prefix += '-f'
+    cmd = '%s %s %s' % (cmd_prefix, src_path, dest_path)
+    cmd = _may_be_wrap_with_run_as(cmd, src_path)
     print_message(execute_adb_shell_command(cmd))
 
 
@@ -1410,6 +1451,85 @@ def print_app_signature(app_name):
             print_error(line)
 
 
+# Uses abe.jar taken from https://sourceforge.net/projects/adbextractor/
+def perform_app_backup(app_name, backup_tar_file):
+    # TODO: Add a check to ensure that the screen is unlocked
+
+    print_verbose('Performing backup to backup.ab file')
+    print_message('you might have to confirm the backup manually on your device\'s screen')
+
+    def backup_func():
+        # Create backup.ab
+        adb_backup_cmd = 'backup -noapk %s' % app_name
+        execute_adb_command(adb_backup_cmd)
+
+    backup_thread = threading.Thread(target=backup_func)
+    backup_thread.start()
+    # Get the location of "backup data" button and tap it.
+    window_size_x, window_size_y = _get_window_size()
+    while _get_top_activity_data().find('com.android.backupconfirm') == -1:
+        print_verbose('Waiting for the backup activity to start')
+        time.sleep(1)
+    time.sleep(1)
+    # These numbers are purely derived from heuristics and can be improved.
+    _perform_tap(window_size_x - 200, window_size_y - 100)
+    backup_thread.join(timeout=5)
+    if backup_thread.is_alive():
+        print_error('Backup failed in first attempt, trying again...')
+        _perform_tap(window_size_x - 200, window_size_y - 100)
+        backup_thread.join(timeout=10)
+        if backup_thread.is_alive():
+            print_error_and_exit('Backup failed')
+
+    # Convert ".ab" to ".tar" using Android Backup Extractor (ABE)
+    try:
+        dir_of_this_script = os.path.split(__file__)[0]
+        abe_jar_path = os.path.join(dir_of_this_script, 'abe.jar')
+        abe_cmd = 'java -jar %s unpack backup.ab %s' % (abe_jar_path, backup_tar_file)
+        print_verbose('Executing command %s' % abe_cmd)
+        ps = subprocess.Popen(abe_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ps.communicate()
+        if ps.returncode == 0:
+            print_message('Successfully backed up data of app %s to %s' % (app_name, backup_tar_file))
+        else:
+            print_error('Failed to convert backup.ab to tar file. Please ensure that it is not password protected')
+    finally:
+        print_verbose('Deleting backup.ab')
+        ps = subprocess.Popen('rm backup.ab', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ps.communicate()
+
+
+def perform_install(file_path):
+    print_verbose('Installing %s' % file_path)
+    # -r: replace existing application
+    execute_adb_command('install -r %s' % file_path)
+
+
+def perform_uninstall(app_name):
+    _ensure_package_exists(app_name)
+    print_verbose('Uninstalling %s' % app_name)
+    execute_adb_command('uninstall %s' % app_name)
+
+
+def _get_window_size():
+    adb_cmd = 'shell wm size'
+    result = execute_adb_command(adb_cmd)
+
+    if result is None:
+        return -1, -1
+
+    regex_data = re.search('size: ([0-9]+)x([0-9]+)', result)
+    if regex_data is None:
+        return -1, -1
+
+    return int(regex_data.group(1)), int(regex_data.group(2))
+
+
+def _perform_tap(x, y):
+    adb_shell_cmd = 'input tap %d %d' % (x, y)
+    execute_adb_shell_command(adb_shell_cmd)
+
+
 def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
     return_value = execute_adb_shell_command(adb_cmd)
     execute_adb_shell_command(get_update_activity_service_cmd())
@@ -1420,7 +1540,7 @@ def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
 def _get_device_android_api_version():
     version_string = _get_prop('ro.build.version.sdk')
     if version_string is None:
-        return -1
+        print_error_and_exit('Unable to get Android device version, is it still connected?')
     return int(version_string)
 
 
@@ -1431,6 +1551,17 @@ def _is_emulator():
 
 def _get_prop(property_name):
     return execute_adb_shell_command('getprop %s' % property_name)
+
+
+def _using_python2():
+    return sys.version_info < (3, 0)
+
+
+def _warn_about_python2_deprecation():
+    msg = ('You are using Python 2, ADB-enhanced would stop supporting Python 2 after Dec 31, 2018\n' +
+        'First install Python 3 and then re-install this tool using\n' +
+        '\"sudo pip uninstall adb-enhanced && sudo pip3 install adb-enhanced\"')
+    output_helper.print_error(msg)
 
 
 if __name__ == '__main__':
