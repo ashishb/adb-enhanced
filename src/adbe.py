@@ -161,10 +161,17 @@ def main():
         adb_helper.set_adb_prefix(adb_prefix)
 
     if args['rotate']:
-        direction = 'portrait' if args['portrait'] else \
-            'landscape' if args['landscape'] else \
-                'left' if args['left'] else \
-                    'right'
+        direction = None
+        if args['portrait']:
+            direction = 'portrait'
+        elif args['landscape']:
+            direction = 'landscape'
+        elif args['left']:
+            direction = 'left'
+        elif args['right']:
+            direction = 'right'
+        else:
+            print_error_and_exit('Unexpected rotation direction "%s"' % ' '.join(sys.argv))
         handle_rotate(direction)
     elif args['gfx']:
         value = 'on' if args['on'] else \
