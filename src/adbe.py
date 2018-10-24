@@ -510,13 +510,17 @@ def handle_doze(turn_on):
             'This command cannot be executed below API version 23, your Android version is %s' %
             api_version)
     if turn_on:
+        # Source: https://stackoverflow.com/a/42440619
+        enable_idle_mode_cmd = 'adb shell dumpsys deviceidle enable'
         cmd = 'dumpsys deviceidle force-idle'
         execute_adb_shell_command(get_battery_unplug_cmd())
         execute_adb_shell_command(get_battery_discharging_cmd())
+        execute_adb_shell_command(enable_idle_mode_cmd)
         execute_adb_shell_command(cmd)
     else:
         cmd = 'dumpsys deviceidle unforce'
         execute_adb_shell_command(handle_battery_reset())
+        execute_adb_shell_command(enable_idle_mode_cmd)
         execute_adb_shell_command(cmd)
 
 
