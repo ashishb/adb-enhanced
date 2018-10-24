@@ -504,6 +504,11 @@ def handle_battery_reset():
 
 # https://developer.android.com/training/monitoring-device-state/doze-standby.html
 def handle_doze(turn_on):
+    api_version = _get_device_android_api_version()
+    if api_version < 23:
+        print_error_and_exit(
+            'This command cannot be executed below API version 23, your Android version is %s' %
+            api_version)
     if turn_on:
         cmd = 'dumpsys deviceidle force-idle'
         execute_adb_shell_command(get_battery_unplug_cmd())
