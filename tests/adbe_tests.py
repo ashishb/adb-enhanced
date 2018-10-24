@@ -1,6 +1,10 @@
+import re
 import subprocess
 import sys
 import os
+
+# Doze mode was launched in API 23.
+_DOZE_MODE_ANDROID_VERSION = 23
 
 _PYTHON_CMD = 'python'
 if sys.version_info >= (3, 0):
@@ -47,8 +51,12 @@ def test_battery_sub_cmds():
 
 
 def test_doze():
-    _assert_success('doze on')
-    _assert_success('doze off')
+    if _get_device_sdk_version() >= _DOZE_MODE_ANDROID_VERSION:
+        _assert_success('doze on')
+        _assert_success('doze off')
+    else:
+        _assert_fail('doze on')
+        _assert_fail('doze off')
 
 
 def test_mobile_data():
@@ -73,11 +81,7 @@ def test_permissions():
     _assert_success('permissions list all')
     _assert_success('permissions list dangerous')
 
-    stdout_data, _ = _assert_success('devices')
-    import re
-    regex_result = re.search('SDK version: ([0-9]+)', stdout_data)
-    assert regex_result is not None
-    sdk_version = int(regex_result.group(1))
+    sdk_version = _get_device_sdk_version()
     test_app_id = 'com.android.phone'
     permissions_groups = ['calendar', 'camera', 'contacts', 'location', 'microphone', 'phone', 'sensors',
                          'sms', 'storage']
@@ -88,6 +92,14 @@ def test_permissions():
         else:
             _assert_fail('permissions grant %s %s' % (test_app_id, permission_group))
             _assert_fail('permissions revoke %s %s' % (test_app_id, permission_group))
+
+
+def _get_device_sdk_version():
+    stdout_data, _ = _assert_success('devices')
+    regex_result = re.search('SDK version: ([0-9]+)', stdout_data)
+    assert regex_result is not None
+    sdk_version = int(regex_result.group(1))
+    return sdk_version
 
 
 def test_apps():
