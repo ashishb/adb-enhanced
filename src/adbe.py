@@ -87,8 +87,9 @@ Usage:
     adbe [options] ls [-a] [-l] [-R|-r] <file_path>
     adbe [options] rm [-f] [-R|-r] <file_path>
     adbe [options] mv [-f] <src_path> <dest_path>
-    adbe [options] pull [-a] <remote>
-    adbe [options] pull [-a] <remote> <local>
+    adbe [options] pull [-a] <file_path_on_android>
+    adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
+    adbe [options] push <file_path_on_machine> <file_path_on_android>
     adbe [options] cat <file_path>
     adbe [options] start <app_name>
     adbe [options] stop <app_name>
@@ -300,10 +301,14 @@ def main():
         force_move = args['-f']
         move_file(src_path, dest_path, force_move)
     elif args['pull']:
-        remote_file_path = args['<remote>']
-        local_file_path = args['<local>']
+        remote_file_path = args['<file_path_on_android>']
+        local_file_path = args['<file_path_on_machine>']
         copy_ancillary = args['-a']
         pull_file(remote_file_path, local_file_path, copy_ancillary)
+    elif args['push']:
+        remote_file_path = args['<file_path_on_android>']
+        local_file_path = args['<file_path_on_machine>']
+        push_file(local_file_path, remote_file_path)
     elif args['cat']:
         file_path = args['<file_path>']
         cat_file(file_path)
@@ -897,6 +902,7 @@ def _package_exists(package_name):
     return response is not None and len(response.strip()) != 0
 
 
+# Creates a tmp file on Android device
 def _create_tmp_file(filename_prefix = None, filename_suffix = None):
     if filename_prefix is None:
         filename_prefix = 'file'
@@ -1259,6 +1265,22 @@ def pull_file(remote_file_path, local_file_path, copy_ancillary = False):
                 print_error('File \"%s\" has an ancillary file \"%s\" which should be copied.\nSee %s for details'
                             % (remote_file_path, tmp_db_file,
                                'https://ashishb.net/all/android-the-right-way-to-pull-sqlite-database-from-the-device/'))
+
+
+def push_file(local_file_path, remote_file_path):
+    if not os.path.exists(local_file_path):
+        print_error_and_exit('Local file %s does not exist' % local_file_path)
+    if os.path.isdir(local_file_path):
+        print_error_and_exit('This tool does not support pushing a directory yet' % local_file_path)
+
+    # First push to tmp file in /data/local/tmp and then move that
+    tmp_file = _create_tmp_file()
+    push_cmd = 'push %s %s' % (local_file_path, tmp_file)
+    mv_cmd = 'mv %s %s' % (tmp_file, remote_file_path)
+    mv_cmd = _may_be_wrap_with_run_as(mv_cmd, remote_file_path)
+
+    execute_adb_command(push_cmd)
+    execute_adb_shell_command(mv_cmd)
 
 
 def cat_file(file_path):
