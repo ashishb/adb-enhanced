@@ -905,7 +905,7 @@ def _package_exists(package_name):
 
 
 # Creates a tmp file on Android device
-def _create_tmp_file(filename_prefix = None, filename_suffix = None):
+def _create_tmp_file(filename_prefix=None, filename_suffix=None):
     if filename_prefix is None:
         filename_prefix = 'file'
     if filename_suffix is None:
@@ -915,8 +915,10 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
     if filename_suffix.find('/') != -1:
         print_error_and_exit('Filename suffix "%s" contains illegal character: "/"' % filename_suffix)
 
-    filepath_on_device = '/data/local/tmp/%s-%d.%s' % (
-        filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
+    tmp_dir = '/data/local/tmp'
+
+    filepath_on_device = '%s/%s-%d.%s' % (
+        tmp_dir, filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
     if _file_exists(filepath_on_device):
         # Retry if the file already exists
         print_verbose('Tmp File %s already exists, trying a new random name' % filepath_on_device)
@@ -925,7 +927,7 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
     # Create the file
     execute_adb_shell_command('touch %s' % filepath_on_device)
     # Make the tmp file world-writable or else, run-as command might fail to write on it.
-    execute_adb_shell_command('chmod 777 %s' % filepath_on_device)
+    execute_adb_shell_command('chmod 666 %s' % filepath_on_device)
     return filepath_on_device
 
 
@@ -1278,8 +1280,12 @@ def push_file(local_file_path, remote_file_path):
     # First push to tmp file in /data/local/tmp and then move that
     tmp_file = _create_tmp_file()
     push_cmd = 'push %s %s' % (local_file_path, tmp_file)
-    mv_cmd = 'mv %s %s' % (tmp_file, remote_file_path)
+    # "mv" from /data/local/tmp with run-as <app_id> does not always work even when the underlying
+    # dir has mode set to 777. Therefore, do a two-step cp and rm.
+    mv_cmd = 'cp %s %s' % (tmp_file, remote_file_path)
     mv_cmd = _may_be_wrap_with_run_as(mv_cmd, remote_file_path)
+    rm_cmd = 'rm %s' % tmp_file
+    execute_adb_shell_command(rm_cmd)
 
     execute_adb_command(push_cmd)
     execute_adb_shell_command(mv_cmd)
