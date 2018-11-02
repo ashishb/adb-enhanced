@@ -514,7 +514,7 @@ def handle_doze(turn_on):
             api_version)
     if turn_on:
         # Source: https://stackoverflow.com/a/42440619
-        enable_idle_mode_cmd = 'adb shell dumpsys deviceidle enable'
+        enable_idle_mode_cmd = 'dumpsys deviceidle enable'
         cmd = 'dumpsys deviceidle force-idle'
         execute_adb_shell_command(get_battery_unplug_cmd())
         execute_adb_shell_command(get_battery_discharging_cmd())
