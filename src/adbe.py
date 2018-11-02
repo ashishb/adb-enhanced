@@ -22,8 +22,6 @@ from urllib.parse import urlparse
 # asyncio was introduced in version 3.5
 if sys.version_info >= (3, 5):
     try:
-        # This check will succeed only on Python 3.5 and later.
-        import asyncio
         import asyncio_helper
         _ASYNCIO_AVAILABLE = True
     except ImportError:
