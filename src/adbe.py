@@ -501,7 +501,7 @@ def handle_battery_level(level):
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 def handle_battery_reset():
-    cmd = 'dumpsys battery reset'
+    cmd = get_battery_reset_cmd()
     execute_adb_shell_command(cmd)
 
 
@@ -512,9 +512,9 @@ def handle_doze(turn_on):
         print_error_and_exit(
             'This command cannot be executed below API version 23, your Android version is %s' %
             api_version)
+    enable_idle_mode_cmd = 'dumpsys deviceidle enable'
     if turn_on:
         # Source: https://stackoverflow.com/a/42440619
-        enable_idle_mode_cmd = 'dumpsys deviceidle enable'
         cmd = 'dumpsys deviceidle force-idle'
         execute_adb_shell_command(get_battery_unplug_cmd())
         execute_adb_shell_command(get_battery_discharging_cmd())
@@ -522,7 +522,7 @@ def handle_doze(turn_on):
         execute_adb_shell_command(cmd)
     else:
         cmd = 'dumpsys deviceidle unforce'
-        execute_adb_shell_command(handle_battery_reset())
+        execute_adb_shell_command(get_battery_reset_cmd())
         execute_adb_shell_command(enable_idle_mode_cmd)
         execute_adb_shell_command(cmd)
 
@@ -543,6 +543,10 @@ def get_battery_discharging_cmd():
 
 def get_battery_unplug_cmd():
     return 'dumpsys battery unplug'
+
+
+def get_battery_reset_cmd():
+    return 'dumpsys battery reset'
 
 
 def handle_get_jank(app_name):
