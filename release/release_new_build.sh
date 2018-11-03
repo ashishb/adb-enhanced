@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euxo pipefail
 
 # Works on both Mac and GNU/Linux.
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
