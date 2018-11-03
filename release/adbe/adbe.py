@@ -22,8 +22,6 @@ from urllib.parse import urlparse
 # asyncio was introduced in version 3.5
 if sys.version_info >= (3, 5):
     try:
-        # This check will succeed only on Python 3.5 and later.
-        import asyncio
         import asyncio_helper
         _ASYNCIO_AVAILABLE = True
     except ImportError:
@@ -52,55 +50,56 @@ USAGE_STRING = """
 Swiss-army knife for Android testing and development.
 
 Usage:
-    adbe.py [options] rotate (landscape | portrait | left | right)
-    adbe.py [options] gfx (on | off | lines)
-    adbe.py [options] overdraw (on | off | deut)
-    adbe.py [options] layout (on | off)
-    adbe.py [options] airplane (on | off)
-    adbe.py [options] battery level <percentage>
-    adbe.py [options] battery saver (on | off)
-    adbe.py [options] battery reset
-    adbe.py [options] doze (on | off)
-    adbe.py [options] jank <app_name>
-    adbe.py [options] devices
-    adbe.py [options] top-activity
-    adbe.py [options] dump-ui <xml_file>
-    adbe.py [options] mobile-data (on | off)
-    adbe.py [options] mobile-data saver (on | off)
-    adbe.py [options] rtl (on | off)
-    adbe.py [options] screenshot <filename.png>
-    adbe.py [options] screenrecord <filename.mp4>
-    adbe.py [options] dont-keep-activities (on | off)
-    adbe.py [options] animations (on | off)
-    adbe.py [options] show-taps (on | off)
-    adbe.py [options] stay-awake-while-charging (on | off) 
-    adbe.py [options] input-text <text>
-    adbe.py [options] press back
-    adbe.py [options] open-url <url>
-    adbe.py [options] permission-groups list all
-    adbe.py [options] permissions list (all | dangerous)
-    adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-    adbe.py [options] apps list (all | system | third-party | debug | backup-enabled)
-    adbe.py [options] standby-bucket get <app_name>
-    adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
-    adbe.py [options] restrict-background (true | false) <app_name>
-    adbe.py [options] ls [-a] [-l] [-R|-r] <file_path>
-    adbe.py [options] rm [-f] [-R|-r] <file_path>
-    adbe.py [options] mv [-f] <src_path> <dest_path>
-    adbe.py [options] pull [-a] <remote>
-    adbe.py [options] pull [-a] <remote> <local>
-    adbe.py [options] cat <file_path>
-    adbe.py [options] start <app_name>
-    adbe.py [options] stop <app_name>
-    adbe.py [options] restart <app_name>
-    adbe.py [options] force-stop <app_name>
-    adbe.py [options] clear-data <app_name>
-    adbe.py [options] app info <app_name>
-    adbe.py [options] app path <app_name>
-    adbe.py [options] app signature <app_name>
-    adbe.py [options] app backup <app_name> <backup_tar_file_path>
-    adbe.py [options] install <file_path>
-    adbe.py [options] uninstall <app_name>
+    adbe [options] rotate (landscape | portrait | left | right)
+    adbe [options] gfx (on | off | lines)
+    adbe [options] overdraw (on | off | deut)
+    adbe [options] layout (on | off)
+    adbe [options] airplane (on | off)
+    adbe [options] battery level <percentage>
+    adbe [options] battery saver (on | off)
+    adbe [options] battery reset
+    adbe [options] doze (on | off)
+    adbe [options] jank <app_name>
+    adbe [options] devices
+    adbe [options] top-activity
+    adbe [options] dump-ui <xml_file>
+    adbe [options] mobile-data (on | off)
+    adbe [options] mobile-data saver (on | off)
+    adbe [options] rtl (on | off)
+    adbe [options] screenshot <filename.png>
+    adbe [options] screenrecord <filename.mp4>
+    adbe [options] dont-keep-activities (on | off)
+    adbe [options] animations (on | off)
+    adbe [options] show-taps (on | off)
+    adbe [options] stay-awake-while-charging (on | off) 
+    adbe [options] input-text <text>
+    adbe [options] press back
+    adbe [options] open-url <url>
+    adbe [options] permission-groups list all
+    adbe [options] permissions list (all | dangerous)
+    adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe [options] apps list (all | system | third-party | debug | backup-enabled)
+    adbe [options] standby-bucket get <app_name>
+    adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
+    adbe [options] restrict-background (true | false) <app_name>
+    adbe [options] ls [-a] [-l] [-R|-r] <file_path>
+    adbe [options] rm [-f] [-R|-r] <file_path>
+    adbe [options] mv [-f] <src_path> <dest_path>
+    adbe [options] pull [-a] <file_path_on_android>
+    adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
+    adbe [options] push <file_path_on_machine> <file_path_on_android>
+    adbe [options] cat <file_path>
+    adbe [options] start <app_name>
+    adbe [options] stop <app_name>
+    adbe [options] restart <app_name>
+    adbe [options] force-stop <app_name>
+    adbe [options] clear-data <app_name>
+    adbe [options] app info <app_name>
+    adbe [options] app path <app_name>
+    adbe [options] app signature <app_name>
+    adbe [options] app backup <app_name> <backup_tar_file_path>
+    adbe [options] install <file_path>
+    adbe [options] uninstall <app_name>
 
 Options:
     -e, --emulator          directs the command to the only running emulator
@@ -161,10 +160,17 @@ def main():
         adb_helper.set_adb_prefix(adb_prefix)
 
     if args['rotate']:
-        direction = 'portrait' if args['portrait'] else \
-            'landscape' if args['landscape'] else \
-                'left' if args['left'] else \
-                    'right'
+        direction = None
+        if args['portrait']:
+            direction = 'portrait'
+        elif args['landscape']:
+            direction = 'landscape'
+        elif args['left']:
+            direction = 'left'
+        elif args['right']:
+            direction = 'right'
+        else:
+            print_error_and_exit('Unexpected rotation direction "%s"' % ' '.join(sys.argv))
         handle_rotate(direction)
     elif args['gfx']:
         value = 'on' if args['on'] else \
@@ -293,10 +299,14 @@ def main():
         force_move = args['-f']
         move_file(src_path, dest_path, force_move)
     elif args['pull']:
-        remote_file_path = args['<remote>']
-        local_file_path = args['<local>']
+        remote_file_path = args['<file_path_on_android>']
+        local_file_path = args['<file_path_on_machine>']
         copy_ancillary = args['-a']
         pull_file(remote_file_path, local_file_path, copy_ancillary)
+    elif args['push']:
+        remote_file_path = args['<file_path_on_android>']
+        local_file_path = args['<file_path_on_machine>']
+        push_file(local_file_path, remote_file_path)
     elif args['cat']:
         file_path = args['<file_path>']
         cat_file(file_path)
@@ -491,20 +501,29 @@ def handle_battery_level(level):
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 def handle_battery_reset():
-    cmd = 'dumpsys battery reset'
+    cmd = get_battery_reset_cmd()
     execute_adb_shell_command(cmd)
 
 
 # https://developer.android.com/training/monitoring-device-state/doze-standby.html
 def handle_doze(turn_on):
+    api_version = _get_device_android_api_version()
+    if api_version < 23:
+        print_error_and_exit(
+            'This command cannot be executed below API version 23, your Android version is %s' %
+            api_version)
+    enable_idle_mode_cmd = 'dumpsys deviceidle enable'
     if turn_on:
+        # Source: https://stackoverflow.com/a/42440619
         cmd = 'dumpsys deviceidle force-idle'
         execute_adb_shell_command(get_battery_unplug_cmd())
         execute_adb_shell_command(get_battery_discharging_cmd())
+        execute_adb_shell_command(enable_idle_mode_cmd)
         execute_adb_shell_command(cmd)
     else:
         cmd = 'dumpsys deviceidle unforce'
-        execute_adb_shell_command(handle_battery_reset())
+        execute_adb_shell_command(get_battery_reset_cmd())
+        execute_adb_shell_command(enable_idle_mode_cmd)
         execute_adb_shell_command(cmd)
 
 
@@ -524,6 +543,10 @@ def get_battery_discharging_cmd():
 
 def get_battery_unplug_cmd():
     return 'dumpsys battery unplug'
+
+
+def get_battery_reset_cmd():
+    return 'dumpsys battery reset'
 
 
 def handle_get_jank(app_name):
@@ -881,7 +904,8 @@ def _package_exists(package_name):
     return response is not None and len(response.strip()) != 0
 
 
-def _create_tmp_file(filename_prefix = None, filename_suffix = None):
+# Creates a tmp file on Android device
+def _create_tmp_file(filename_prefix=None, filename_suffix=None):
     if filename_prefix is None:
         filename_prefix = 'file'
     if filename_suffix is None:
@@ -891,8 +915,10 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
     if filename_suffix.find('/') != -1:
         print_error_and_exit('Filename suffix "%s" contains illegal character: "/"' % filename_suffix)
 
-    filepath_on_device = '/data/local/tmp/%s-%d.%s' % (
-        filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
+    tmp_dir = '/data/local/tmp'
+
+    filepath_on_device = '%s/%s-%d.%s' % (
+        tmp_dir, filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
     if _file_exists(filepath_on_device):
         # Retry if the file already exists
         print_verbose('Tmp File %s already exists, trying a new random name' % filepath_on_device)
@@ -901,7 +927,7 @@ def _create_tmp_file(filename_prefix = None, filename_suffix = None):
     # Create the file
     execute_adb_shell_command('touch %s' % filepath_on_device)
     # Make the tmp file world-writable or else, run-as command might fail to write on it.
-    execute_adb_shell_command('chmod 777 %s' % filepath_on_device)
+    execute_adb_shell_command('chmod 666 %s' % filepath_on_device)
     return filepath_on_device
 
 
@@ -1243,6 +1269,26 @@ def pull_file(remote_file_path, local_file_path, copy_ancillary = False):
                 print_error('File \"%s\" has an ancillary file \"%s\" which should be copied.\nSee %s for details'
                             % (remote_file_path, tmp_db_file,
                                'https://ashishb.net/all/android-the-right-way-to-pull-sqlite-database-from-the-device/'))
+
+
+def push_file(local_file_path, remote_file_path):
+    if not os.path.exists(local_file_path):
+        print_error_and_exit('Local file %s does not exist' % local_file_path)
+    if os.path.isdir(local_file_path):
+        print_error_and_exit('This tool does not support pushing a directory yet' % local_file_path)
+
+    # First push to tmp file in /data/local/tmp and then move that
+    tmp_file = _create_tmp_file()
+    push_cmd = 'push %s %s' % (local_file_path, tmp_file)
+    # "mv" from /data/local/tmp with run-as <app_id> does not always work even when the underlying
+    # dir has mode set to 777. Therefore, do a two-step cp and rm.
+    mv_cmd = 'cp %s %s' % (tmp_file, remote_file_path)
+    mv_cmd = _may_be_wrap_with_run_as(mv_cmd, remote_file_path)
+    rm_cmd = 'rm %s' % tmp_file
+    execute_adb_shell_command(rm_cmd)
+
+    execute_adb_command(push_cmd)
+    execute_adb_shell_command(mv_cmd)
 
 
 def cat_file(file_path):

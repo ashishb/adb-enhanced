@@ -1,4 +1,4 @@
-# adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced) [![Build Status](https://travis-ci.org/ashishb/adb-enhanced.svg?branch=master)](https://travis-ci.org/ashishb/adb-enhanced) [![CircleCI](https://circleci.com/gh/ashishb/adb-enhanced.svg?style=svg)](https://circleci.com/gh/ashishb/adb-enhanced)
+# adb-enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/adb-enhanced/Lobby) [![Build Status](https://travis-ci.org/ashishb/adb-enhanced.svg?branch=master)](https://travis-ci.org/ashishb/adb-enhanced) [![CircleCI](https://circleci.com/gh/ashishb/adb-enhanced.svg?style=shield)](https://circleci.com/gh/ashishb/adb-enhanced)
 
 Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation.
 
@@ -158,55 +158,56 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 # Usage
 
-    adbe.py [options] rotate (landscape | portrait | left | right)
-    adbe.py [options] gfx (on | off | lines)
-    adbe.py [options] overdraw (on | off | deut)
-    adbe.py [options] layout (on | off)
-    adbe.py [options] airplane (on | off)
-    adbe.py [options] battery level <percentage>
-    adbe.py [options] battery saver (on | off)
-    adbe.py [options] battery reset
-    adbe.py [options] doze (on | off)
-    adbe.py [options] jank <app_name>
-    adbe.py [options] devices
-    adbe.py [options] top-activity
-    adbe.py [options] dump-ui <xml_file>
-    adbe.py [options] mobile-data (on | off)
-    adbe.py [options] mobile-data saver (on | off)
-    adbe.py [options] rtl (on | off)
-    adbe.py [options] screenshot <filename.png>
-    adbe.py [options] screenrecord <filename.mp4>
-    adbe.py [options] dont-keep-activities (on | off)
-    adbe.py [options] animations (on | off)
-    adbe.py [options] show-taps (on | off)
-    adbe.py [options] stay-awake-while-charging (on | off)
-    adbe.py [options] input-text <text>
-    adbe.py [options] press back
-    adbe.py [options] open-url <url>
-    adbe.py [options] permission-groups list all
-    adbe.py [options] permissions list (all | dangerous)
-    adbe.py [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-    adbe.py [options] apps list (all | system | third-party | debug | backup-enabled)
-    adbe.py [options] standby-bucket get <app_name>
-    adbe.py [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
-    adbe.py [options] restrict-background (true | false) <app_name>
-    adbe.py [options] ls [-a] [-l] [-R|-r] <file_path>
-    adbe.py [options] rm [-f] [-R|-r] <file_path>
-    adbe.py [options] mv [-f] <src_path> <dest_path>
-    adbe.py [options] pull [-a] <remote>
-    adbe.py [options] pull [-a] <remote> <local>
-    adbe.py [options] cat <file_path>
-    adbe.py [options] start <app_name>
-    adbe.py [options] stop <app_name>
-    adbe.py [options] restart <app_name>
-    adbe.py [options] force-stop <app_name>
-    adbe.py [options] clear-data <app_name>
-    adbe.py [options] app info <app_name>
-    adbe.py [options] app path <app_name>
-    adbe.py [options] app signature <app_name>
-    adbe.py [options] app backup <app_name> <backup_tar_file_path>
-    adbe.py [options] install <file_path>
-    adbe.py [options] uninstall <app_name>
+    adbe [options] rotate (landscape | portrait | left | right)
+    adbe [options] gfx (on | off | lines)
+    adbe [options] overdraw (on | off | deut)
+    adbe [options] layout (on | off)
+    adbe [options] airplane (on | off)
+    adbe [options] battery level <percentage>
+    adbe [options] battery saver (on | off)
+    adbe [options] battery reset
+    adbe [options] doze (on | off)
+    adbe [options] jank <app_name>
+    adbe [options] devices
+    adbe [options] top-activity
+    adbe [options] dump-ui <xml_file>
+    adbe [options] mobile-data (on | off)
+    adbe [options] mobile-data saver (on | off)
+    adbe [options] rtl (on | off)
+    adbe [options] screenshot <filename.png>
+    adbe [options] screenrecord <filename.mp4>
+    adbe [options] dont-keep-activities (on | off)
+    adbe [options] animations (on | off)
+    adbe [options] show-taps (on | off)
+    adbe [options] stay-awake-while-charging (on | off)
+    adbe [options] input-text <text>
+    adbe [options] press back
+    adbe [options] open-url <url>
+    adbe [options] permission-groups list all
+    adbe [options] permissions list (all | dangerous)
+    adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe [options] apps list (all | system | third-party | debug | backup-enabled)
+    adbe [options] standby-bucket get <app_name>
+    adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
+    adbe [options] restrict-background (true | false) <app_name>
+    adbe [options] ls [-a] [-l] [-R|-r] <file_path>
+    adbe [options] rm [-f] [-R|-r] <file_path>
+    adbe [options] mv [-f] <src_path> <dest_path>
+    adbe [options] pull [-a] <file_path_on_android>
+    adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
+    adbe [options] push <file_path_on_machine> <file_path_on_android>
+    adbe [options] cat <file_path>
+    adbe [options] start <app_name>
+    adbe [options] stop <app_name>
+    adbe [options] restart <app_name>
+    adbe [options] force-stop <app_name>
+    adbe [options] clear-data <app_name>
+    adbe [options] app info <app_name>
+    adbe [options] app path <app_name>
+    adbe [options] app signature <app_name>
+    adbe [options] app backup <app_name> <backup_tar_file_path>
+    adbe [options] install <file_path>
+    adbe [options] uninstall <app_name>
     
 # Options
 
