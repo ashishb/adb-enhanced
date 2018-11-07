@@ -285,7 +285,8 @@ def main():
     elif args['ls']:
         file_path = args['<file_path>']
         long_format = args['-l']
-        include_hidden_files = args['-a']
+        # Always include hidden files, -a is left for backward-compatibility but is a no-op now.
+        include_hidden_files = True
         recursive = args['-R'] or args['-r']
         list_directory(file_path, long_format, recursive, include_hidden_files)
     elif args['rm']:
