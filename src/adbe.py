@@ -650,15 +650,13 @@ def _print_device_info(device_serial=None):
 
 
 def print_top_activity():
-    result = _get_top_activity_data()
-    print(result)
+    app_name, activity_name = _get_top_activity_data()
+    if app_name:
+        print_message('Application name: %s' % app_name)
+    if activity_name:
+        print_message('Activity name: %s' % activity_name)
 
 
-# As of now, this returns something similar to the following. If required, in the future, we can return a better
-# formatted result
-#
-# mCurrentFocus=Window{1725ce58 u0 com.android.backupconfirm/com.android.backupconfirm.BackupRestoreConfirmation}
-# mFocusedApp=AppWindowToken{259dd2c3 token=Token{d1fce72 ActivityRecord{8e8bf7d u0 com.android.backupconfirm/.BackupRestoreConfirmation t31}}}
 def _get_top_activity_data():
     cmd = 'dumpsys window windows'
     output = execute_adb_shell_command(cmd)
@@ -667,10 +665,19 @@ def _get_top_activity_data():
     result = ''
     for line in output.split('\n'):
         line = line.strip()
-        if line.startswith('mCurrentFocus') or line.startswith('mFocusedApp'):
-            result = result + line + '\n'
-    return result
+        if line.startswith('mFocusedApp'):
+            regex_result = re.search('ActivityRecord{.* (\S+)/(\S+)', line)
+            if regex_result is None:
+                print_error('Unable to parse activity name from:')
+                print_error(line)
+                return None, None
+            app_name, activity_name = regex_result.group(1), regex_result.group(2)
+            # If activity name is a short hand then complete it.
+            if activity_name.startswith('.'):
+                activity_name = '%s%s' %(app_name, activity_name)
+            return app_name, activity_name
 
+    return None, None
 
 def dump_ui(xml_file):
     tmp_file = _create_tmp_file('dump-ui', 'xml')
