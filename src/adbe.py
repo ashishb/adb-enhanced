@@ -1510,7 +1510,7 @@ def perform_app_backup(app_name, backup_tar_file):
     # TODO: Add a check to ensure that the screen is unlocked
 
     print_verbose('Performing backup to backup.ab file')
-    print_message('you might have to confirm the backup manually on your device\'s screen')
+    print_message('you might have to confirm the backup manually on your device\'s screen...')
 
     def backup_func():
         # Create backup.ab
@@ -1519,18 +1519,23 @@ def perform_app_backup(app_name, backup_tar_file):
 
     backup_thread = threading.Thread(target=backup_func)
     backup_thread.start()
-    # Get the location of "backup data" button and tap it.
-    window_size_x, window_size_y = _get_window_size()
-    while _get_top_activity_data().find('com.android.backupconfirm') == -1:
+    while _get_top_activity_data()[1].find('com.android.backupconfirm') == -1:
         print_verbose('Waiting for the backup activity to start')
         time.sleep(1)
     time.sleep(1)
-    # These numbers are purely derived from heuristics and can be improved.
-    _perform_tap(window_size_x - 200, window_size_y - 100)
-    backup_thread.join(timeout=5)
+
+    # Commented out since this does not always work and can sometimes lead to random clicks on some devices
+    # making backups impossible.
+    # # Tap the backup button
+    # # Get the location of "backup data" button and tap it.
+    # window_size_x, window_size_y = _get_window_size()
+    # # These numbers are purely derived from heuristics and can be improved.
+    # _perform_tap(window_size_x - 200, window_size_y - 100)
+
+    backup_thread.join(timeout=10)
     if backup_thread.is_alive():
         print_error('Backup failed in first attempt, trying again...')
-        _perform_tap(window_size_x - 200, window_size_y - 100)
+        # _perform_tap(window_size_x - 200, window_size_y - 100)
         backup_thread.join(timeout=10)
         if backup_thread.is_alive():
             print_error_and_exit('Backup failed')
