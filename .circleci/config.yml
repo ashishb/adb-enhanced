@@ -5,7 +5,7 @@
 version: 2
 
 jobs:
-  build:
+  build-python2:
     docker:
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -13,10 +13,62 @@ jobs:
       - image: circleci/android:api-28-alpha
         environment:
           JVM_OPTS: -Xmx3200m
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:3.7.0
-      
+
+    working_directory: ~/adb-enhanced-code-checkout-directory
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "requirements.txt" }}-28
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run:
+          name: install Python dependencies
+          command: |
+            sudo apt-get install python python-pip
+            sudo pip install -r requirements.txt
+
+      - run:
+          name: Setup Android emulator
+          command: |
+            # echo "Listing of /opt/android/sdk"
+            # ls /opt/android/sdk
+            # I tried API 25 but it is too slow and times out on Circle CI
+            sdkmanager "system-images;android-22;default;armeabi-v7a" && echo "no" | avdmanager create avd -n test -k "system-images;android-22;default;armeabi-v7a"
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-28
+
+      - run:
+          name: Launch emulator
+          command: export LD_LIBRARY_PATH=${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/qt/lib && emulator64-arm -avd test -noaudio -no-boot-anim -no-window -accel on
+          background: true
+
+      - run:
+          name: Wait for emulator
+          command: circle-android wait-for-boot
+
+      - run:
+          name: Python 2 tests
+          command: |
+            # Any failure is a failure
+            set -e
+            python -m pytest -v tests/adbe_tests.py  --durations=0
+
+  build-python3:
+    docker:
+      # Specify service dependencies here if necessary
+      # CircleCI maintains a library of pre-built images
+      # documented at https://circleci.com/docs/2.0/circleci-images/
+      - image: circleci/android:api-28-alpha
+        environment:
+          JVM_OPTS: -Xmx3200m
 
     working_directory: ~/adb-enhanced-code-checkout-directory
 
@@ -34,9 +86,6 @@ jobs:
           name: install Python dependencies
           command: |
             sudo apt-get install python3 python3-pip python3-venv
-            sudo apt-get install python python-pip
-            # Delete this # Setup python2 - we cannot install from requirements.txt since it contains asyncio as well.
-            sudo pip install -r requirements.txt
             # Setup python3
             python3 -m venv venv
             . venv/bin/activate
@@ -59,12 +108,10 @@ jobs:
           name: Launch emulator
           command: export LD_LIBRARY_PATH=${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/qt/lib && emulator64-arm -avd test -noaudio -no-boot-anim -no-window -accel on
           background: true
-        
+
       - run:
           name: Wait for emulator
-          command: 
-            circle-android wait-for-boot
-
+          command: circle-android wait-for-boot
 
       - run:
           name: Python 3 tests
@@ -76,9 +123,10 @@ jobs:
             # echo "Doing an ls"
             python3 -m pytest -v tests/adbe_tests.py  --durations=0
 
-      - run:
-          name: Python 2 tests
-          command: |
-            # Any failure is a failure
-            set -e
-            python -m pytest -v tests/adbe_tests.py  --durations=0
+# https://discuss.circleci.com/t/how-to-test-multiple-versions-by-triggering-jobs-with-a-shell-function/11305
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build-python2
+      - build-python3
