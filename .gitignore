@@ -90,3 +90,12 @@ ENV/
 .ropeproject
 
 .idea
+
+release/README.md
+release/adbe/abe.jar
+release/adbe/adb_helper.py
+release/adbe/adbe.py
+release/adbe/apksigner.jar
+release/adbe/asyncio_helper.py
+release/adbe/output_helper.py
+release/adbe/version.txt
