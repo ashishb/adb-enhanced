@@ -28,8 +28,7 @@ DST_FILES=$(echo -n ${DIR}/adbe/{adbe.py,output_helper.py,adb_helper.py,asyncio_
   # Create the package. Reference: https://packaging.python.org/tutorials/packaging-projects/
   python3 setup.py sdist bdist_wheel &&
   # Commit to git before sending package upstream
-  git add ${DIR}/README.md \
-    ${DST_FILES} ${DIR}/changelog.txt ${VERSION_FILENAME} &&
+  git add ${DIR}/changelog.txt ${VERSION_FILENAME} &&
   git commit -m "Setup release $(cat $VERSION_FILENAME)" &&
   git tag $(cat $VERSION_FILENAME) &&
   git push origin master &&
