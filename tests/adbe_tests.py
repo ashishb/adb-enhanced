@@ -3,8 +3,12 @@ import subprocess
 import sys
 import os
 
-# Doze mode was launched in API 23.
+# Deut overdraw mode was added in API 19
+_DEUT_ANDROID_VERSION = 19
+# Doze mode was launched in API 23
 _DOZE_MODE_ANDROID_VERSION = 23
+# Runtime permissions were added in API 23
+_RUNTIME_PERMISSIONS_SUPPORTED = 23
 
 _PYTHON_CMD = 'python'
 if sys.version_info >= (3, 0):
@@ -27,7 +31,10 @@ def test_gfx():
 def test_overdraw():
     _assert_success('overdraw on')
     _assert_success('overdraw off')
-    _assert_success('overdraw deut')
+    if _get_device_sdk_version() >= _DEUT_ANDROID_VERSION:
+        _assert_success('overdraw deut')
+    else:
+        _assert_fail('overdraw deut')
     _assert_success('overdraw off')
 
 
@@ -76,17 +83,20 @@ def test_animations():
     _assert_success('animations off')
 
 
-def test_permissions():
+def test_permissions_list():
     _assert_success('permission-groups list all')
     _assert_success('permissions list all')
     _assert_success('permissions list dangerous')
 
-    sdk_version = _get_device_sdk_version()
+
+def test_permissions_grant_revoke():
     test_app_id = 'com.android.phone'
+
     permissions_groups = ['calendar', 'camera', 'contacts', 'location', 'microphone', 'phone', 'sensors',
                          'sms', 'storage']
+
     for permission_group in permissions_groups:
-        if sdk_version >= 23:
+        if _get_device_sdk_version() >= _RUNTIME_PERMISSIONS_SUPPORTED:
             _assert_success('permissions grant %s %s' % (test_app_id, permission_group))
             _assert_success('permissions revoke %s %s' % (test_app_id, permission_group))
         else:
@@ -297,7 +307,8 @@ def main():
     test_mobile_data()
     test_rtl()
     test_animations()
-    test_permissions()
+    test_permissions_list()
+    test_permissions_grant_revoke()
     test_apps()
     test_app_start_related_cmds()
     test_app_info_related_cmds()
