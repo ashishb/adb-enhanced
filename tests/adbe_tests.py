@@ -3,6 +3,7 @@ import subprocess
 import sys
 import os
 
+_SETTINGS_CMD_VERSION = 19
 # Deut overdraw mode was added in API 19
 _DEUT_ANDROID_VERSION = 19
 # Doze mode was launched in API 23
@@ -16,10 +17,15 @@ if sys.version_info >= (3, 0):
 
 
 def test_rotate():
-    _assert_success('rotate landscape')
-    _assert_success('rotate portrait')
-    _assert_success('rotate left')
-    _assert_success('rotate right')
+    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
+        check = _assert_success
+    else:
+        check = _assert_fail
+
+    check('rotate landscape')
+    check('rotate portrait')
+    check('rotate left')
+    check('rotate right')
 
 
 def test_gfx():
@@ -44,26 +50,38 @@ def test_layout():
 
 
 def test_airplane():
-    _assert_success('airplane on')
-    _assert_success('airplane off')
+    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
+        check = _assert_success
+    else:
+        check = _assert_fail
+
+    check('airplane on')
+    check('airplane off')
 
 
 def test_battery_sub_cmds():
     _assert_fail('battery level -1')
-    _assert_success('battery level 10')
     _assert_fail('battery level 104')
-    _assert_success('battery saver on')
-    _assert_success('battery saver off')
-    _assert_success('battery reset')
+
+    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
+        check = _assert_success
+    else:
+        check = _assert_fail
+
+    check('battery level 10')
+    check('battery saver on')
+    check('battery saver off')
+    check('battery reset')
 
 
 def test_doze():
     if _get_device_sdk_version() >= _DOZE_MODE_ANDROID_VERSION:
-        _assert_success('doze on')
-        _assert_success('doze off')
+        check = _assert_success
     else:
-        _assert_fail('doze on')
-        _assert_fail('doze off')
+        check = _assert_fail
+
+    check('doze on')
+    check('doze off')
 
 
 def test_mobile_data():
@@ -74,13 +92,23 @@ def test_mobile_data():
 
 
 def test_rtl():
-    _assert_success('rtl on')
-    _assert_success('rtl off')
+    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
+        check = _assert_success
+    else:
+        check = _assert_fail
+
+    check('rtl on')
+    check('rtl off')
 
 
 def test_animations():
-    _assert_success('animations on')
-    _assert_success('animations off')
+    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
+        check = _assert_success
+    else:
+        check = _assert_fail
+
+    check('animations on')
+    check('animations off')
 
 
 def test_permissions_list():
@@ -230,15 +258,27 @@ def test_take_screenshot():
     _delete_local_file(png_file)
 
 
-def test_keep_acivities():
-    _assert_success('dont-keep-activities on')
-    _assert_success('dont-keep-activities off')
+def test_keep_activities():
+    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
+        check = _assert_success
+    else:
+        check = _assert_fail
+
+    check('dont-keep-activities on')
+    check('dont-keep-activities off')
 
 
-def test_misc():
+def test_ls():
     _assert_success('ls -l -R /data/local/tmp')
-    # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
-    _assert_success('stay-awake-while-charging on')
+
+
+def test_stay_awake_while_charging():
+    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
+        check = _assert_success
+    else:
+        check = _assert_fail
+
+    check('stay-awake-while-charging on')
     # This causes Circle CI to hang.
     # _assert_success('stay-awake-while-charging off')
 
@@ -295,7 +335,6 @@ def _delete_local_file(local_file_path):
         cmd, stdout_data, stderr_data)
 
 
-
 def main():
     test_rotate()
     test_gfx()
@@ -319,11 +358,13 @@ def main():
     test_list_top_activity()
     test_dump_ui()
     test_take_screenshot()
-    test_keep_acivities()
-    test_misc()
+    test_keep_activities()
+    test_ls()
+    test_stay_awake_while_charging()
     test_input_test()
     test_press_back()
     test_open_url()
+    # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
 
 
 if __name__ == '__main__':

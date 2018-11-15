@@ -412,8 +412,8 @@ def get_version():
 # Source:
 # https://stackoverflow.com/questions/25864385/changing-android-device-orientation-with-adb
 def handle_rotate(direction):
-    disable_acceleration = 'settings put system accelerometer_rotation 0'
-    execute_adb_shell_command(disable_acceleration)
+    disable_acceleration = 'put system accelerometer_rotation 0'
+    execute_adb_shell_settings_command(disable_acceleration)
 
     if direction is 'portrait':
         new_direction = 0
@@ -435,13 +435,13 @@ def handle_rotate(direction):
         print_error_and_exit('Unexpected direction %s' % direction)
         return
 
-    cmd = 'settings put system user_rotation %s' % new_direction
-    execute_adb_shell_command(cmd)
+    cmd = 'put system user_rotation %s' % new_direction
+    execute_adb_shell_settings_command(cmd)
 
 
 def get_current_rotation_direction():
-    cmd = 'settings get system user_rotation'
-    direction = execute_adb_shell_command(cmd)
+    cmd = 'get system user_rotation'
+    direction = execute_adb_shell_settings_command(cmd)
     print_verbose("Return value is %s" % direction)
     if not direction or direction == 'null':
         return 0  # default direction is 0, vertical straight
@@ -463,31 +463,33 @@ def handle_layout(value):
 # This is incomplete
 def handle_airplane(turn_on):
     if turn_on:
-        cmd = 'settings put global airplane_mode_on 1'
+        cmd = 'put global airplane_mode_on 1'
     else:
-        cmd = 'settings put global airplane_mode_on 0'
+        cmd = 'put global airplane_mode_on 0'
 
     broadcast_change = 'am broadcast -a android.intent.action.AIRPLANE_MODE'
-    execute_adb_shell_command(cmd)
+    execute_adb_shell_settings_command(cmd)
     execute_adb_shell_command(broadcast_change)
 
 
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 def handle_battery_saver(turn_on):
+    _error_if_min_version_less_than(19)
     if turn_on:
-        cmd = 'settings put global low_power 1'
+        cmd = 'put global low_power 1'
     else:
-        cmd = 'settings put global low_power 0'
+        cmd = 'put global low_power 0'
 
     execute_adb_shell_command(get_battery_unplug_cmd())
     execute_adb_shell_command(get_battery_discharging_cmd())
-    execute_adb_shell_command(cmd)
+    execute_adb_shell_settings_command(cmd)
 
 
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 def handle_battery_level(level):
+    _error_if_min_version_less_than(19)
     if level < 0 or level > 100:
         print_error_and_exit(
             'Battery percentage %d is outside the valid range of 0 to 100' %
@@ -502,17 +504,16 @@ def handle_battery_level(level):
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 def handle_battery_reset():
+    # The battery related commands fail silently on API 16. I am not sure about 17 and 18.
+    _error_if_min_version_less_than(19)
     cmd = get_battery_reset_cmd()
     execute_adb_shell_command(cmd)
 
 
 # https://developer.android.com/training/monitoring-device-state/doze-standby.html
 def handle_doze(turn_on):
-    api_version = _get_device_android_api_version()
-    if api_version < 23:
-        print_error_and_exit(
-            'This command cannot be executed below API version 23, your Android version is %s' %
-            api_version)
+    _error_if_min_version_less_than(23)
+
     enable_idle_mode_cmd = 'dumpsys deviceidle enable'
     if turn_on:
         # Source: https://stackoverflow.com/a/42440619
@@ -628,11 +629,13 @@ def _print_device_info(device_serial=None):
     # First fallback: undocumented
     if display_name is None or len(display_name) == 0 or display_name == 'null':
         # This works on 4.4.4 API 19 Galaxy Grand Prime
-        display_name = execute_adb_command('%s shell settings get system device_name' % cmd_prefix)
+        if _get_device_android_api_version() >= 19:
+            display_name = execute_adb_command('%s shell settings get system device_name' % cmd_prefix)
     # Second fallback, documented to work on API 25 and above
     # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#DEVICE_NAME
     if display_name is None or len(display_name) == 0 or display_name == 'null':
-        display_name = execute_adb_command('%s shell settings get global device_name' % cmd_prefix)
+        if _get_device_android_api_version() >= 19:
+            display_name = execute_adb_command('%s shell settings get global device_name' % cmd_prefix)
 
     # ABI info
     abi = execute_adb_command(
@@ -716,11 +719,12 @@ def handle_mobile_data(turn_on):
 
 
 def force_rtl(turn_on):
+    _error_if_min_version_less_than(19)
     if turn_on:
-        cmd = 'settings put global debug.force_rtl 1'
+        cmd = 'put global debug.force_rtl 1'
     else:
-        cmd = 'settings put global debug.force_rtl 0'
-    execute_adb_shell_command_and_poke_activity_service(cmd)
+        cmd = 'put global debug.force_rtl 0'
+    execute_adb_shell_settings_command_and_poke_activity_service(cmd)
 
 
 def dump_screenshot(filepath):
@@ -734,11 +738,8 @@ def dump_screenshot(filepath):
 
 
 def dump_screenrecord(filepath):
+    _error_if_min_version_less_than(19)
     api_version = _get_device_android_api_version()
-    if api_version < 19:
-        print_error_and_exit(
-            'This command cannot be executed below API version 19, your Android version is %s' %
-            api_version)
 
     # I have tested that on API 23 and above this works. Till Api 22, on emulator, it does not.
     if api_version < 23 and _is_emulator():
@@ -816,13 +817,13 @@ def handle_dont_keep_activities_in_background(turn_on):
 
     if turn_on:
         value = 'true' if use_true_false_as_value else '1'
-        cmd1 = 'settings put global always_finish_activities %s' % value
+        cmd1 = 'put global always_finish_activities %s' % value
         cmd2 = 'service call activity 43 i32 1'
     else:
         value = 'false' if use_true_false_as_value else '0'
-        cmd1 = 'settings put global always_finish_activities %s' % value
+        cmd1 = 'put global always_finish_activities %s' % value
         cmd2 = 'service call activity 43 i32 0'
-    execute_adb_shell_command(cmd1)
+    execute_adb_shell_settings_command(cmd1)
     execute_adb_shell_command_and_poke_activity_service(cmd2)
 
 
@@ -833,13 +834,13 @@ def toggle_animations(turn_on):
         value = 0
 
     # Source: https://github.com/jaredsburrows/android-gif-example/blob/824c493285a2a2cf22f085662431cf0a7aa204b8/.travis.yml#L34
-    cmd1 = 'settings put global window_animation_scale %d' % value
-    cmd2 = 'settings put global transition_animation_scale %d' % value
-    cmd3 = 'settings put global animator_duration_scale %d' % value
+    cmd1 = 'put global window_animation_scale %d' % value
+    cmd2 = 'put global transition_animation_scale %d' % value
+    cmd3 = 'put global animator_duration_scale %d' % value
 
-    execute_adb_shell_command(cmd1)
-    execute_adb_shell_command(cmd2)
-    execute_adb_shell_command(cmd3)
+    execute_adb_shell_settings_command(cmd1)
+    execute_adb_shell_settings_command(cmd2)
+    execute_adb_shell_settings_command(cmd3)
 
 
 def toggle_show_taps(turn_on):
@@ -849,8 +850,8 @@ def toggle_show_taps(turn_on):
         value = 0
 
     # Source: https://stackoverflow.com/a/32621809/434196
-    cmd = 'settings put system show_touches %d' % value
-    execute_adb_shell_command(cmd)
+    cmd = 'put system show_touches %d' % value
+    execute_adb_shell_settings_command(cmd)
 
 
 # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#STAY_ON_WHILE_PLUGGED_IN
@@ -861,8 +862,8 @@ def stay_awake_while_charging(turn_on):
     else:
         value = 0
 
-    cmd1 = 'settings put global stay_on_while_plugged_in %d' % value
-    execute_adb_shell_command_and_poke_activity_service(cmd1)
+    cmd1 = 'put global stay_on_while_plugged_in %d' % value
+    execute_adb_shell_settings_command_and_poke_activity_service(cmd1)
 
 
 def input_text(text):
@@ -879,8 +880,7 @@ def open_url(url):
     # Let's not do any URL encoding for now, if required, we will add that in the future.
     parsed_url = urlparse(url = url)
     if parsed_url.scheme is None or len(parsed_url.scheme) == 0:
-        scheme = 'http'
-        parsed_url2 = urlparse(url = url, scheme = 'http')
+        parsed_url2 = urlparse(url=url, scheme='http')
         url = parsed_url2.geturl()
     cmd = 'am start -a android.intent.action.VIEW -d %s' % url
     execute_adb_shell_command(cmd)
@@ -1146,11 +1146,7 @@ _APP_STANDBY_BUCKETS = {
 
 # Source: https://developer.android.com/preview/features/power#buckets
 def get_standby_bucket(package_name):
-    api_version = _get_device_android_api_version()
-    if api_version < 28:
-        print_error_and_exit(
-            'This command cannot be executed below API version 28, your Android version is %s' %
-            api_version)
+    _error_if_min_version_less_than(28)
     cmd = 'am get-standby-bucket %s' % package_name
     result = execute_adb_shell_command(cmd)
     if result is None:
@@ -1161,11 +1157,7 @@ def get_standby_bucket(package_name):
 
 
 def set_standby_bucket(package_name, mode):
-    api_version = _get_device_android_api_version()
-    if api_version < 28:
-        print_error_and_exit(
-            'This command cannot be executed below API version 28, your Android version is %s' %
-            api_version)
+    _error_if_min_version_less_than(28)
     cmd = 'am set-standby-bucket %s %s' % (package_name, mode)
     result = execute_adb_shell_command(cmd)
     if result is not None:  # Expected
@@ -1187,12 +1179,7 @@ def _calculate_standby_mode(args):
 
 # Source: https://developer.android.com/preview/features/power
 def apply_or_remove_background_restriction(package_name, set_restriction):
-    api_version = _get_device_android_api_version()
-    if api_version < 28:
-        print_error_and_exit(
-            'This command cannot be executed below API version 28, your Android version is %s' %
-            api_version)
-
+    _error_if_min_version_less_than(28)
     appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (
         package_name, 'ignore' if set_restriction else 'allow')
     execute_adb_shell_command(appops_cmd)
@@ -1589,10 +1576,34 @@ def _perform_tap(x, y):
     execute_adb_shell_command(adb_shell_cmd)
 
 
+def execute_adb_shell_settings_command(settings_cmd):
+    _error_if_min_version_less_than(19)
+    return execute_adb_shell_command('settings %s' % settings_cmd)
+
+
+def execute_adb_shell_settings_command_and_poke_activity_service(settings_cmd):
+    return_value = execute_adb_shell_settings_command(settings_cmd)
+    _poke_activity_service()
+    return return_value
+
+
 def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
     return_value = execute_adb_shell_command(adb_cmd)
-    execute_adb_shell_command(get_update_activity_service_cmd())
+    _poke_activity_service()
     return return_value
+
+
+def _poke_activity_service():
+    return execute_adb_shell_command(get_update_activity_service_cmd())
+
+
+def _error_if_min_version_less_than(min_acceptable_version):
+    api_version = _get_device_android_api_version()
+    if api_version < min_acceptable_version:
+        cmd = ' '.join(sys.argv[1:])
+        print_error_and_exit(
+            '\"%s\" can only be executed on API %d and above, your device version is %d' %
+            (cmd, min_acceptable_version, api_version))
 
 
 # adb shell getprop ro.build.version.sdk
