@@ -67,6 +67,14 @@ jobs:
             sudo pip install -r requirements.txt
 
       - run:
+          name: Install Android Emulator dependencies
+          command: |
+            set -e
+            sudo apt-get install mesa-utils
+            # Source https://github.com/bitrise-docker/android/blob/7ab19405c13da614f54c17dffb79bcbb490b5fb9/Dockerfile#L149
+            sudo apt-get install -y libqt5widgets5
+
+      - run:
           name: Setup Android emulator
           command: |
             # echo "Listing of /opt/android/sdk"
@@ -81,7 +89,8 @@ jobs:
 
       - run:
           name: Launch emulator
-          command: export LD_LIBRARY_PATH=${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/qt/lib && emulator64-arm -avd test -noaudio -no-boot-anim -no-window -accel on
+          command: emulator64-arm -avd test -noaudio -no-boot-anim -no-window -accel on
+          #            export LD_LIBRARY_PATH=${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/qt/lib
           background: true
 
       - run:
@@ -292,11 +301,11 @@ workflows:
   version: 2
   build:
     jobs:
-      - setup-python2
-      - setup-python3
+#      - setup-python2
+#      - setup-python3
       - test-python2
-      - test-python3-android-api-16
-      - test-python3-android-api-22
-      - test-python3-android-api-24
+#      - test-python3-android-api-16
+#      - test-python3-android-api-22
+#      - test-python3-android-api-24
       # Note: I tried API 25 as well but it is too slow to boot - https://circleci.com/gh/ashishb/adb-enhanced/251
       # API 26 onwards, only X86 images are available and emulator-x86 simply does not work on Circle CI.
