@@ -292,11 +292,11 @@ workflows:
   version: 2
   build:
     jobs:
-      - setup-python2
-      - setup-python3
-      - test-python2
-      - test-python3-android-api-16
+#      - setup-python2
+#      - setup-python3
+#      - test-python2
+#      - test-python3-android-api-16
       - test-python3-android-api-22
-      - test-python3-android-api-24
+#      - test-python3-android-api-24
       # Note: I tried API 25 as well but it is too slow to boot - https://circleci.com/gh/ashishb/adb-enhanced/251
       # API 26 onwards, only X86 images are available and emulator-x86 simply does not work on Circle CI.
