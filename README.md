@@ -223,9 +223,11 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     -f                      For forced deletion of a file, only valid for "rm" command
     -v, --verbose           Verbose mode
     
-## Python3 compatibility
+## Python2 compatibility
 
-As of Nov 27, 2017, the code is python3 compatible, and as of Jan 18, 2018, pip (python package manager) has the updated version.
+As of Nov 15, 2018, I would strongly discourage installation of this package using Python 2. Python 3 is recommended and Python 2 will not be supported after Dec 31, 2018.
+ 
+~~As of Nov 27, 2017, the code is python3 compatible, and as of Jan 18, 2018, pip (python package manager) has the updated version.~~
 
 Note: The inspiration of this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
 
