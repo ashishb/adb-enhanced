@@ -1499,8 +1499,9 @@ def print_app_signature(app_name):
 def perform_app_backup(app_name, backup_tar_file):
     # TODO: Add a check to ensure that the screen is unlocked
 
+    password = '00'
     print_verbose('Performing backup to backup.ab file')
-    print_message('you might have to confirm the backup manually on your device\'s screen...')
+    print_message('you might have to confirm the backup manually on your device\'s screen, enter \"%s\" as password...')
 
     def backup_func():
         # Create backup.ab
@@ -1536,7 +1537,7 @@ def perform_app_backup(app_name, backup_tar_file):
         abe_jar_path = os.path.join(dir_of_this_script, 'abe.jar')
         if not os.path.exists(abe_jar_path):
             print_error_and_exit('Abe.jar is missing, your adb-enhanced installation is corrupted')
-        abe_cmd = 'java -jar %s unpack backup.ab %s' % (abe_jar_path, backup_tar_file)
+        abe_cmd = 'java -jar %s unpack backup.ab %s %s' % (abe_jar_path, backup_tar_file, password)
         print_verbose('Executing command %s' % abe_cmd)
         ps = subprocess.Popen(abe_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         ps.communicate()
