@@ -1481,6 +1481,9 @@ def print_app_signature(app_name):
         execute_adb_command(adb_cmd)
         dir_of_this_script = os.path.split(__file__)[0]
         apk_signer_jar_path = os.path.join(dir_of_this_script, 'apksigner.jar')
+        if not os.path.exists(apk_signer_jar_path):
+            print_error_and_exit('apksigner.jar is missing, your adb-enhanced installation is corrupted')
+            
         print_signature_cmd = 'java -jar %s verify --print-certs %s' % (apk_signer_jar_path, tmp_apk_file_name)
         print_verbose('Executing command %s' % print_signature_cmd)
         ps1 = subprocess.Popen(print_signature_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -1531,6 +1534,8 @@ def perform_app_backup(app_name, backup_tar_file):
     try:
         dir_of_this_script = os.path.split(__file__)[0]
         abe_jar_path = os.path.join(dir_of_this_script, 'abe.jar')
+        if not os.path.exists(abe_jar_path):
+            print_error_and_exit('Abe.jar is missing, your adb-enhanced installation is corrupted')
         abe_cmd = 'java -jar %s unpack backup.ab %s' % (abe_jar_path, backup_tar_file)
         print_verbose('Executing command %s' % abe_cmd)
         ps = subprocess.Popen(abe_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
