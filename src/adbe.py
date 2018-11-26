@@ -1501,7 +1501,7 @@ def perform_app_backup(app_name, backup_tar_file):
 
     password = '00'
     print_verbose('Performing backup to backup.ab file')
-    print_message('you might have to confirm the backup manually on your device\'s screen, enter \"%s\" as password...')
+    print_message('you might have to confirm the backup manually on your device\'s screen, enter \"%s\" as password...', password)
 
     def backup_func():
         # Create backup.ab
