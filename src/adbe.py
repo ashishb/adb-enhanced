@@ -17,6 +17,8 @@ import threading
 import time
 import os
 import random
+# This is required only for Python 2
+# pylint: disable=import-error
 from urllib.parse import urlparse
 
 # asyncio was introduced in version 3.5
@@ -667,11 +669,10 @@ def _get_top_activity_data():
     output = execute_adb_shell_command(cmd)
     if not output:
         print_error_and_exit('Device returned no response, is it still connected?')
-    result = ''
     for line in output.split('\n'):
         line = line.strip()
         if line.startswith('mFocusedApp'):
-            regex_result = re.search('ActivityRecord{.* (\S+)/(\S+)', line)
+            regex_result = re.search(r'ActivityRecord{.* (\S+)/(\S+)', line)
             if regex_result is None:
                 print_error('Unable to parse activity name from:')
                 print_error(line)
@@ -730,12 +731,12 @@ def force_rtl(turn_on):
 
 
 def dump_screenshot(filepath):
-    file_path_on_device = _create_tmp_file('screenshot', 'png')
-    dump_cmd = 'screencap -p %s ' % file_path_on_device
+    screenshot_file_path_on_device = _create_tmp_file('screenshot', 'png')
+    dump_cmd = 'screencap -p %s ' % screenshot_file_path_on_device
     execute_adb_shell_command(dump_cmd)
-    pull_cmd = 'pull %s %s' % (file_path_on_device, filepath)
+    pull_cmd = 'pull %s %s' % (screenshot_file_path_on_device, filepath)
     execute_adb_command(pull_cmd)
-    del_cmd = 'rm %s' % file_path_on_device
+    del_cmd = 'rm %s' % screenshot_file_path_on_device
     execute_adb_shell_command(del_cmd)
 
 
@@ -748,22 +749,22 @@ def dump_screenrecord(filepath):
         print_error_and_exit('screenrecord is not supported on emulator below API 23\n' +
                              'Source: %s ' % 'https://issuetracker.google.com/issues/36982354')
 
-    file_path_on_device = None
+    screen_record_file_path_on_device = None
     original_sigint_handler = None
 
     def _start_recording():
-        global file_path_on_device
+        global screen_record_file_path_on_device
         print_message('Recording video, press Ctrl+C to end...')
-        file_path_on_device = _create_tmp_file('screenrecord', 'mp4')
-        dump_cmd = 'screenrecord --verbose %s ' % file_path_on_device
+        screen_record_file_path_on_device = _create_tmp_file('screenrecord', 'mp4')
+        dump_cmd = 'screenrecord --verbose %s ' % screen_record_file_path_on_device
         execute_adb_shell_command(dump_cmd)
 
     def _pull_and_delete_file_from_device():
-        global file_path_on_device
+        global screen_record_file_path_on_device
         print_message('Saving recording to %s' % filepath)
-        pull_cmd = 'pull %s %s' % (file_path_on_device, filepath)
+        pull_cmd = 'pull %s %s' % (screen_record_file_path_on_device, filepath)
         execute_adb_command(pull_cmd)
-        del_cmd = 'rm %s' % file_path_on_device
+        del_cmd = 'rm %s' % screen_record_file_path_on_device
         execute_adb_shell_command(del_cmd)
 
     def _kill_all_child_processes():
@@ -786,7 +787,7 @@ def dump_screenrecord(filepath):
         # And exit
         sys.exit(0)
 
-    def signal_handler(sig, frame):
+    def signal_handler(unused_sig, unused_frame):
         # Restore the original handler for Ctrl-C
         signal.signal(signal.SIGINT, original_sigint_handler)
         _handle_recording_ended()
@@ -1462,8 +1463,8 @@ def _get_permissions_info_above_api_23(app_info_dump):
 
 def _get_apk_path(app_name):
     adb_shell_cmd = 'pm path %s' % app_name
-    str = execute_adb_shell_command(adb_shell_cmd)
-    apk_path = str.split(':', 2)[1]
+    result = execute_adb_shell_command(adb_shell_cmd)
+    apk_path = result.split(':', 2)[1]
     return apk_path
 
 
@@ -1503,7 +1504,7 @@ def perform_app_backup(app_name, backup_tar_file):
 
     password = '00'
     print_verbose('Performing backup to backup.ab file')
-    print_message('you might have to confirm the backup manually on your device\'s screen, enter \"%s\" as password...' % password)
+    print_message('you might have to confirm the backup manually on your device\'s screen, enter \"%s\" as password...', password)
 
     def backup_func():
         # Create backup.ab

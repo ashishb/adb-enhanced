@@ -1,13 +1,12 @@
 import subprocess
-import os
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
-    from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
+    from adbe.output_helper import print_error, print_error_and_exit, print_verbose
 except ImportError:
     # This works when the code is executed directly.
-    from output_helper import print_message, print_error, print_error_and_exit, print_verbose
+    from output_helper import print_error, print_error_and_exit, print_verbose
 
 
 _adb_prefix = 'adb'
@@ -21,6 +20,7 @@ def get_adb_prefix():
 
 
 def set_adb_prefix(adb_prefix):
+    # pylint: disable=global-statement
     global _adb_prefix
     _adb_prefix = adb_prefix
 
@@ -39,7 +39,7 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
     stdout_data, stderr_data = ps1.communicate()
     try:
         stdout_data = stdout_data.decode('utf-8')
-    except UnicodeDecodeError as e:
+    except UnicodeDecodeError:
         print_error('Unable to decode data as UTF-8, defaulting to printing the binary data')
     stderr_data = stderr_data.decode('utf-8')
 
@@ -53,6 +53,7 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
             print_verbose("Result is \"%s\"" % stdout_data)
             return stdout_data
         # str for Python 3 and unicode for Python 2
+        # unicode is undefined for Python 3
         elif isinstance(stdout_data, str) or isinstance(stdout_data, unicode):
             output = ''
             first_line = True

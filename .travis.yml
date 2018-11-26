@@ -1,6 +1,30 @@
 # https://stackoverflow.com/questions/27644586/how-to-set-up-travis-ci-with-multiple-languages
 matrix:
   include:
+
+    - name: Lint check code (Python 2)
+      language: python
+      sudo: false
+      python:
+        - 2.7
+      install:
+        # sudo not required here
+        - pip install -r requirements.txt
+        - pip install pylint
+      script:
+        - ./tests/lint_check_python2.sh
+
+    - name: Lint check code (Python 3)
+      language: python
+      sudo: false
+      python:
+        - 3.6
+      install:
+        - pip install -r requirements.txt
+        - pip install pylint
+      script:
+        - ./tests/lint_check_python3.sh
+
     - name: Test install against 2.7 and 3.6
       language: python
       sudo: false
@@ -9,14 +33,14 @@ matrix:
         - 3.6
       install:
         # sudo not required here
-        - pip install -r requirements.txt
+        - pip install pylint
       script:
         - cp README.md release
         - cp -r src/* release/adbe/
         - python release/setup.py install
 
-    # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
-    # Source: https://stackoverflow.com/a/28751112/434196
+    # https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
+    # https://stackoverflow.com/a/28751112/434196
     - name: Test Python 2.7 and Android 16
       language: android  # Python 2 testing
       sudo: required  # For pip installation, otherwise, pip install fails.
@@ -54,7 +78,7 @@ matrix:
         - sudo pip install -r requirements.txt
         # Android setup
         - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
-        # -noaudio is not supported by this version of the emulator 
+        # -noaudio is not supported by this version of the emulator
         - emulator -avd test -no-window -no-boot-anim &
         - android-wait-for-emulator
       script:
@@ -116,7 +140,7 @@ matrix:
             - python3.5
             - python3-pip
 
-# Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
+    # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
     # Source: https://stackoverflow.com/a/28751112/434196
     - name: Test Python 3 and Android API 23
       language: android

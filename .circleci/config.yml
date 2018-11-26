@@ -5,6 +5,53 @@
 version: 2
 
 jobs:
+
+  lint-check-python2:
+    docker:
+      - image: circleci/python:2.7.15
+
+    working_directory: ~/adb-enhanced-code-checkout-directory
+
+    steps:
+      - checkout
+
+      - run:
+          name: Setup Lint
+          command: |
+            set -e
+            sudo apt-get install python python-pip
+            sudo pip install -r requirements.txt
+            sudo pip install pylint
+
+      - run:
+          name: Running lint check
+          command: |
+            set -e
+            ./tests/lint_check_python2.sh
+
+  lint-check-python3:
+    docker:
+      - image: circleci/python:3.7
+
+    working_directory: ~/adb-enhanced-code-checkout-directory
+
+    steps:
+      - checkout
+
+      - run:
+          name: Setup Lint
+          command: |
+            set -e
+            sudo apt-get install python3 python3-pip
+            sudo pip3 install -r requirements.txt
+            sudo pip3 install pylint
+
+      - run:
+          name: Running lint check
+          command: |
+            set -e
+            ./tests/lint_check_python3.sh
+
   setup-python2:
     docker:
       - image: circleci/python:2.7.15
@@ -56,9 +103,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}-28
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "requirements.txt" }}-28
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
 
       - run:
           name: Install Python dependencies
@@ -121,9 +168,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}-28
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "requirements.txt" }}-28
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
 
       - run:
           name: Install Python dependencies
@@ -184,9 +231,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}-28
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "requirements.txt" }}-28
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
 
       - run:
           name: Install Python dependencies
@@ -248,9 +295,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}-28
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "requirements.txt" }}-28
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
 
       - run:
           name: Install Python dependencies
@@ -301,11 +348,13 @@ workflows:
   version: 2
   build:
     jobs:
-#      - setup-python2
-#      - setup-python3
+      - lint-check-python2
+      - lint-check-python3
+      - setup-python2
+      - setup-python3
       - test-python2
-#      - test-python3-android-api-16
-#      - test-python3-android-api-22
-#      - test-python3-android-api-24
+      - test-python3-android-api-16
+      - test-python3-android-api-22
+      - test-python3-android-api-24
       # Note: I tried API 25 as well but it is too slow to boot - https://circleci.com/gh/ashishb/adb-enhanced/251
       # API 26 onwards, only X86 images are available and emulator-x86 simply does not work on Circle CI.
