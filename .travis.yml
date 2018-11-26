@@ -1,7 +1,8 @@
 # https://stackoverflow.com/questions/27644586/how-to-set-up-travis-ci-with-multiple-languages
 matrix:
   include:
-    - language: python
+    - name: Test install against 2.7 and 3.6
+      language: python
       sudo: false
       python:
         - 2.7
@@ -16,7 +17,8 @@ matrix:
 
     # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
     # Source: https://stackoverflow.com/a/28751112/434196
-    - language: android  # Python 2 testing
+    - name: Test Python 2.7 and Android 16
+      language: android  # Python 2 testing
       sudo: required  # For pip installation, otherwise, pip install fails.
       jdk: oraclejdk8
       before_cache:
@@ -60,7 +62,8 @@ matrix:
 
     # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
     # Source: https://stackoverflow.com/a/28751112/434196
-    - language: android  # Python 3 testing with API 16
+    - name: Test Python 3 and Android API 16
+      language: android
       sudo: required  # For pip installation, otherwise, pip install fails.
       jdk: oraclejdk8
       before_cache:
@@ -115,7 +118,8 @@ matrix:
 
 # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
     # Source: https://stackoverflow.com/a/28751112/434196
-    - language: android  # Python 3 testing with API 23
+    - name: Test Python 3 and Android API 23
+      language: android
       sudo: required  # For pip installation, otherwise, pip install fails.
       jdk: oraclejdk8
       before_cache:
