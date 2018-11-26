@@ -258,6 +258,8 @@ def main():
         _ensure_package_exists(app_name)
         permission_group = get_permission_group(args)
         permissions = get_permissions_in_permission_group(permission_group)
+        if not permissions:
+            print_error_and_exit('No permissions found in permissions group: %s' % permission_group)
         grant_or_revoke_runtime_permissions(
             app_name, args['grant'], permissions)
     elif args['apps'] and args['list']:
