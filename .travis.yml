@@ -59,7 +59,6 @@ matrix:
           # 16 is the fastest as per
           # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
           - ANDROID_API_LEVEL=16
-          - ANDROID_BUILD_TOOLS_VERSION=26.0.1
           - ANDROID_EMU_API_LEVEL=22
           - ANDROID_ABI=armeabi-v7a
           - QEMU_AUDIO_DRV=none  # Remove audio
@@ -68,7 +67,6 @@ matrix:
         components:
           - tools
           - platform-tools
-          - build-tools-$ANDROID_BUILD_TOOLS_VERSION
           - android-$ANDROID_API_LEVEL
           - android-$ANDROID_EMU_API_LEVEL
           # Specify at least one system image
@@ -104,7 +102,6 @@ matrix:
           # 16 is the fastest as per
           # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
           - ANDROID_API_LEVEL=16
-          - ANDROID_BUILD_TOOLS_VERSION=26.0.1
           - ANDROID_EMU_API_LEVEL=22
           - ANDROID_ABI=armeabi-v7a
           - QEMU_AUDIO_DRV=none  # Remove audio
@@ -113,7 +110,6 @@ matrix:
         components:
           - tools
           - platform-tools
-          - build-tools-$ANDROID_BUILD_TOOLS_VERSION
           - android-$ANDROID_API_LEVEL
           - android-$ANDROID_EMU_API_LEVEL
           # Specify at least one system image
@@ -154,41 +150,55 @@ matrix:
         directories:
           - $HOME/.gradle/caches/
           - $HOME/.gradle/wrapper/
+          # Android SDK
+          - $HOME/android-sdk-dl
+          - $HOME/android-sdk
+          # Android build cache (see http://tools.android.com/tech-docs/build-cache)
+          - $HOME/.android/build-cache
       env:
         global:
           - DX_HEAP_SIZE=2048
           # 16 is the fastest as per
           # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
           - ANDROID_API_LEVEL=24
-          - ANDROID_BUILD_TOOLS_VERSION=26.0.1
           - ANDROID_EMU_API_LEVEL=24
           - ANDROID_ABI=armeabi-v7a
           - QEMU_AUDIO_DRV=none  # Remove audio
           - ADB_INSTALL_TIMEOUT=20  # minutes (2 minutes by default)
-      android:
-        components:
-          - tools
-          - platform-tools
-          - build-tools-$ANDROID_BUILD_TOOLS_VERSION
-          - android-$ANDROID_API_LEVEL
-          # Specify at least one system image
-          - sys-img-armeabi-v7a-android-$ANDROID_EMU_API_LEVEL
-          - $ANDROID_ABI-default-$ANDROID_EMU_API_LEVEL
-          # Delete this
-#          - $ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
+          - ANDROID_HOME=$HOME/android-sdk
+          # "emulator" commands needs this
+          - ANDROID_SDK_ROOT=$HOME/android-sdk
+
+      install:
+        - set -e
+        - touch $HOME/.android/repositories.cfg
+        # Download and unzip the Android SDK tools (if not already there thanks to the cache mechanism)
+        # Latest version available here: https://developer.android.com/studio/#command-tools
+        - if test ! -e $HOME/android-sdk-dl/sdk-tools.zip ; then curl https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip > $HOME/android-sdk-dl/sdk-tools.zip ; fi
+        - unzip -qq -n $HOME/android-sdk-dl/sdk-tools.zip -d $HOME/android-sdk
+
+        # Install or update Android SDK components (will not do anything if already up to date thanks to the cache mechanism)
+        - echo y | $HOME/android-sdk/tools/bin/sdkmanager 'tools' > /dev/null
+        - echo y | $HOME/android-sdk/tools/bin/sdkmanager 'platform-tools' > /dev/null
+        - echo y | $HOME/android-sdk/tools/bin/sdkmanager "platforms;android-$ANDROID_API_LEVEL" > /dev/null
+        - echo y | $HOME/android-sdk/tools/bin/sdkmanager "system-images;android-$ANDROID_API_LEVEL;default;$ANDROID_ABI" > /dev/null
+        - echo y | $HOME/android-sdk/tools/bin/sdkmanager "system-images;android-$ANDROID_EMU_API_LEVEL;default;$ANDROID_ABI" > /dev/null
+
       before_script:
         # Python setup - for some weird reason, sudo is required here
         - sudo pip3 install -r requirements.txt
         # Android setup
-        - echo no | android create avd --force -n test -t android-$ANDROID_API_LEVEL --abi $ANDROID_ABI
+        - echo no | $HOME/android-sdk/tools/bin/avdmanager create avd --force -n test --tag default --abi $ANDROID_ABI --package "system-images;android-$ANDROID_API_LEVEL;default;$ANDROID_ABI"
+        - ls -al $HOME
+        # Directly calling emulator command fails, taking fix from here.
+        # https://www.bram.us/2017/05/12/launching-the-android-emulator-from-the-command-line/
+        - alias emulator=$HOME/android-sdk/tools/emulator
         # -noaudio is not supported by this version of the emulator
         - emulator -avd test -no-window -no-boot-anim &
         - android-wait-for-emulator
       script:
-        # Only these two tests are not triggered below API 23
-        - python3 src/adbe.py apps list all
-        # This has to be called before test_doze or it fails.
         - python3 -m pytest -v tests/adbe_tests.py --durations=0
+        # We can even run only these two tests which are not triggered below API 23
 #        - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_permissions_grant_revoke
 #        - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_doze
       # Default installation is python 2. Let's force python3 and test the code against it.
@@ -206,3 +216,4 @@ matrix:
 # Good .travis.yml files to learn from
 # https://github.com/ruboto/ruboto/blob/master/.travis.yml
 # https://raw.githubusercontent.com/BanzaiMan/travis_production_test/bc25099f9bd413c43cee9e7118e8eee4b1448fd6/.travis.yml
+# Android build caching https://medium.com/@bod/cache-your-android-sdk-with-travis-c816b9264708
