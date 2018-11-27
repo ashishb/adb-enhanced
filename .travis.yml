@@ -142,7 +142,7 @@ matrix:
 
     # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
     # Source: https://stackoverflow.com/a/28751112/434196
-    - name: Test Python 3 and Android API 23
+    - name: Test Python 3 and Android API 24
       language: android
       sudo: required  # For pip installation, otherwise, pip install fails.
       jdk: oraclejdk8
@@ -159,9 +159,9 @@ matrix:
           - DX_HEAP_SIZE=2048
           # 16 is the fastest as per
           # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
-          - ANDROID_API_LEVEL=23
+          - ANDROID_API_LEVEL=24
           - ANDROID_BUILD_TOOLS_VERSION=26.0.1
-          - ANDROID_EMU_API_LEVEL=23
+          - ANDROID_EMU_API_LEVEL=24
           - ANDROID_ABI=armeabi-v7a
           - QEMU_AUDIO_DRV=none  # Remove audio
           - ADB_INSTALL_TIMEOUT=20  # minutes (2 minutes by default)
@@ -171,19 +171,26 @@ matrix:
           - platform-tools
           - build-tools-$ANDROID_BUILD_TOOLS_VERSION
           - android-$ANDROID_API_LEVEL
-          - android-$ANDROID_EMU_API_LEVEL
           # Specify at least one system image
-          - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
+          - sys-img-armeabi-v7a-android-$ANDROID_EMU_API_LEVEL
+          - $ANDROID_ABI-default-$ANDROID_EMU_API_LEVEL
+          # Delete this
+#          - $ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
       before_script:
         # Python setup - for some weird reason, sudo is required here
         - sudo pip3 install -r requirements.txt
         # Android setup
-        - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
+        - echo no | android create avd --force -n test -t android-$ANDROID_API_LEVEL --abi $ANDROID_ABI
         # -noaudio is not supported by this version of the emulator
         - emulator -avd test -no-window -no-boot-anim &
         - android-wait-for-emulator
       script:
-        - python3 -m pytest -v tests/adbe_tests.py  --durations=0
+        # Only these two tests are not triggered below API 23
+        - python3 src/adbe.py apps list all
+        # This has to be called before test_doze or it fails.
+        - python3 -m pytest -v tests/adbe_tests.py --durations=0
+#        - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_permissions_grant_revoke
+#        - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_doze
       # Default installation is python 2. Let's force python3 and test the code against it.
       # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
       addons:
@@ -195,3 +202,7 @@ matrix:
             # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
             - python3.5
             - python3-pip
+
+# Good .travis.yml files to learn from
+# https://github.com/ruboto/ruboto/blob/master/.travis.yml
+# https://raw.githubusercontent.com/BanzaiMan/travis_production_test/bc25099f9bd413c43cee9e7118e8eee4b1448fd6/.travis.yml

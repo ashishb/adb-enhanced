@@ -15,6 +15,9 @@ _PYTHON_CMD = 'python'
 if sys.version_info >= (3, 0):
     _PYTHON_CMD = 'python3'
 
+_TEST_APP_ID = 'com.android.phone'
+_DIR_PATH = '/data/data/%s' % _TEST_APP_ID
+
 
 def test_rotate():
     if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
@@ -118,7 +121,7 @@ def test_permissions_list():
 
 
 def test_permissions_grant_revoke():
-    test_app_id = 'com.android.phone'
+    test_app_id = _TEST_APP_ID
 
     permissions_groups = ['calendar', 'camera', 'contacts', 'location', 'microphone', 'phone', 'sensors',
                          'sms', 'storage']
@@ -146,10 +149,6 @@ def test_apps():
     _assert_success('apps list third-party')
     _assert_success('apps list debug')
     _assert_success('apps list backup-enabled')
-
-
-_TEST_APP_ID = 'com.android.phone'
-_DIR_PATH = '/data/data/%s' % _TEST_APP_ID
 
 
 def test_app_start_related_cmds():
@@ -225,7 +224,7 @@ def test_file_move1():
 
 
 def test_file_move2():
-    tmp_file1 = '/data/data/com.android.settings/development.xml'
+    tmp_file1 = '/data/local/tmp/development.xml'
     tmp_file2 = '/data/data/com.android.contacts'
     ps = subprocess.Popen('adb shell touch %s' % tmp_file1,
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
