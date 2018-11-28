@@ -99,7 +99,7 @@ Usage:
     adbe [options] app info <app_name>
     adbe [options] app path <app_name>
     adbe [options] app signature <app_name>
-    adbe [options] app backup <app_name> <backup_tar_file_path>
+    adbe [options] app backup <app_name> [<backup_tar_file_path>]
     adbe [options] install <file_path>
     adbe [options] uninstall <app_name>
 
@@ -338,7 +338,10 @@ def main():
         elif args['signature']:
             print_app_signature(app_name)
         elif args['backup']:
-            perform_app_backup(app_name, args['<backup_tar_file_path>'])
+            backup_tar_file_path = args['<backup_tar_file_path>']
+            if not backup_tar_file_path:
+                backup_tar_file_path = '%s_backup.tar' % app_name
+            perform_app_backup(app_name, backup_tar_file_path)
     elif args['install']:
         file_path = args['<file_path>']
         perform_install(file_path)
@@ -1504,7 +1507,7 @@ def perform_app_backup(app_name, backup_tar_file):
 
     password = '00'
     print_verbose('Performing backup to backup.ab file')
-    print_message('you might have to confirm the backup manually on your device\'s screen, enter \"%s\" as password...', password)
+    print_message('you might have to confirm the backup manually on your device\'s screen, enter \"%s\" as password...' % password)
 
     def backup_func():
         # Create backup.ab
