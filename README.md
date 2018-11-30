@@ -225,20 +225,20 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     
 ## Python3 migration timeline
 
-Nov 27, 2017 - Code is Python3 compatible
-Jan 18, 2018 - pip (python package manager) has the updated version which is Python3 compatible
-Nov 15, 2018 - Python2 based installation discouraged. Python3 is recommended.
-Dec 31, 2018 - Python2 will not be officially supported after Dec 31, 2018.
+- Nov 27, 2017 - Code is Python3 compatible
+- Jan 18, 2018 - pip (python package manager) has the updated version which is Python3 compatible
+- Nov 15, 2018 - Python2 based installation discouraged. Python3 is recommended.
+- Dec 31, 2018 - Python2 will not be officially supported after Dec 31, 2018.
 
-## How to test modifications
+## Testing
 ```
 python -m pytest -v tests/adbe_tests.py  # Python2 tests
 python3 -m pytest -v tests/adbe_tests.py  # Python3 tests
 ```
 
 
-## How to release a new build
-A new build can be released using [`release/release_new_build.sh`](https://github.com/ashishb/adb-enhanced/blob/master/release/release_new_build.sh) script
+## Relase a new build
+A new build can be released using [`release/release_new_build.sh`](https://github.com/ashishb/adb-enhanced/blob/master/release/release_new_build.sh) script.
 
 Note: The inspiration of this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
 
