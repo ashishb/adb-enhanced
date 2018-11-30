@@ -474,9 +474,11 @@ def handle_airplane(turn_on):
     else:
         cmd = 'put global airplane_mode_on 0'
 
-    broadcast_change = 'am broadcast -a android.intent.action.AIRPLANE_MODE'
+    # At some version, this became a protected intent, so, it might require root to succeed.
+    broadcast_change_cmd = 'am broadcast -a android.intent.action.AIRPLANE_MODE'
+    broadcast_change_cmd = _may_be_wrap_with_run_as(broadcast_change_cmd, '')
     execute_adb_shell_settings_command(cmd)
-    execute_adb_shell_command(broadcast_change)
+    execute_adb_shell_command(broadcast_change_cmd)
 
 
 # Source:
