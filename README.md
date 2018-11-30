@@ -4,20 +4,20 @@
 
 Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation.
 
-# Release announcement
+## Release announcement
 See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/)
 
 
-# Installation
+## Installation
 `sudo pip3 install adb-enhanced`
 
 ## Note
-1. `sudo pip install adb-enhanced` for python2 based install works as well but I would recommend moving to python3 since I might deprecate python2 support at some point.
+1. `sudo pip install adb-enhanced` for python2 based install works as well but I would recommend moving to python3 since I will deprecate python2 support after Dec 31, 2018.
 2. If you don't have sudo access or you are installing without sudo then `adbe` might not be configured correctly in the path.
 3. To setup bash/z-sh auto-completion, execute `sudo pip3 install infi.docopt-completion && docopt-completion $(which adbe)` after installing adb-enhanced.
 
 
-# Examples
+## Examples
 
 	
 ### Device configuration
@@ -158,8 +158,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 	$ adbe app backup com.google.android.youtube backup.tar
 	```
 
-# Usage
-
+### Usage
     adbe [options] rotate (landscape | portrait | left | right)
     adbe [options] gfx (on | off | lines)
     adbe [options] overdraw (on | off | deut)
@@ -207,11 +206,11 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe [options] app info <app_name>
     adbe [options] app path <app_name>
     adbe [options] app signature <app_name>
-    adbe [options] app backup <app_name> <backup_tar_file_path>
+    adbe [options] app backup <app_name> [<backup_tar_file_path>]
     adbe [options] install <file_path>
     adbe [options] uninstall <app_name>
-    
-# Options
+
+### Options
 
     -e, --emulator          directs the command to the only running emulator
     -d, --device            directs the command to the only connected "USB" device
@@ -222,6 +221,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     -r                      For delete file, only valid for "ls" and "rm" command
     -f                      For forced deletion of a file, only valid for "rm" command
     -v, --verbose           Verbose mode
+    --no-python2-warn       Don't warn about Python 2 deprecation
     
 ## Python3 migration timeline
 
