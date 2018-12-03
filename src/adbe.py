@@ -875,7 +875,8 @@ def stay_awake_while_charging(turn_on):
 
 
 def input_text(text):
-    cmd = 'input text %s' % text
+    # Replace whitespaces to %s which gets translated by Android back to whitespaces.
+    cmd = 'input text %s' % text.replace(' ', '%s')
     execute_adb_shell_command(cmd)
 
 
