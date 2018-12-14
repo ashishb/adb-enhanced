@@ -6,7 +6,6 @@ from __future__ import print_function
 from future.standard_library import install_aliases
 install_aliases()
 
-import docopt
 import psutil
 import re
 import signal
@@ -35,333 +34,15 @@ else:
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
-    from adbe import adb_helper
-    from adbe import output_helper
     from adbe.adb_helper import execute_adb_command, execute_adb_shell_command
     from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
 except ImportError:
     # This works when the code is executed directly.
-    import adb_helper
-    import output_helper
     from adb_helper import execute_adb_command, execute_adb_shell_command
     from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
-# List of things which this enhanced adb tool does as of today.
-USAGE_STRING = """
-Swiss-army knife for Android testing and development.
-
-Usage:
-    adbe [options] rotate (landscape | portrait | left | right)
-    adbe [options] gfx (on | off | lines)
-    adbe [options] overdraw (on | off | deut)
-    adbe [options] layout (on | off)
-    adbe [options] airplane (on | off)
-    adbe [options] battery level <percentage>
-    adbe [options] battery saver (on | off)
-    adbe [options] battery reset
-    adbe [options] doze (on | off)
-    adbe [options] jank <app_name>
-    adbe [options] devices
-    adbe [options] top-activity
-    adbe [options] dump-ui <xml_file>
-    adbe [options] mobile-data (on | off)
-    adbe [options] mobile-data saver (on | off)
-    adbe [options] rtl (on | off)
-    adbe [options] screenshot <filename.png>
-    adbe [options] screenrecord <filename.mp4>
-    adbe [options] dont-keep-activities (on | off)
-    adbe [options] animations (on | off)
-    adbe [options] show-taps (on | off)
-    adbe [options] stay-awake-while-charging (on | off) 
-    adbe [options] input-text <text>
-    adbe [options] press back
-    adbe [options] open-url <url>
-    adbe [options] permission-groups list all
-    adbe [options] permissions list (all | dangerous)
-    adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-    adbe [options] apps list (all | system | third-party | debug | backup-enabled)
-    adbe [options] standby-bucket get <app_name>
-    adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
-    adbe [options] restrict-background (true | false) <app_name>
-    adbe [options] ls [-a] [-l] [-R|-r] <file_path>
-    adbe [options] rm [-f] [-R|-r] <file_path>
-    adbe [options] mv [-f] <src_path> <dest_path>
-    adbe [options] pull [-a] <file_path_on_android>
-    adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
-    adbe [options] push <file_path_on_machine> <file_path_on_android>
-    adbe [options] cat <file_path>
-    adbe [options] start <app_name>
-    adbe [options] stop <app_name>
-    adbe [options] restart <app_name>
-    adbe [options] force-stop <app_name>
-    adbe [options] clear-data <app_name>
-    adbe [options] app info <app_name>
-    adbe [options] app path <app_name>
-    adbe [options] app signature <app_name>
-    adbe [options] app backup <app_name> [<backup_tar_file_path>]
-    adbe [options] install <file_path>
-    adbe [options] uninstall <app_name>
-
-Options:
-    -e, --emulator          directs the command to the only running emulator
-    -d, --device            directs the command to the only connected "USB" device
-    -s, --serial SERIAL     directs the command to the device or emulator with the given serial number or qualifier.
-                            Overrides ANDROID_SERIAL environment variable.
-    -l                      For long list format, only valid for "ls" command
-    -R                      For recursive directory listing, only valid for "ls" and "rm" command
-    -r                      For delete file, only valid for "ls" and "rm" command
-    -f                      For forced deletion of a file, only valid for "rm" command
-    -v, --verbose           Verbose mode
-    --no-python2-warn       Don't warn about Python 2 deprecation
-
-"""
-
-"""
-List of things which this tool will do in the future
-
-* adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
-* adbe app-standby $app_name
-* adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
-* adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
-* adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
-* adb shell input keyevent KEYCODE_POWER can do the toggle
-* adbe press up
-* adbe set_app_name [-f] $app_name
-* adbe reset_app_name
-* Use -q[uite] for quite mode
-* Add IMEI, IMSI, phone number, and WI-Fi MAC address to devices info command - I think the best way to implement this
-  will be via a companion app. And while we are on that, we can implement locale change via the companion app as well.
-
-"""
-
-
-_VERSION_FILE_NAME = 'version.txt'
 _KEYCODE_BACK = 4
-_MIN_API_FOR_RUNTIME_PERMISSIONS = 23
-
-
-def main():
-    args = docopt.docopt(USAGE_STRING, version=get_version())
-
-    validate_options(args)
-    options = ''
-    if args['--emulator']:
-        options += '-e '
-    if args['--device']:
-        options += '-d '
-    if args['--serial']:
-        options += '-s %s ' % args['--serial']
-    if _using_python2() and not args['--no-python2-warn']:
-        _warn_about_python2_deprecation()
-
-    output_helper.set_verbose(args['--verbose'])
-
-    if len(options) > 0:
-        adb_prefix = '%s %s' % (adb_helper.get_adb_prefix(), options)
-        adb_helper.set_adb_prefix(adb_prefix)
-
-    if args['rotate']:
-        direction = None
-        if args['portrait']:
-            direction = 'portrait'
-        elif args['landscape']:
-            direction = 'landscape'
-        elif args['left']:
-            direction = 'left'
-        elif args['right']:
-            direction = 'right'
-        else:
-            print_error_and_exit('Unexpected rotation direction "%s"' % ' '.join(sys.argv))
-        handle_rotate(direction)
-    elif args['gfx']:
-        value = 'on' if args['on'] else \
-            ('off' if args['off'] else
-             'lines')
-        handle_gfx(value)
-    elif args['overdraw']:
-        value = 'on' if args['on'] else \
-            ('off' if args['off'] else
-             'deut')
-        handle_overdraw(value)
-    elif args['layout']:
-        value = args['on']
-        handle_layout(value)
-    elif args['airplane']:
-        # This does not always work
-        value = args['on']
-        handle_airplane(value)
-    elif args['battery']:
-        if args['saver']:
-            handle_battery_saver(args['on'])
-        elif args['level']:
-            handle_battery_level(int(args['<percentage>']))
-        elif args['reset']:
-            handle_battery_reset()
-    elif args['doze']:
-        handle_doze(args['on'])
-    elif args['jank']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        handle_get_jank(app_name)
-    elif args['devices']:
-        handle_list_devices()
-    elif args['top-activity']:
-        print_top_activity()
-    elif args['dump-ui']:
-        dump_ui(args['<xml_file>'])
-    elif args['force-stop']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        force_stop(app_name)
-    elif args['clear-data']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        clear_disk_data(app_name)
-    elif args['mobile-data']:
-        if args['saver']:
-            handle_mobile_data_saver(args['on'])
-        else:
-            handle_mobile_data(args['on'])
-    elif args['rtl']:
-        # This is not working as expected
-        force_rtl(args['on'])
-    elif args['screenshot']:
-        dump_screenshot(args['<filename.png>'])
-    elif args['screenrecord']:
-        dump_screenrecord(args['<filename.mp4>'])
-    elif args['dont-keep-activities']:
-        handle_dont_keep_activities_in_background(args['on'])
-    elif args['animations']:
-        toggle_animations(args['on'])
-    elif args['show-taps']:
-        toggle_show_taps(turn_on=args['on'])
-    elif args['stay-awake-while-charging']:
-        # Keep screen on while the device is charging.
-        stay_awake_while_charging(args['on'])
-    elif args['input-text']:
-        input_text(args['<text>'])
-    elif args['back']:
-        press_back()
-    elif args['open-url']:
-        url = args['<url>']
-        open_url(url)
-    elif args['permission-groups'] and args['list'] and args['all']:
-        list_permission_groups()
-    elif args['permissions'] and args['list']:
-        list_permissions(args['dangerous'])
-    elif args['permissions']:
-        android_api_version = _get_device_android_api_version()
-        if android_api_version < _MIN_API_FOR_RUNTIME_PERMISSIONS:
-            print_error_and_exit(
-                'Runtime permissions are supported only on API %d and above, your version is %d' %
-                (_MIN_API_FOR_RUNTIME_PERMISSIONS, android_api_version))
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        permission_group = get_permission_group(args)
-        permissions = get_permissions_in_permission_group(permission_group)
-        if not permissions:
-            print_error_and_exit('No permissions found in permissions group: %s' % permission_group)
-        grant_or_revoke_runtime_permissions(
-            app_name, args['grant'], permissions)
-    elif args['apps'] and args['list']:
-        if args['all']:
-            list_all_apps()
-        elif args['system']:
-            list_system_apps()
-        elif args['third-party']:
-            list_non_system_apps()
-        elif args['debug']:
-            list_debug_apps()
-        elif args['backup-enabled']:
-            list_allow_backup_apps()
-    elif args['standby-bucket']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        if args['get']:
-            get_standby_bucket(app_name)
-        elif args['set']:
-            set_standby_bucket(app_name, _calculate_standby_mode(args))
-    elif args['restrict-background']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        apply_or_remove_background_restriction(app_name, args['true'])
-    elif args['ls']:
-        file_path = args['<file_path>']
-        long_format = args['-l']
-        # Always include hidden files, -a is left for backward-compatibility but is a no-op now.
-        include_hidden_files = True
-        recursive = args['-R'] or args['-r']
-        list_directory(file_path, long_format, recursive, include_hidden_files)
-    elif args['rm']:
-        file_path = args['<file_path>']
-        force_delete = args['-f']
-        recursive = args['-R'] or args['-r']
-        delete_file(file_path, force_delete, recursive)
-    elif args['mv']:
-        src_path = args['<src_path>']
-        dest_path = args['<dest_path>']
-        force_move = args['-f']
-        move_file(src_path, dest_path, force_move)
-    elif args['pull']:
-        remote_file_path = args['<file_path_on_android>']
-        local_file_path = args['<file_path_on_machine>']
-        copy_ancillary = args['-a']
-        pull_file(remote_file_path, local_file_path, copy_ancillary)
-    elif args['push']:
-        remote_file_path = args['<file_path_on_android>']
-        local_file_path = args['<file_path_on_machine>']
-        push_file(local_file_path, remote_file_path)
-    elif args['cat']:
-        file_path = args['<file_path>']
-        cat_file(file_path)
-    elif args['start']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        launch_app(app_name)
-    elif args['stop']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        stop_app(app_name)
-    elif args['restart']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        force_stop(app_name)
-        launch_app(app_name)
-    elif args['app']:
-        app_name = args['<app_name>']
-        _ensure_package_exists(app_name)
-        if args['info']:
-            print_app_info(app_name)
-        elif args['path']:
-            print_app_path(app_name)
-        elif args['signature']:
-            print_app_signature(app_name)
-        elif args['backup']:
-            backup_tar_file_path = args['<backup_tar_file_path>']
-            if not backup_tar_file_path:
-                backup_tar_file_path = '%s_backup.tar' % app_name
-            perform_app_backup(app_name, backup_tar_file_path)
-    elif args['install']:
-        file_path = args['<file_path>']
-        perform_install(file_path)
-    elif args['uninstall']:
-        app_name = args['<app_name>']
-        perform_uninstall(app_name)
-    else:
-        print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
-
-
-def validate_options(args):
-    count = 0
-    if args['--emulator']:
-        count += 1
-    if args['--device']:
-        count += 1
-    if args['--serial']:
-        count += 1
-    if count > 1:
-        print_error_and_exit('Only one out of -e, -d, or -s can be provided')
 
 
 # Source:
@@ -383,7 +64,7 @@ def handle_gfx(value):
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
 # https://plus.google.com/+AladinQ/posts/dpidzto1b8B
 def handle_overdraw(value):
-    version = _get_device_android_api_version()
+    version = get_device_android_api_version()
     if version < 19:
         if value is 'on':
             cmd = 'setprop debug.hwui.show_overdraw true'
@@ -406,13 +87,6 @@ def handle_overdraw(value):
             return
 
     execute_adb_shell_command_and_poke_activity_service(cmd)
-
-
-def get_version():
-    dir_of_this_script = os.path.split(__file__)[0]
-    version_file_path = os.path.join(dir_of_this_script, _VERSION_FILE_NAME)
-    with open(version_file_path, 'r') as fh:
-        return fh.read().strip()
 
 
 # Perform screen rotation. Accepts four direction types - left, right, portrait, and landscape.
@@ -638,12 +312,12 @@ def _print_device_info(device_serial=None):
     # First fallback: undocumented
     if display_name is None or len(display_name) == 0 or display_name == 'null':
         # This works on 4.4.4 API 19 Galaxy Grand Prime
-        if _get_device_android_api_version() >= 19:
+        if get_device_android_api_version() >= 19:
             display_name = execute_adb_command('%s shell settings get system device_name' % cmd_prefix)
     # Second fallback, documented to work on API 25 and above
     # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#DEVICE_NAME
     if display_name is None or len(display_name) == 0 or display_name == 'null':
-        if _get_device_android_api_version() >= 19:
+        if get_device_android_api_version() >= 19:
             display_name = execute_adb_command('%s shell settings get global device_name' % cmd_prefix)
 
     # ABI info
@@ -747,7 +421,7 @@ def dump_screenshot(filepath):
 
 def dump_screenrecord(filepath):
     _error_if_min_version_less_than(19)
-    api_version = _get_device_android_api_version()
+    api_version = get_device_android_api_version()
 
     # I have tested that on API 23 and above this works. Till Api 22, on emulator, it does not.
     if api_version < 23 and _is_emulator():
@@ -818,7 +492,7 @@ def handle_mobile_data_saver(turn_on):
 # adb shell service call activity 43 i32 1 followed by that
 def handle_dont_keep_activities_in_background(turn_on):
     # Till Api 25, the value was True/False, above API 25, 1/0 work. Source: manual testing
-    if _get_device_android_api_version() <= 25:
+    if get_device_android_api_version() <= 25:
         use_true_false_as_value = True
     else:
         use_true_false_as_value = False
@@ -910,7 +584,7 @@ def list_permissions(dangerous_only_permissions):
     print_message(execute_adb_shell_command(cmd))
 
 
-def _ensure_package_exists(package_name):
+def ensure_package_exists(package_name):
     if not _package_exists(package_name):
         print_error_and_exit("Package %s does not exist" % package_name)
 
@@ -1173,7 +847,7 @@ def set_standby_bucket(package_name, mode):
         print_error_and_exit(result)
 
 
-def _calculate_standby_mode(args):
+def calculate_standby_mode(args):
     if args['active']:
         return 'active'
     elif args['working_set']:
@@ -1331,7 +1005,7 @@ def launch_app(app_name):
 def stop_app(app_name):
     # Below API 21, stop does not kill app in the foreground.
     # Above API 21, it seems it does.
-    if _get_device_android_api_version() < 21:
+    if get_device_android_api_version() < 21:
         force_stop(app_name)
     else:
         adb_shell_cmd = 'am kill %s' % app_name
@@ -1371,7 +1045,7 @@ def print_app_info(app_name):
     if max_sdk_version is not None:
         msg += 'Max SDK version: %s\n' % max_sdk_version
 
-    if _get_device_android_api_version() >= 23:
+    if get_device_android_api_version() >= 23:
         msg += _get_permissions_info_above_api_23(app_info_dump)
     else:
         msg += _get_permissions_info_below_api_23(app_info_dump)
@@ -1567,7 +1241,6 @@ def perform_install(file_path):
 
 
 def perform_uninstall(app_name):
-    _ensure_package_exists(app_name)
     print_verbose('Uninstalling %s' % app_name)
     execute_adb_command('uninstall %s' % app_name)
 
@@ -1613,7 +1286,7 @@ def _poke_activity_service():
 
 
 def _error_if_min_version_less_than(min_acceptable_version):
-    api_version = _get_device_android_api_version()
+    api_version = get_device_android_api_version()
     if api_version < min_acceptable_version:
         cmd = ' '.join(sys.argv[1:])
         print_error_and_exit(
@@ -1622,7 +1295,7 @@ def _error_if_min_version_less_than(min_acceptable_version):
 
 
 # adb shell getprop ro.build.version.sdk
-def _get_device_android_api_version():
+def get_device_android_api_version():
     version_string = _get_prop('ro.build.version.sdk')
     if version_string is None:
         print_error_and_exit('Unable to get Android device version, is it still connected?')
@@ -1636,18 +1309,3 @@ def _is_emulator():
 
 def _get_prop(property_name):
     return execute_adb_shell_command('getprop %s' % property_name)
-
-
-def _using_python2():
-    return sys.version_info < (3, 0)
-
-
-def _warn_about_python2_deprecation():
-    msg = ('You are using Python 2, ADB-enhanced would stop supporting Python 2 after Dec 31, 2018\n' +
-        'First install Python 3 and then re-install this tool using\n' +
-        '\"sudo pip uninstall adb-enhanced && sudo pip3 install adb-enhanced\"')
-    output_helper.print_error(msg)
-
-
-if __name__ == '__main__':
-    main()

@@ -1,1 +1,1 @@
-from .adbe import main
+from .main import main
