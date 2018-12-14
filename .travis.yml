@@ -6,7 +6,7 @@ matrix:
       language: python
       sudo: false
       python:
-        - 2.7
+        - "2.7"
       install:
         # sudo not required here
         - pip install -r requirements.txt
@@ -18,26 +18,32 @@ matrix:
       language: python
       sudo: false
       python:
-        - 3.6
+        - "3.6"
       install:
         - pip install -r requirements.txt
         - pip install pylint
       script:
         - ./tests/lint_check_python3.sh
 
-    - name: Test install against 2.7 and 3.6
+    - name: Test install against 2.7
       language: python
       sudo: false
       python:
-        - 2.7
-        - 3.6
-      install:
-        # sudo not required here
-        - pip install pylint
+        - "2.7"
       script:
         - cp README.md release
         - cp -r src/* release/adbe/
         - python release/setup.py install
+
+    - name: Test install against 3.6
+      language: python
+      sudo: false
+      python:
+        - "3.6"
+      script:
+        - cp README.md release
+        - cp -r src/* release/adbe/
+        - python3 release/setup.py install
 
     # https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
     # https://stackoverflow.com/a/28751112/434196
@@ -199,8 +205,8 @@ matrix:
       script:
         - python3 -m pytest -v tests/adbe_tests.py --durations=0
         # We can even run only these two tests which are not triggered below API 23
-#        - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_permissions_grant_revoke
-#        - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_doze
+        # - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_permissions_grant_revoke
+        # - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_doze
       # Default installation is python 2. Let's force python3 and test the code against it.
       # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
       addons:
