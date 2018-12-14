@@ -6,4 +6,4 @@ set -eou pipefail
 # W = warning
 
 # Don't check asyncio_helper for Python2 since it is written only for Python3
-python -m pylint src/adb_helper.py src/adbe.py src/output_helper.py --disable=R,C,W
+python -m pylint src/adb_enhanced.py src/adb_helper.py src/main.py src/output_helper.py --disable=R,C,W

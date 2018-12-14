@@ -94,8 +94,9 @@ ENV/
 release/README.md
 release/adbe/abe.jar
 release/adbe/adb_helper.py
-release/adbe/adbe.py
+release/adbe/adb_enhanced.py
 release/adbe/apksigner.jar
 release/adbe/asyncio_helper.py
 release/adbe/output_helper.py
+release/adbe/main.py
 release/adbe/version.txt
