@@ -122,19 +122,13 @@ _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 def main():
     args = docopt.docopt(USAGE_STRING, version=get_version())
 
-    validate_options(args)
-    options = ''
-    if args['--emulator']:
-        options += '-e '
-    if args['--device']:
-        options += '-d '
-    if args['--serial']:
-        options += '-s %s ' % args['--serial']
     if _using_python2() and not args['--no-python2-warn']:
         _warn_about_python2_deprecation()
 
     set_verbose(args['--verbose'])
 
+    validate_options(args)
+    options = get_generic_options_from_args(args)
     if len(options) > 0:
         adb_prefix = '%s %s' % (adb_helper.get_adb_prefix(), options)
         adb_helper.set_adb_prefix(adb_prefix)
@@ -341,6 +335,17 @@ def validate_options(args):
         count += 1
     if count > 1:
         print_error_and_exit('Only one out of -e, -d, or -s can be provided')
+
+
+def get_generic_options_from_args(args):
+    options = ''
+    if args['--emulator']:
+        options += '-e '
+    if args['--device']:
+        options += '-d '
+    if args['--serial']:
+        options += '-s %s ' % args['--serial']
+    return options
 
 
 def get_version():
