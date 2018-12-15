@@ -225,6 +225,64 @@ matrix:
             - python3.5
             - python3-pip
 
+    - name: Test installation with Python 3 and Android API 16
+      language: android
+      sudo: required  # For pip installation, otherwise, pip install fails.
+      jdk: oraclejdk8
+      before_cache:
+        - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+        - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+      # https://docs.travis-ci.com/user/languages/android/#caching
+      cache:
+        directories:
+          - $HOME/.gradle/caches/
+          - $HOME/.gradle/wrapper/
+      env:
+        global:
+          - DX_HEAP_SIZE=2048
+          # 16 is the fastest as per
+          # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
+          - ANDROID_API_LEVEL=16
+          - ANDROID_EMU_API_LEVEL=22
+          - ANDROID_ABI=armeabi-v7a
+          - QEMU_AUDIO_DRV=none  # Remove audio
+          - ADB_INSTALL_TIMEOUT=20  # minutes (2 minutes by default)
+      android:
+        components:
+          - tools
+          - platform-tools
+          - android-$ANDROID_API_LEVEL
+          - android-$ANDROID_EMU_API_LEVEL
+          # Specify at least one system image
+          - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
+      before_script:
+        # Python setup
+        - cp README.md release
+        - cp -r src/* release/adbe/
+        - sudo pip3 install pytest
+        - sudo python3 -m pip install --upgrade pip
+        - sudo python3 -m pip install -e release
+        # Immediate test
+        - adbe --version
+        # Android setup
+        - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
+        # -noaudio is not supported by this version of the emulator
+        - emulator -avd test -no-window -no-boot-anim &
+        - android-wait-for-emulator
+      script:
+        - python3 -m pytest -v tests/adbe_tests.py  --durations=0 --testpythoninstallation true
+      # Default installation is python 2. Let's force python3 and test the code against it.
+      # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
+      addons:
+        apt:
+          sources:
+            - deadsnakes
+          packages:
+            # Highest available version whitelisted at
+            # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
+            - python3.5
+            - python3-pip
+
 # Good .travis.yml files to learn from
 # https://github.com/ruboto/ruboto/blob/master/.travis.yml
 # https://raw.githubusercontent.com/BanzaiMan/travis_production_test/bc25099f9bd413c43cee9e7118e8eee4b1448fd6/.travis.yml

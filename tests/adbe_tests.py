@@ -18,7 +18,14 @@ if sys.version_info >= (3, 0):
 _TEST_APP_ID = 'com.android.phone'
 _TEST_NON_EXISTANT_APP_ID = 'com.android.nonexistant'
 _DIR_PATH = '/data/data/%s' % _TEST_APP_ID
+_TEST_PYTHON_INSTALLATION = False
 
+
+# This method will be invoked only if testpythoninstallation is passed
+def test_binary(testpythoninstallation):
+    global _TEST_PYTHON_INSTALLATION
+    if testpythoninstallation:
+        _TEST_PYTHON_INSTALLATION = True
 
 def test_rotate():
     if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
@@ -329,9 +336,13 @@ def _assert_success(sub_cmd):
 
 def _execute(sub_cmd):
     print('Executing cmd: %s' % sub_cmd)
-    dir_of_this_script = os.path.split(__file__)[0]
-    adbe_py = os.path.join(dir_of_this_script, '../src/main.py')
-    ps = subprocess.Popen('%s %s --no-python2-warn %s' % (_PYTHON_CMD, adbe_py, sub_cmd),
+    if _TEST_PYTHON_INSTALLATION:
+        cmd = 'adbe'
+    else:
+        dir_of_this_script = os.path.split(__file__)[0]
+        adbe_py = os.path.join(dir_of_this_script, '../src/main.py')
+        cmd = '%s %s' % (_PYTHON_CMD, adbe_py)
+    ps = subprocess.Popen('%s --no-python2-warn %s' % (cmd, sub_cmd),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout_data, stderr_data = ps.communicate()
     stdout_data = stdout_data.decode('utf-8').strip()
