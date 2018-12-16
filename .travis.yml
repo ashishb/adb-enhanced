@@ -3,6 +3,7 @@ matrix:
   include:
 
     - name: Lint check code (Python 2)
+      if: type = push
       language: python
       sudo: false
       python:
@@ -15,6 +16,7 @@ matrix:
         - ./tests/lint_check_python2.sh
 
     - name: Lint check code (Python 3)
+      if: type = push
       language: python
       sudo: false
       python:
@@ -36,6 +38,7 @@ matrix:
         - python release/setup.py install
 
     - name: Test install against 3.6
+      if: type = push
       language: python
       sudo: false
       python:
@@ -47,7 +50,8 @@ matrix:
 
     # https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
     # https://stackoverflow.com/a/28751112/434196
-    - name: Test Python 2.7 and Android 16
+    - name: Test Python 2.7 and Android API 16
+      if: type = push
       language: android  # Python 2 testing
       sudo: required  # For pip installation, otherwise, pip install fails.
       jdk: oraclejdk8
@@ -91,6 +95,7 @@ matrix:
     # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
     # Source: https://stackoverflow.com/a/28751112/434196
     - name: Test Python 3 and Android API 16
+      if: type = push
       language: android
       sudo: required  # For pip installation, otherwise, pip install fails.
       jdk: oraclejdk8
@@ -145,6 +150,7 @@ matrix:
     # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
     # Source: https://stackoverflow.com/a/28751112/434196
     - name: Test Python 3 and Android API 24
+      if: type = push
       language: android
       sudo: required  # For pip installation, otherwise, pip install fails.
       jdk: oraclejdk8
