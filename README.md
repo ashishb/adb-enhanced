@@ -1,4 +1,4 @@
-# ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/adb-enhanced/Lobby) [![Build Status](https://travis-ci.org/ashishb/adb-enhanced.svg?branch=master)](https://travis-ci.org/ashishb/adb-enhanced) [![CircleCI](https://circleci.com/gh/ashishb/adb-enhanced.svg?style=shield)](https://circleci.com/gh/ashishb/adb-enhanced)
+# ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced) [![Build Status](https://img.shields.io/travis/ashishb/adb-enhanced/master.svg?label=Travis%20CI)](https://travis-ci.org/ashishb/adb-enhanced) [![CircleCI](https://img.shields.io/circleci/project/github/ashishb/adb-enhanced.svg?label=Circle%20CI)](https://circleci.com/gh/ashishb/adb-enhanced)
 
 ![Logo](docs/logo.png)
 
