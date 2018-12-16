@@ -124,7 +124,7 @@ def test_permissions_grant_revoke():
     test_app_id = _TEST_APP_ID
 
     permissions_groups = ['calendar', 'camera', 'contacts', 'location', 'microphone', 'phone', 'sensors',
-                         'sms', 'storage']
+                          'sms', 'storage']
 
     for permission_group in permissions_groups:
         if _get_device_sdk_version() >= _RUNTIME_PERMISSIONS_SUPPORTED:
@@ -294,6 +294,10 @@ def test_open_url():
     _assert_success('open-url google.com')
 
 
+def test_version():
+    _assert_success('--version')
+
+
 def _assert_fail(sub_cmd):
     exit_code, stdout_data, stderr_data = _execute(sub_cmd)
     assert exit_code == 1, 'Command "%s" failed with stdout: "%s" and stderr: "%s"' %(sub_cmd, stdout_data, stderr_data)
@@ -363,6 +367,7 @@ def main():
     test_input_test()
     test_press_back()
     test_open_url()
+    test_version()
     # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
 
 
