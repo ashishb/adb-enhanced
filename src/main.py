@@ -116,7 +116,6 @@ List of things which this tool will do in the future
 """
 
 _VERSION_FILE_NAME = 'version.txt'
-_MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 
 
 def main():
@@ -133,49 +132,49 @@ def main():
         adb_prefix = '%s %s' % (adb_helper.get_adb_prefix(), options)
         adb_helper.set_adb_prefix(adb_prefix)
 
-    if args['rotate']:
-        direction = None
-        if args['portrait']:
-            direction = 'portrait'
-        elif args['landscape']:
-            direction = 'landscape'
-        elif args['left']:
-            direction = 'left'
-        elif args['right']:
-            direction = 'right'
-        else:
-            print_error_and_exit('Unexpected rotation direction "%s"' % ' '.join(sys.argv))
-        adb_enhanced.handle_rotate(direction)
-    elif args['gfx']:
-        value = 'on' if args['on'] else \
-            ('off' if args['off'] else
-             'lines')
-        adb_enhanced.handle_gfx(value)
-    elif args['overdraw']:
-        value = 'on' if args['on'] else \
-            ('off' if args['off'] else
-             'deut')
-        adb_enhanced.handle_overdraw(value)
+    # rotate
+    if args['rotate'] and args['portrait']:
+        adb_enhanced.handle_rotate('portrait')
+    elif args['rotate'] and args['landscape']:
+        adb_enhanced.handle_rotate('landscape')
+    elif args['rotate'] and args['left']:
+        adb_enhanced.handle_rotate('left')
+    elif args['rotate'] and args['right']:
+        adb_enhanced.handle_rotate('right')
+
+    # gfx
+    elif args['gfx'] and args['on']:
+        adb_enhanced.handle_gfx('on')
+    elif args['gfx'] and args['off']:
+        adb_enhanced.handle_gfx('off')
+    elif args['gfx'] and args['lines']:
+        adb_enhanced.handle_gfx('lines')
+
+    # overdraw
+    elif args['overdraw'] and args['on']:
+        adb_enhanced.handle_overdraw('on')
+    elif args['overdraw'] and args['off']:
+        adb_enhanced.handle_overdraw('off')
+    elif args['overdraw'] and args['deut']:
+        adb_enhanced.handle_overdraw('deut')
+
     elif args['layout']:
-        value = args['on']
-        adb_enhanced.handle_layout(value)
-    elif args['airplane']:
-        # This does not always work
-        value = args['on']
-        adb_enhanced.handle_airplane(value)
-    elif args['battery']:
-        if args['saver']:
-            adb_enhanced.handle_battery_saver(args['on'])
-        elif args['level']:
-            adb_enhanced.handle_battery_level(int(args['<percentage>']))
-        elif args['reset']:
-            adb_enhanced.handle_battery_reset()
+        adb_enhanced.handle_layout(args['on'])
+    elif args['airplane']: # This command does not always work
+        adb_enhanced.handle_airplane(args['on'])
+
+    # battery
+    elif args['battery'] and args['saver']:
+        adb_enhanced.handle_battery_saver(args['on'])
+    elif args['battery'] and args['level']:
+        adb_enhanced.handle_battery_level(int(args['<percentage>']))
+    elif args['battery'] and args['reset']:
+        adb_enhanced.handle_battery_reset()
+
     elif args['doze']:
         adb_enhanced.handle_doze(args['on'])
     elif args['jank']:
-        app_name = args['<app_name>']
-        adb_enhanced.ensure_package_exists(app_name)
-        adb_enhanced.handle_get_jank(app_name)
+        adb_enhanced.handle_get_jank(args['<app_name>'])
     elif args['devices']:
         adb_enhanced.handle_list_devices()
     elif args['top-activity']:
@@ -184,19 +183,18 @@ def main():
         adb_enhanced.dump_ui(args['<xml_file>'])
     elif args['force-stop']:
         app_name = args['<app_name>']
-        adb_enhanced.ensure_package_exists(app_name)
         adb_enhanced.force_stop(app_name)
     elif args['clear-data']:
         app_name = args['<app_name>']
-        adb_enhanced.ensure_package_exists(app_name)
         adb_enhanced.clear_disk_data(app_name)
+
+    # mobile-data
+    elif args['mobile-data'] and args['saver']:
+        adb_enhanced.handle_mobile_data_saver(args['on'])
     elif args['mobile-data']:
-        if args['saver']:
-            adb_enhanced.handle_mobile_data_saver(args['on'])
-        else:
-            adb_enhanced.handle_mobile_data(args['on'])
-    elif args['rtl']:
-        # This is not working as expected
+        adb_enhanced.handle_mobile_data(args['on'])
+
+    elif args['rtl']: # This is not working as expected
         adb_enhanced.force_rtl(args['on'])
     elif args['screenshot']:
         adb_enhanced.dump_screenshot(args['<filename.png>'])
@@ -207,7 +205,7 @@ def main():
     elif args['animations']:
         adb_enhanced.toggle_animations(args['on'])
     elif args['show-taps']:
-        adb_enhanced.toggle_show_taps(turn_on=args['on'])
+        adb_enhanced.toggle_show_taps(args['on'])
     elif args['stay-awake-while-charging']:
         # Keep screen on while the device is charging.
         adb_enhanced.stay_awake_while_charging(args['on'])
@@ -223,41 +221,34 @@ def main():
     elif args['permissions'] and args['list']:
         adb_enhanced.list_permissions(args['dangerous'])
     elif args['permissions']:
-        android_api_version = adb_enhanced.get_device_android_api_version()
-        if android_api_version < _MIN_API_FOR_RUNTIME_PERMISSIONS:
-            print_error_and_exit(
-                'Runtime permissions are supported only on API %d and above, your version is %d' %
-                (_MIN_API_FOR_RUNTIME_PERMISSIONS, android_api_version))
         app_name = args['<app_name>']
-        adb_enhanced.ensure_package_exists(app_name)
         permission_group = adb_enhanced.get_permission_group(args)
         permissions = adb_enhanced.get_permissions_in_permission_group(permission_group)
         if not permissions:
             print_error_and_exit('No permissions found in permissions group: %s' % permission_group)
         adb_enhanced.grant_or_revoke_runtime_permissions(
             app_name, args['grant'], permissions)
-    elif args['apps'] and args['list']:
-        if args['all']:
-            adb_enhanced.list_all_apps()
-        elif args['system']:
-            adb_enhanced.list_system_apps()
-        elif args['third-party']:
-            adb_enhanced.list_non_system_apps()
-        elif args['debug']:
-            adb_enhanced.list_debug_apps()
-        elif args['backup-enabled']:
-            adb_enhanced.list_allow_backup_apps()
-    elif args['standby-bucket']:
-        app_name = args['<app_name>']
-        adb_enhanced.ensure_package_exists(app_name)
-        if args['get']:
-            adb_enhanced.get_standby_bucket(app_name)
-        elif args['set']:
-            adb_enhanced.set_standby_bucket(app_name, adb_enhanced.calculate_standby_mode(args))
+
+    # apps list
+    elif args['apps'] and args['list'] and args['all']:
+        adb_enhanced.list_all_apps()
+    elif args['apps'] and args['list'] and args['system']:
+        adb_enhanced.list_system_apps()
+    elif args['apps'] and args['list'] and args['third-party']:
+        adb_enhanced.list_non_system_apps()
+    elif args['apps'] and args['list'] and args['debug']:
+        adb_enhanced.list_debug_apps()
+    elif args['apps'] and args['list'] and args['backup-enabled']:
+        adb_enhanced.list_allow_backup_apps()
+
+    # standby bucket
+    elif args['standby-bucket'] and args['get']:
+        adb_enhanced.get_standby_bucket(args['<app_name>'])
+    elif args['standby-bucket'] and args['set']:
+        adb_enhanced.set_standby_bucket(args['<app_name>'], adb_enhanced.calculate_standby_mode(args))
+
     elif args['restrict-background']:
-        app_name = args['<app_name>']
-        adb_enhanced.ensure_package_exists(app_name)
-        adb_enhanced.apply_or_remove_background_restriction(app_name, args['true'])
+        adb_enhanced.apply_or_remove_background_restriction(args['<app_name>'], args['true'])
     elif args['ls']:
         file_path = args['<file_path>']
         long_format = args['-l']
@@ -288,39 +279,33 @@ def main():
         file_path = args['<file_path>']
         adb_enhanced.cat_file(file_path)
     elif args['start']:
-        app_name = args['<app_name>']
-        adb_enhanced.ensure_package_exists(app_name)
-        adb_enhanced.launch_app(app_name)
+        adb_enhanced.launch_app(args['<app_name>'])
     elif args['stop']:
-        app_name = args['<app_name>']
-        adb_enhanced.ensure_package_exists(app_name)
-        adb_enhanced.stop_app(app_name)
+        adb_enhanced.stop_app(args['<app_name>'])
     elif args['restart']:
         app_name = args['<app_name>']
-        adb_enhanced.ensure_package_exists(app_name)
         adb_enhanced.force_stop(app_name)
         adb_enhanced.launch_app(app_name)
-    elif args['app']:
+
+    # app
+    elif args['app'] and args['info']:
+        adb_enhanced.print_app_info(args['<app_name>'])
+    elif args['app'] and args['path']:
+        adb_enhanced.print_app_path(args['<app_name>'])
+    elif args['app'] and args['signature']:
+        adb_enhanced.print_app_signature(args['<app_name>'])
+    elif args['app'] and args['backup']:
         app_name = args['<app_name>']
-        adb_enhanced.ensure_package_exists(app_name)
-        if args['info']:
-            adb_enhanced.print_app_info(app_name)
-        elif args['path']:
-            adb_enhanced.print_app_path(app_name)
-        elif args['signature']:
-            adb_enhanced.print_app_signature(app_name)
-        elif args['backup']:
-            backup_tar_file_path = args['<backup_tar_file_path>']
-            if not backup_tar_file_path:
-                backup_tar_file_path = '%s_backup.tar' % app_name
-            adb_enhanced.perform_app_backup(app_name, backup_tar_file_path)
+        backup_tar_file_path = args['<backup_tar_file_path>']
+        if not backup_tar_file_path:
+            backup_tar_file_path = '%s_backup.tar' % app_name
+        adb_enhanced.perform_app_backup(app_name, backup_tar_file_path)
+
     elif args['install']:
         file_path = args['<file_path>']
         adb_enhanced.perform_install(file_path)
     elif args['uninstall']:
-        app_name = args['<app_name>']
-        adb_enhanced.ensure_package_exists(app_name)
-        adb_enhanced.perform_uninstall(app_name)
+        adb_enhanced.perform_uninstall(args['<app_name>'])
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 

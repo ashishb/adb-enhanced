@@ -43,6 +43,47 @@ except ImportError:
 
 
 _KEYCODE_BACK = 4
+_MIN_API_FOR_RUNTIME_PERMISSIONS = 23
+
+
+def _ensure_package_exists(package_name):
+    """
+    Don't call this directly. Instead consider decorating your method with
+    @ensure_package_exists or @ensure_package_exists2
+    :return: True if package_name package is installed on the device
+    """
+    if not _package_exists(package_name):
+        print_error_and_exit("Package %s does not exist" % package_name)
+
+
+# A decorator to ensure package exists
+def ensure_package_exists(func):
+    def func_wrapper(package_name):
+        _ensure_package_exists(package_name)
+        return func(package_name)
+    return func_wrapper
+
+
+# A decorator to ensure package exists with one more argument
+def ensure_package_exists2(func):
+    def func_wrapper(package_name, arg2):
+        _ensure_package_exists(package_name)
+        return func(package_name, arg2)
+    return func_wrapper
+
+
+# A decorator to ensure package exists with two more arguments
+def ensure_package_exists3(func):
+    def func_wrapper(package_name, arg2, arg3):
+        _ensure_package_exists(package_name)
+        return func(package_name, arg2, arg3)
+    return func_wrapper
+
+
+def _package_exists(package_name):
+    cmd = 'pm path %s' % package_name
+    response = execute_adb_shell_command(cmd)
+    return response is not None and len(response.strip()) != 0
 
 
 # Source:
@@ -237,6 +278,7 @@ def get_battery_reset_cmd():
     return 'dumpsys battery reset'
 
 
+@ensure_package_exists
 def handle_get_jank(app_name):
     running = _is_app_running(app_name)
     if not running:
@@ -320,7 +362,7 @@ def _print_device_info(device_serial=None):
     # Second fallback, documented to work on API 25 and above
     # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#DEVICE_NAME
     if display_name is None or len(display_name) == 0 or display_name == 'null':
-        if get_device_android_api_version() >= 19:
+        if get_device_android_api_version() >= 25:
             display_name = execute_adb_command('%s shell settings get global device_name' % cmd_prefix)
 
     # ABI info
@@ -367,6 +409,7 @@ def _get_top_activity_data():
 
     return None, None
 
+
 def dump_ui(xml_file):
     tmp_file = _create_tmp_file('dump-ui', 'xml')
     cmd1 = 'uiautomator dump %s' % tmp_file
@@ -383,11 +426,13 @@ def dump_ui(xml_file):
     execute_adb_shell_command(cmd3)
 
 
+@ensure_package_exists
 def force_stop(app_name):
     cmd = 'am force-stop %s' % app_name
     print_message(execute_adb_shell_command(cmd))
 
 
+@ensure_package_exists
 def clear_disk_data(app_name):
     cmd = 'pm clear %s' % app_name
     execute_adb_shell_command(cmd)
@@ -587,17 +632,6 @@ def list_permissions(dangerous_only_permissions):
     print_message(execute_adb_shell_command(cmd))
 
 
-def ensure_package_exists(package_name):
-    if not _package_exists(package_name):
-        print_error_and_exit("Package %s does not exist" % package_name)
-
-
-def _package_exists(package_name):
-    cmd = 'pm path %s' % package_name
-    response = execute_adb_shell_command(cmd)
-    return response is not None and len(response.strip()) != 0
-
-
 # Creates a tmp file on Android device
 def _create_tmp_file(filename_prefix=None, filename_suffix=None):
     if filename_prefix is None:
@@ -690,8 +724,9 @@ def get_permissions_in_permission_group(permission_group):
             return permissions
 
 
-def grant_or_revoke_runtime_permissions(
-        package_name, action_grant, permissions):
+@ensure_package_exists3
+def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions):
+    _error_if_min_version_less_than(23)
     if action_grant:
         cmd = 'pm grant %s' % package_name
     else:
@@ -831,6 +866,7 @@ _APP_STANDBY_BUCKETS = {
 
 
 # Source: https://developer.android.com/preview/features/power#buckets
+@ensure_package_exists
 def get_standby_bucket(package_name):
     _error_if_min_version_less_than(28)
     cmd = 'am get-standby-bucket %s' % package_name
@@ -842,6 +878,7 @@ def get_standby_bucket(package_name):
     print(_APP_STANDBY_BUCKETS.get(int(result), 'unknown'))
 
 
+@ensure_package_exists2
 def set_standby_bucket(package_name, mode):
     _error_if_min_version_less_than(28)
     cmd = 'am set-standby-bucket %s %s' % (package_name, mode)
@@ -864,6 +901,7 @@ def calculate_standby_mode(args):
 
 
 # Source: https://developer.android.com/preview/features/power
+@ensure_package_exists2
 def apply_or_remove_background_restriction(package_name, set_restriction):
     _error_if_min_version_less_than(28)
     appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (
@@ -1000,11 +1038,13 @@ def _escape_quotes(cmd):
 
 
 # Source: https://stackoverflow.com/a/25398877
+@ensure_package_exists
 def launch_app(app_name):
     adb_shell_cmd = 'monkey -p %s -c android.intent.category.LAUNCHER 1' % app_name
     execute_adb_shell_command(adb_shell_cmd)
 
 
+@ensure_package_exists
 def stop_app(app_name):
     # Below API 21, stop does not kill app in the foreground.
     # Above API 21, it seems it does.
@@ -1025,6 +1065,7 @@ def _regex_extract(regex, data):
 
 # adb shell pm dump <app_name> produces about 1200 lines, mostly useless,
 # compared to this.
+@ensure_package_exists
 def print_app_info(app_name):
     app_info_dump = execute_adb_shell_command('dumpsys package %s' % app_name)
     version_code = _regex_extract('versionCode=(\\d+)?', app_info_dump)
@@ -1151,12 +1192,14 @@ def _get_apk_path(app_name):
     return apk_path
 
 
+@ensure_package_exists
 def print_app_path(app_name):
     apk_path = _get_apk_path(app_name)
     print_verbose('Path for %s is %s' % (app_name, apk_path))
     print_message(apk_path)
 
 
+@ensure_package_exists
 def print_app_signature(app_name):
     apk_path = _get_apk_path(app_name)
     # Copy apk to a temp file on the disk
@@ -1182,9 +1225,9 @@ def print_app_signature(app_name):
 
 
 # Uses abe.jar taken from https://sourceforge.net/projects/adbextractor/
+@ensure_package_exists2
 def perform_app_backup(app_name, backup_tar_file):
     # TODO: Add a check to ensure that the screen is unlocked
-
     password = '00'
     print_verbose('Performing backup to backup.ab file')
     print_message('you might have to confirm the backup manually on your device\'s screen, enter \"%s\" as password...' % password)
@@ -1243,6 +1286,7 @@ def perform_install(file_path):
     execute_adb_command('install -r %s' % file_path)
 
 
+@ensure_package_exists
 def perform_uninstall(app_name):
     print_verbose('Uninstalling %s' % app_name)
     execute_adb_command('uninstall %s' % app_name)
