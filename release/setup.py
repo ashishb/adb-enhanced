@@ -1,5 +1,5 @@
+import os
 from setuptools import setup, find_packages
-import sys, os
 
 _DIR_OF_THIS_SCRIPT = os.path.split(__file__)[0]
 _VERSION_FILE_NAME = 'version.txt'
@@ -41,4 +41,4 @@ setup(name='adb-enhanced',
               'adbe=main:main',
           ],
       }
-)
+     )

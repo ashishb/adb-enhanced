@@ -16,6 +16,7 @@ if sys.version_info >= (3, 0):
     _PYTHON_CMD = 'python3'
 
 _TEST_APP_ID = 'com.android.phone'
+_TEST_NON_EXISTANT_APP_ID = 'com.android.nonexistant'
 _DIR_PATH = '/data/data/%s' % _TEST_APP_ID
 
 
@@ -134,6 +135,9 @@ def test_permissions_grant_revoke():
             _assert_fail('permissions grant %s %s' % (test_app_id, permission_group))
             _assert_fail('permissions revoke %s %s' % (test_app_id, permission_group))
 
+    _assert_fail('permissions grant %s %s' % (_TEST_NON_EXISTANT_APP_ID, 'sms'))
+    _assert_fail('permissions revoke %s %s' % (_TEST_NON_EXISTANT_APP_ID, 'sms'))
+
 
 def _get_device_sdk_version():
     stdout_data, _ = _assert_success('devices')
@@ -160,6 +164,14 @@ def test_app_start_related_cmds():
     _assert_success('force-stop %s' % _TEST_APP_ID)
     _assert_success('clear-data %s' % _TEST_APP_ID)
 
+    # All commands should fail for non-existant app
+    _assert_fail('start %s' % _TEST_NON_EXISTANT_APP_ID)
+    _assert_fail('jank %s' % _TEST_NON_EXISTANT_APP_ID)
+    _assert_fail('stop %s' % _TEST_NON_EXISTANT_APP_ID)
+    _assert_fail('restart %s' % _TEST_NON_EXISTANT_APP_ID)
+    _assert_fail('force-stop %s' % _TEST_NON_EXISTANT_APP_ID)
+    _assert_fail('clear-data %s' % _TEST_NON_EXISTANT_APP_ID)
+
 
 def test_app_info_related_cmds():
     _assert_success('app info %s' % _TEST_APP_ID)
@@ -168,6 +180,11 @@ def test_app_info_related_cmds():
     # _assert_success('app backup %s %s-backup.tar' % (_TEST_APP_ID, _TEST_APP_ID))
     app_path, _ = _assert_success('app path %s' % _TEST_APP_ID)
     print('app path is %s' % app_path)
+
+    # All commands should fail for non-existant app
+    _assert_fail('app info %s' % _TEST_NON_EXISTANT_APP_ID)
+    _assert_fail('app signature %s' % _TEST_NON_EXISTANT_APP_ID)
+    _assert_fail('app path %s' % _TEST_NON_EXISTANT_APP_ID)
 
 
 # # TODO: For some reasons, these are not working. Disabled for now.
