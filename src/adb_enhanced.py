@@ -65,6 +65,7 @@ def handle_gfx(value):
 # https://plus.google.com/+AladinQ/posts/dpidzto1b8B
 def handle_overdraw(value):
     version = get_device_android_api_version()
+
     if version < 19:
         if value is 'on':
             cmd = 'setprop debug.hwui.show_overdraw true'
@@ -72,9 +73,11 @@ def handle_overdraw(value):
             cmd = 'setprop debug.hwui.show_overdraw false'
         elif value is 'deut':
             print_error_and_exit(
-                'This command is not support on API %d' % version)
+                'deut mode is available only on API 19 and above, your Android API version is %d' % version)
+            return
         else:
             print_error_and_exit('Unexpected value for overdraw %s' % value)
+            return
     else:
         if value is 'on':
             cmd = 'setprop debug.hwui.overdraw show'
