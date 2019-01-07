@@ -38,7 +38,7 @@ setup(name='adb-enhanced',
       entry_points={
           # -*- Entry points: -*-
           'console_scripts': [
-              'adbe=main:main',
+              'adbe=adbe.main:main',
           ],
       }
      )
