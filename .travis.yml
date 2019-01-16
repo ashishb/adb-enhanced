@@ -1,3 +1,11 @@
+branches:
+  except:
+    # These branches are used by Bors-NG and therefore, should not be build by Travis CI.
+    # https://bors.tech/documentation/getting-started/
+    - master.tmp
+    - staging.tmp
+    - trying.tmp
+
 # https://stackoverflow.com/questions/27644586/how-to-set-up-travis-ci-with-multiple-languages
 matrix:
   include:
