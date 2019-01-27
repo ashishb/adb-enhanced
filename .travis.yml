@@ -10,137 +10,34 @@ branches:
 matrix:
   include:
 
-    - name: Lint check code (Python 2)
-      language: python
-      sudo: false
-      python:
-        - "2.7"
-      install:
-        # sudo not required here
-        - pip install -r requirements.txt
-        - pip install pylint
-      script:
-        - ./tests/lint_check_python2.sh
+#    - name: Lint check code (Python 2)
+#      language: python
+#      sudo: false
+#      python:
+#        - "2.7"
+#      install:
+#        # sudo not required here
+#        - pip install -r requirements.txt
+#        - pip install pylint
+#      script:
+#        - ./tests/lint_check_python2.sh
+#
+#    - name: Lint check code (Python 3)
+#      language: python
+#      sudo: false
+#      python:
+#        - "3.6"
+#      install:
+#        - pip install -r requirements.txt
+#        - pip install pylint
+#      script:
+#        - ./tests/lint_check_python3.sh
 
-    - name: Lint check code (Python 3)
-      language: python
-      sudo: false
-      python:
-        - "3.6"
-      install:
-        - pip install -r requirements.txt
-        - pip install pylint
-      script:
-        - ./tests/lint_check_python3.sh
-
-    - name: Test install against 2.7
-      language: python
-      sudo: false
-      python:
-        - "2.7"
-      script:
-        - cp README.md release
-        - cp -r src/* release/adbe/
-        - python release/setup.py install
-
-    - name: Test install against 3.6
-      language: python
-      sudo: false
-      python:
-        - "3.6"
-      script:
-        - cp README.md release
-        - cp -r src/* release/adbe/
-        - python3 release/setup.py install
-
-    # https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
-    # https://stackoverflow.com/a/28751112/434196
-    - name: Test Python 2.7 and Android API 16
-      language: android  # Python 2 testing
+    - name: Test installation with start avd
+      language: android  # list testing
+      python: "3.7"
       sudo: required  # For pip installation, otherwise, pip install fails.
       jdk: oraclejdk8
-      env:
-        global:
-          - DX_HEAP_SIZE=2048
-          # 16 is the fastest as per
-          # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
-          - ANDROID_API_LEVEL=16
-          - ANDROID_EMU_API_LEVEL=22
-          - ANDROID_ABI=armeabi-v7a
-          - QEMU_AUDIO_DRV=none  # Remove audio
-          - ADB_INSTALL_TIMEOUT=20  # minutes (2 minutes by default)
-      android:
-        components:
-          - tools
-          - platform-tools
-          - android-$ANDROID_API_LEVEL
-          - android-$ANDROID_EMU_API_LEVEL
-          # Specify at least one system image
-          - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
-      before_script:
-        # Python setup - for some weird reason, sudo is required here
-        - sudo pip install -r requirements.txt
-        # Android setup
-        - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
-        # -noaudio is not supported by this version of the emulator
-        - emulator -avd test -no-window -no-boot-anim &
-        - android-wait-for-emulator
-      script:
-        - python -m pytest -v tests/adbe_tests.py  --durations=0
-
-    # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
-    # Source: https://stackoverflow.com/a/28751112/434196
-    - name: Test Python 3 and Android API 16
-      language: android
-      sudo: required  # For pip installation, otherwise, pip install fails.
-      jdk: oraclejdk8
-      env:
-        global:
-          - DX_HEAP_SIZE=2048
-          # 16 is the fastest as per
-          # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
-          - ANDROID_API_LEVEL=16
-          - ANDROID_EMU_API_LEVEL=22
-          - ANDROID_ABI=armeabi-v7a
-          - QEMU_AUDIO_DRV=none  # Remove audio
-          - ADB_INSTALL_TIMEOUT=20  # minutes (2 minutes by default)
-      android:
-        components:
-          - tools
-          - platform-tools
-          - android-$ANDROID_API_LEVEL
-          - android-$ANDROID_EMU_API_LEVEL
-          # Specify at least one system image
-          - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
-      before_script:
-        # Python setup - for some weird reason, sudo is required here
-        - sudo pip3 install -r requirements.txt
-        # Android setup
-        - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
-        # -noaudio is not supported by this version of the emulator
-        - emulator -avd test -no-window -no-boot-anim &
-        - android-wait-for-emulator
-      script:
-        - python3 -m pytest -v tests/adbe_tests.py  --durations=0
-      # Default installation is python 2. Let's force python3 and test the code against it.
-      # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
-      addons:
-        apt:
-          sources:
-            - deadsnakes
-          packages:
-            # Highest available version whitelisted at
-            # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
-            - python3.5
-            - python3-pip
-
-    # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
-    # Source: https://stackoverflow.com/a/28751112/434196
-    - name: Test Python 3 and Android API 24
-      language: android
-      sudo: required  # For pip installation, otherwise, pip install fails.
-      jdk: oraclejdk8
-      # https://docs.travis-ci.com/user/languages/android/#caching
       cache:
         directories:
           # Android SDK
@@ -148,113 +45,275 @@ matrix:
           - $HOME/android-sdk
           # Android build cache (see http://tools.android.com/tech-docs/build-cache)
           - $HOME/.android/build-cache
-      env:
-        global:
-          - DX_HEAP_SIZE=2048
-          # 16 is the fastest as per
-          # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
-          - ANDROID_API_LEVEL=24
-          - ANDROID_EMU_API_LEVEL=24
-          - ANDROID_ABI=armeabi-v7a
-          - QEMU_AUDIO_DRV=none  # Remove audio
-          - ADB_INSTALL_TIMEOUT=20  # minutes (2 minutes by default)
-          - ANDROID_HOME=$HOME/android-sdk
-          # "emulator" commands needs this
-          - ANDROID_SDK_ROOT=$HOME/android-sdk
-
-      install:
+      before_script:
+        - sudo apt-get install python3-pip
+        - sudo apt-get install android-tools-adb
+        - jdk_switcher use oraclejdk8
+        - sudo python3 -m pip install androidtool
+      script:
         - set -e
+        # Setup Android SDK
         - touch $HOME/.android/repositories.cfg
         # Download and unzip the Android SDK tools (if not already there thanks to the cache mechanism)
         # Latest version available here: https://developer.android.com/studio/#command-tools
         - if test ! -e $HOME/android-sdk-dl/sdk-tools.zip ; then curl https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip > $HOME/android-sdk-dl/sdk-tools.zip ; fi
         - unzip -qq -n $HOME/android-sdk-dl/sdk-tools.zip -d $HOME/android-sdk
+        - export ANDROID_SDK_ROOT=$HOME/android-sdk
 
-        # Install or update Android SDK components (will not do anything if already up to date thanks to the cache mechanism)
-        - echo y | $HOME/android-sdk/tools/bin/sdkmanager 'tools' > /dev/null
-        - echo y | $HOME/android-sdk/tools/bin/sdkmanager 'platform-tools' > /dev/null
-        - echo y | $HOME/android-sdk/tools/bin/sdkmanager "platforms;android-$ANDROID_API_LEVEL" > /dev/null
-        - echo y | $HOME/android-sdk/tools/bin/sdkmanager "system-images;android-$ANDROID_API_LEVEL;default;$ANDROID_ABI" > /dev/null
-        - echo y | $HOME/android-sdk/tools/bin/sdkmanager "system-images;android-$ANDROID_EMU_API_LEVEL;default;$ANDROID_ABI" > /dev/null
 
-      before_script:
-        # Python setup - for some weird reason, sudo is required here
-        - sudo pip3 install -r requirements.txt
-        # Android setup
-        - echo no | $HOME/android-sdk/tools/bin/avdmanager create avd --force -n test --tag default --abi $ANDROID_ABI --package "system-images;android-$ANDROID_API_LEVEL;default;$ANDROID_ABI"
-        - ls -al $HOME
-        # Directly calling emulator command fails, taking fix from here.
-        # https://www.bram.us/2017/05/12/launching-the-android-emulator-from-the-command-line/
-        - alias emulator=$HOME/android-sdk/tools/emulator
-        # -noaudio is not supported by this version of the emulator
-        - emulator -avd test -no-window -no-boot-anim &
-        - android-wait-for-emulator
-      script:
-        - python3 -m pytest -v tests/adbe_tests.py --durations=0
-        # We can even run only these two tests which are not triggered below API 23
-        # - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_permissions_grant_revoke
-        # - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_doze
-      # Default installation is python 2. Let's force python3 and test the code against it.
-      # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
-      addons:
-        apt:
-          sources:
-            - deadsnakes
-          packages:
-            # Highest available version whitelisted at
-            # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
-            - python3.5
-            - python3-pip
+        # Setup Android tool
+        - androidtool list api versions --arm
+#        - androidtool list api versions --google-apis
+#        - androidtool list api versions --arm --no-google-apis
+#        - androidtool list build tools
+        - androidtool list installed packages
+        - androidtool list other packages
+        - androidtool install basic packages
+        - androidtool install version 24 --arm --google-apis
+        - /home/travis/android-sdk/tools/bin/avdmanager list targets
+        - androidtool list installed packages
+          # - echo no | /home/travis/android-sdk/tools/bin/avdmanager --verbose create avd --name test_avd1 --package "system-images;android-24;google_apis;armeabi-v7a"
+        - ANDROID_SDK_ROOT=$HOME/android-sdk androidtool create avd test_avd1 24 --arm --google-apis --verbose
+        - androidtool list installed packages
+        - androidtool list avds
+        - androidtool list avds | grep test_avd1
+        - echo "Listing /usr/local/android-sdk/"
+        - ls /usr/local/android-sdk/
+#        - ls /usr/local/android-sdk/system-images
+        - ls /usr/local/android-sdk/platforms/
+        - ls /usr/local/android-sdk/platforms/android-25
+        - echo "Listing $HOME/android-sdk"
+        # Only ARM version can be tested on Travis CI
+        - cd /home/travis/android-sdk/emulator && ./emulator -avd test_avd1 -no-boot-anim -no-skin -sysdir $HOME/android-sdk &
+        - ANDROID_SDK_ROOT=$HOME/android-sdk androidtool start avd test_avd1 --headless --verbose &
+        # Wait for emulator to start and then kill.
+        - sleep 60 && kill %1
+        - exit 1
+#        - adb wait-for-device && kill %1
 
-    - name: Test installation with Python 3 and Android API 16
-      language: android
-      sudo: required  # For pip installation, otherwise, pip install fails.
-      jdk: oraclejdk8
-      env:
-        global:
-          - DX_HEAP_SIZE=2048
-          # 16 is the fastest as per
-          # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
-          - ANDROID_API_LEVEL=16
-          - ANDROID_EMU_API_LEVEL=22
-          - ANDROID_ABI=armeabi-v7a
-          - QEMU_AUDIO_DRV=none  # Remove audio
-          - ADB_INSTALL_TIMEOUT=20  # minutes (2 minutes by default)
-      android:
-        components:
-          - tools
-          - platform-tools
-          - android-$ANDROID_API_LEVEL
-          - android-$ANDROID_EMU_API_LEVEL
-          # Specify at least one system image
-          - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
-      before_script:
-        # Python setup
-        - cp README.md release
-        - cp -r src/* release/adbe/
-        - sudo pip3 install pytest
-        - sudo python3 -m pip install --upgrade pip
-        - sudo python3 -m pip install -e release
-        # Immediate test
-        - adbe --version
-        # Android setup
-        - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
-        # -noaudio is not supported by this version of the emulator
-        - emulator -avd test -no-window -no-boot-anim &
-        - android-wait-for-emulator
-      script:
-        - python3 -m pytest -v tests/adbe_tests.py  --durations=0 --testpythoninstallation true
-      # Default installation is python 2. Let's force python3 and test the code against it.
-      # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
-      addons:
-        apt:
-          sources:
-            - deadsnakes
-          packages:
-            # Highest available version whitelisted at
-            # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
-            - python3.5
-            - python3-pip
+
+#    - name: Test install against 2.7
+#      language: python
+#      sudo: false
+#      python:
+#        - "2.7"
+#      script:
+#        - cp README.md release
+#        - cp -r src/* release/adbe/
+#        - python release/setup.py install
+#
+#    - name: Test install against 3.6
+#      language: python
+#      sudo: false
+#      python:
+#        - "3.6"
+#      script:
+#        - cp README.md release
+#        - cp -r src/* release/adbe/
+#        - python3 release/setup.py install
+#
+#    # https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
+#    # https://stackoverflow.com/a/28751112/434196
+#    - name: Test Python 2.7 and Android API 16
+#      language: android  # Python 2 testing
+#      sudo: required  # For pip installation, otherwise, pip install fails.
+#      jdk: oraclejdk8
+#      env:
+#        global:
+#          - DX_HEAP_SIZE=2048
+#          # 16 is the fastest as per
+#          # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
+#          - ANDROID_API_LEVEL=16
+#          - ANDROID_EMU_API_LEVEL=22
+#          - ANDROID_ABI=armeabi-v7a
+#          - QEMU_AUDIO_DRV=none  # Remove audio
+#          - ADB_INSTALL_TIMEOUT=20  # minutes (2 minutes by default)
+#      android:
+#        components:
+#          - tools
+#          - platform-tools
+#          - android-$ANDROID_API_LEVEL
+#          - android-$ANDROID_EMU_API_LEVEL
+#          # Specify at least one system image
+#          - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
+#      before_script:
+#        # Python setup - for some weird reason, sudo is required here
+#        - sudo pip install -r requirements.txt
+#        # Android setup
+#        - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
+#        # -noaudio is not supported by this version of the emulator
+#        - emulator -avd test -no-window -no-boot-anim &
+#        - android-wait-for-emulator
+#      script:
+#        - python -m pytest -v tests/adbe_tests.py  --durations=0
+#
+#    # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
+#    # Source: https://stackoverflow.com/a/28751112/434196
+#    - name: Test Python 3 and Android API 16
+#      language: android
+#      sudo: required  # For pip installation, otherwise, pip install fails.
+#      jdk: oraclejdk8
+#      env:
+#        global:
+#          - DX_HEAP_SIZE=2048
+#          # 16 is the fastest as per
+#          # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
+#          - ANDROID_API_LEVEL=16
+#          - ANDROID_EMU_API_LEVEL=22
+#          - ANDROID_ABI=armeabi-v7a
+#          - QEMU_AUDIO_DRV=none  # Remove audio
+#          - ADB_INSTALL_TIMEOUT=20  # minutes (2 minutes by default)
+#      android:
+#        components:
+#          - tools
+#          - platform-tools
+#          - android-$ANDROID_API_LEVEL
+#          - android-$ANDROID_EMU_API_LEVEL
+#          # Specify at least one system image
+#          - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
+#      before_script:
+#        # Python setup - for some weird reason, sudo is required here
+#        - sudo pip3 install -r requirements.txt
+#        # Android setup
+#        - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
+#        # -noaudio is not supported by this version of the emulator
+#        - emulator -avd test -no-window -no-boot-anim &
+#        - android-wait-for-emulator
+#      script:
+#        - python3 -m pytest -v tests/adbe_tests.py  --durations=0
+#      # Default installation is python 2. Let's force python3 and test the code against it.
+#      # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
+#      addons:
+#        apt:
+#          sources:
+#            - deadsnakes
+#          packages:
+#            # Highest available version whitelisted at
+#            # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
+#            - python3.5
+#            - python3-pip
+#
+#    # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
+#    # Source: https://stackoverflow.com/a/28751112/434196
+#    - name: Test Python 3 and Android API 24
+#      language: android
+#      sudo: required  # For pip installation, otherwise, pip install fails.
+#      jdk: oraclejdk8
+#      # https://docs.travis-ci.com/user/languages/android/#caching
+#      cache:
+#        directories:
+#          # Android SDK
+#          - $HOME/android-sdk-dl
+#          - $HOME/android-sdk
+#          # Android build cache (see http://tools.android.com/tech-docs/build-cache)
+#          - $HOME/.android/build-cache
+#      env:
+#        global:
+#          - DX_HEAP_SIZE=2048
+#          # 16 is the fastest as per
+#          # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
+#          - ANDROID_API_LEVEL=24
+#          - ANDROID_EMU_API_LEVEL=24
+#          - ANDROID_ABI=armeabi-v7a
+#          - QEMU_AUDIO_DRV=none  # Remove audio
+#          - ADB_INSTALL_TIMEOUT=20  # minutes (2 minutes by default)
+#          - ANDROID_HOME=$HOME/android-sdk
+#          # "emulator" commands needs this
+#          - ANDROID_SDK_ROOT=$HOME/android-sdk
+#
+#      install:
+#        - set -e
+#        - touch $HOME/.android/repositories.cfg
+#        # Download and unzip the Android SDK tools (if not already there thanks to the cache mechanism)
+#        # Latest version available here: https://developer.android.com/studio/#command-tools
+#        - if test ! -e $HOME/android-sdk-dl/sdk-tools.zip ; then curl https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip > $HOME/android-sdk-dl/sdk-tools.zip ; fi
+#        - unzip -qq -n $HOME/android-sdk-dl/sdk-tools.zip -d $HOME/android-sdk
+#
+#        # Install or update Android SDK components (will not do anything if already up to date thanks to the cache mechanism)
+#        - echo y | $HOME/android-sdk/tools/bin/sdkmanager 'tools' > /dev/null
+#        - echo y | $HOME/android-sdk/tools/bin/sdkmanager 'platform-tools' > /dev/null
+#        - echo y | $HOME/android-sdk/tools/bin/sdkmanager "platforms;android-$ANDROID_API_LEVEL" > /dev/null
+#        - echo y | $HOME/android-sdk/tools/bin/sdkmanager "system-images;android-$ANDROID_API_LEVEL;default;$ANDROID_ABI" > /dev/null
+#        - echo y | $HOME/android-sdk/tools/bin/sdkmanager "system-images;android-$ANDROID_EMU_API_LEVEL;default;$ANDROID_ABI" > /dev/null
+#
+#      before_script:
+#        # Python setup - for some weird reason, sudo is required here
+#        - sudo pip3 install -r requirements.txt
+#        # Android setup
+#        - echo no | $HOME/android-sdk/tools/bin/avdmanager create avd --force -n test --tag default --abi $ANDROID_ABI --package "system-images;android-$ANDROID_API_LEVEL;default;$ANDROID_ABI"
+#        - ls -al $HOME
+#        # Directly calling emulator command fails, taking fix from here.
+#        # https://www.bram.us/2017/05/12/launching-the-android-emulator-from-the-command-line/
+#        - alias emulator=$HOME/android-sdk/tools/emulator
+#        # -noaudio is not supported by this version of the emulator
+#        - emulator -avd test -no-window -no-boot-anim &
+#        - android-wait-for-emulator
+#      script:
+#        - python3 -m pytest -v tests/adbe_tests.py --durations=0
+#        # We can even run only these two tests which are not triggered below API 23
+#        # - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_permissions_grant_revoke
+#        # - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_doze
+#      # Default installation is python 2. Let's force python3 and test the code against it.
+#      # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
+#      addons:
+#        apt:
+#          sources:
+#            - deadsnakes
+#          packages:
+#            # Highest available version whitelisted at
+#            # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
+#            - python3.5
+#            - python3-pip
+#
+#    - name: Test installation with Python 3 and Android API 16
+#      language: android
+#      sudo: required  # For pip installation, otherwise, pip install fails.
+#      jdk: oraclejdk8
+#      env:
+#        global:
+#          - DX_HEAP_SIZE=2048
+#          # 16 is the fastest as per
+#          # https://medium.com/zendesk-engineering/speeding-up-android-builds-on-travis-ci-1bb4cdbd9c62
+#          - ANDROID_API_LEVEL=16
+#          - ANDROID_EMU_API_LEVEL=22
+#          - ANDROID_ABI=armeabi-v7a
+#          - QEMU_AUDIO_DRV=none  # Remove audio
+#          - ADB_INSTALL_TIMEOUT=20  # minutes (2 minutes by default)
+#      android:
+#        components:
+#          - tools
+#          - platform-tools
+#          - android-$ANDROID_API_LEVEL
+#          - android-$ANDROID_EMU_API_LEVEL
+#          # Specify at least one system image
+#          - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
+#      before_script:
+#        # Python setup
+#        - cp README.md release
+#        - cp -r src/* release/adbe/
+#        - sudo pip3 install pytest
+#        - sudo python3 -m pip install --upgrade pip
+#        - sudo python3 -m pip install -e release
+#        # Immediate test
+#        - adbe --version
+#        # Android setup
+#        - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
+#        # -noaudio is not supported by this version of the emulator
+#        - emulator -avd test -no-window -no-boot-anim &
+#        - android-wait-for-emulator
+#      script:
+#        - python3 -m pytest -v tests/adbe_tests.py  --durations=0 --testpythoninstallation true
+#      # Default installation is python 2. Let's force python3 and test the code against it.
+#      # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
+#      addons:
+#        apt:
+#          sources:
+#            - deadsnakes
+#          packages:
+#            # Highest available version whitelisted at
+#            # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
+#            - python3.5
+#            - python3-pip
 
 # Good .travis.yml files to learn from
 # https://github.com/ruboto/ruboto/blob/master/.travis.yml
