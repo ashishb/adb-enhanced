@@ -25,12 +25,15 @@ def set_adb_prefix(adb_prefix):
     _adb_prefix = adb_prefix
 
 
-def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
-    return execute_adb_command('shell %s' % adb_cmd, piped_into_cmd, ignore_stderr)
+def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
+    return execute_adb_command('shell %s' % adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
 
 
-def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False):
-    final_cmd = ('%s %s' % (_adb_prefix, adb_cmd))
+def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
+    adb_prefix = _adb_prefix
+    if device_serial:
+        adb_prefix = '%s -s %s' % (adb_prefix, device_serial)
+    final_cmd = ('%s %s' % (adb_prefix, adb_cmd))
     if piped_into_cmd:
         final_cmd = '%s | %s' % (final_cmd, piped_into_cmd)
 
