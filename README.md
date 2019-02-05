@@ -238,7 +238,7 @@ python3 -m pytest -v tests/adbe_tests.py  # Python3 tests
 
 
 ## Relase a new build
-A new build can be released using [`release/release_new_build.sh`](https://github.com/ashishb/adb-enhanced/blob/master/release/release_new_build.sh) script.
+A new build can be released using [`release/release.py`](https://github.com/ashishb/adb-enhanced/blob/master/release/release.py) script. A test release can be made using `release.py test release` and a production release using `release.py production release`
 
 Note: The inspiration of this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
 
