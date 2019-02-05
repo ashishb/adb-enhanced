@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import shutil
 import subprocess
 import sys
 import docopt
@@ -22,6 +23,7 @@ _SRC_FILE_NAMES = [
     'output_helper.py',
     'version.txt',
     ]
+
 
 def _get_version():
     with open(_VERSION_FILE_PATH, 'r') as file_handle:
@@ -62,7 +64,7 @@ def _cleanup_build_dir(base_dir):
         if os.path.exists(build_dir):
             full_path = os.path.join(base_dir, build_dir)
             print('Deleting %s' % full_path)
-            os.removedirs(full_path)
+            shutil.rmtree(full_path)
 
 
 def _create_package():
@@ -82,13 +84,12 @@ def _push_new_release_to_git(version_file):
         _run_cmd_or_fail(cmd)
 
 
-def _publish_package_to_pypi(pypi_url=None):
-    if pypi_url:
-        # Use pypi_url = "https://test.pypi.org/legacy/" to test
+def _publish_package_to_pypi(testing_release=False):
+    if testing_release:
         _run_cmd_or_fail(
-            'python3 -m twine upload --repository-url %s dist/*' % pypi_url)
-        print('Few mins later, check %s/project/%s/#history to confirm upload' %
-              (pypi_url, _PROJECT_NAME))
+            'python3 -m twine upload --repository-url %s dist/*' % _TEST_PYPI_URL)
+        print('Few mins later, check https://test.pypi.org/project/%s/#history to confirm upload' %
+              _PROJECT_NAME)
     else:
         _run_cmd_or_fail('python3 -m twine upload dist/*')
         print('Few mins later, check https://pypi.org/project/%s/#history to confirm upload' %
@@ -96,8 +97,8 @@ def _publish_package_to_pypi(pypi_url=None):
 
 
 def _run_cmd_or_fail(cmd):
-    process = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print('Executing \"%s\"...' % cmd)
+    process = subprocess.Popen(cmd, shell=True, stdout=None, stderr=None)
     process.communicate()
     if process.returncode == 0:
         print('Successfully executed \"%s\"' % cmd)
@@ -105,7 +106,7 @@ def _run_cmd_or_fail(cmd):
         print('Failed to execute \"%s\"' % cmd)
         sys.exit(1)
 
-def _publish_release(pypi_url=None):
+def _publish_release(testing_release=False):
     src_dir = os.path.join(_DIR_OF_THIS_SCRIPT, '..', 'src')
     dest_dir = os.path.join(_DIR_OF_THIS_SCRIPT, 'adbe')
     version_file = os.path.join(src_dir, 'version.txt')
@@ -118,7 +119,7 @@ def _publish_release(pypi_url=None):
     _cleanup_build_dir(_DIR_OF_THIS_SCRIPT)
     _create_package()
     _push_new_release_to_git(version_file)
-    _publish_package_to_pypi(pypi_url)
+    _publish_package_to_pypi(testing_release)
     _cleanup_build_dir(_DIR_OF_THIS_SCRIPT)
 
 
@@ -142,9 +143,9 @@ def main():
 
     args = docopt.docopt(USAGE_STRING, version='1.0')
     if args['test'] and args['release']:
-        _publish_release(pypi_url=_TEST_PYPI_URL)
+        _publish_release(testing_release=True)
     elif args['production'] and args['release']:
-        _publish_release()
+        _publish_release(testing_release=False)
     else:
         print('Unexpected command')
         sys.exit(1)
