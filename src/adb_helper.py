@@ -25,10 +25,69 @@ def set_adb_prefix(adb_prefix):
     _adb_prefix = adb_prefix
 
 
+def execute_adb_shell_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
+    return execute_adb_command2('shell %s' % adb_cmd, piped_into_cmd=piped_into_cmd,
+                                ignore_stderr=ignore_stderr, device_serial=device_serial)
+
+
+def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
+    adb_prefix = _adb_prefix
+    if device_serial:
+        adb_prefix = '%s -s %s' % (adb_prefix, device_serial)
+
+    final_cmd = ('%s %s' % (adb_prefix, adb_cmd))
+    if piped_into_cmd:
+        final_cmd = '%s | %s' % (final_cmd, piped_into_cmd)
+
+    print_verbose("Executing \"%s\"" % final_cmd)
+    ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout_data, stderr_data = ps1.communicate()
+    return_code = ps1.returncode
+    try:
+        stdout_data = stdout_data.decode('utf-8')
+    except UnicodeDecodeError:
+        print_error('Unable to decode data as UTF-8, defaulting to printing the binary data')
+    stderr_data = stderr_data.decode('utf-8')
+
+    _check_for_more_than_one_device_error(stderr_data)
+    _check_for_device_not_found_error(stderr_data)
+    if not ignore_stderr and stderr_data and len(stderr_data) > 0:
+        print_error(stderr_data)
+
+    if stdout_data:
+        if isinstance(stdout_data, bytes):
+            print_verbose("Result is \"%s\"" % stdout_data)
+            return return_code, stdout_data, stderr_data
+        # str for Python 3 and unicode for Python 2
+        # unicode is undefined for Python 3
+        elif isinstance(stdout_data, str) or isinstance(stdout_data, unicode):
+            output = ''
+            first_line = True
+            for line in stdout_data.split('\n'):
+                line = line.strip()
+                if not line or len(line) == 0:
+                    continue
+                if line in _IGNORED_LINES:
+                    continue
+                if first_line:
+                    output += line
+                    first_line = False
+                else:
+                    output += '\n' + line
+            print_verbose("Result is \"%s\"" % output)
+            return return_code, output, stderr_data
+    else:
+        return return_code, None, stderr_data
+
+
+# Deprecated
 def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
-    return execute_adb_command('shell %s' % adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
+    _, stdout, _ = execute_adb_command2(
+        'shell %s' % adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
+    return stdout
 
 
+# Deprecated
 def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
     adb_prefix = _adb_prefix
     if device_serial:

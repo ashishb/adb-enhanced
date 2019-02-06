@@ -34,11 +34,11 @@ else:
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
-    from adbe.adb_helper import execute_adb_command, execute_adb_shell_command
+    from adbe.adb_helper import execute_adb_command2, execute_adb_shell_command, execute_adb_shell_command2
     from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
 except ImportError:
     # This works when the code is executed directly.
-    from adb_helper import execute_adb_command, execute_adb_shell_command
+    from adb_helper import execute_adb_command2, execute_adb_shell_command, execute_adb_shell_command2
     from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
@@ -82,8 +82,8 @@ def ensure_package_exists3(func):
 
 def _package_exists(package_name):
     cmd = 'pm path %s' % package_name
-    response = execute_adb_shell_command(cmd)
-    return response is not None and len(response.strip()) != 0
+    return_code, response, _ = execute_adb_shell_command2(cmd)
+    return return_code == 0 and response is not None and len(response.strip()) != 0
 
 
 # Source:
@@ -195,8 +195,12 @@ def handle_airplane(turn_on):
     # At some version, this became a protected intent, so, it might require root to succeed.
     broadcast_change_cmd = 'am broadcast -a android.intent.action.AIRPLANE_MODE'
     broadcast_change_cmd = _may_be_wrap_with_run_as(broadcast_change_cmd, '')
-    execute_adb_shell_settings_command(cmd)
-    execute_adb_shell_command(broadcast_change_cmd)
+    execute_adb_shell_settings_command2(cmd)
+    return_code, _, _ = execute_adb_shell_command2(broadcast_change_cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to change airplane mode')
+    else:
+        print_message('Airplane mode changed successfully')
 
 
 # Source:
@@ -208,9 +212,17 @@ def handle_battery_saver(turn_on):
     else:
         cmd = 'put global low_power 0'
 
-    execute_adb_shell_command(get_battery_unplug_cmd())
-    execute_adb_shell_command(get_battery_discharging_cmd())
-    execute_adb_shell_settings_command(cmd)
+    if turn_on:
+        return_code, _, _ = execute_adb_shell_command2(get_battery_unplug_cmd())
+        if return_code != 0:
+            print_error_and_exit('Failed to unplug battery')
+        return_code, _, _ = execute_adb_shell_command2(get_battery_discharging_cmd())
+        if return_code != 0:
+            print_error_and_exit('Failed to put battery in discharge mode')
+
+    return_code, _, _ = execute_adb_shell_settings_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to modify battery saver mode')
 
 
 # Source:
@@ -223,9 +235,9 @@ def handle_battery_level(level):
             level)
     cmd = 'dumpsys battery set level %d' % level
 
-    execute_adb_shell_command(get_battery_unplug_cmd())
-    execute_adb_shell_command(get_battery_discharging_cmd())
-    execute_adb_shell_command(cmd)
+    execute_adb_shell_command2(get_battery_unplug_cmd())
+    execute_adb_shell_command2(get_battery_discharging_cmd())
+    execute_adb_shell_command2(cmd)
 
 
 # Source:
@@ -234,7 +246,7 @@ def handle_battery_reset():
     # The battery related commands fail silently on API 16. I am not sure about 17 and 18.
     _error_if_min_version_less_than(19)
     cmd = get_battery_reset_cmd()
-    execute_adb_shell_command(cmd)
+    execute_adb_shell_command2(cmd)
 
 
 # https://developer.android.com/training/monitoring-device-state/doze-standby.html
@@ -245,15 +257,15 @@ def handle_doze(turn_on):
     if turn_on:
         # Source: https://stackoverflow.com/a/42440619
         cmd = 'dumpsys deviceidle force-idle'
-        execute_adb_shell_command(get_battery_unplug_cmd())
-        execute_adb_shell_command(get_battery_discharging_cmd())
-        execute_adb_shell_command(enable_idle_mode_cmd)
-        execute_adb_shell_command(cmd)
+        execute_adb_shell_command2(get_battery_unplug_cmd())
+        execute_adb_shell_command2(get_battery_discharging_cmd())
+        execute_adb_shell_command2(enable_idle_mode_cmd)
+        execute_adb_shell_command2(cmd)
     else:
         cmd = 'dumpsys deviceidle unforce'
-        execute_adb_shell_command(get_battery_reset_cmd())
-        execute_adb_shell_command(enable_idle_mode_cmd)
-        execute_adb_shell_command(cmd)
+        execute_adb_shell_command2(get_battery_reset_cmd())
+        execute_adb_shell_command2(enable_idle_mode_cmd)
+        execute_adb_shell_command2(cmd)
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
@@ -288,14 +300,15 @@ def handle_get_jank(app_name):
 
     try:
         cmd = 'dumpsys gfxinfo %s ' % app_name
-        result = execute_adb_shell_command(cmd)
+        return_code, result, _ = execute_adb_shell_command2(cmd)
         print_verbose(result)
         found = False
-        for line in result.split('\n'):
-            if line.find('Janky') != -1:
-                print(line)
-                found = True
-                break
+        if return_code == 0:
+            for line in result.split('\n'):
+                if line.find('Janky') != -1:
+                    print(line)
+                    found = True
+                    break
         if not found:
             print_error('No jank information found for %s' % app_name)
     finally:
@@ -306,17 +319,21 @@ def handle_get_jank(app_name):
 
 
 def _is_app_running(app_name):
-    result = execute_adb_shell_command('ps -o NAME')
-    if not result:
+    return_code, result, _ = execute_adb_shell_command2('ps -o NAME')
+    if return_code != 0 or not result:
         return False
     result = result.strip()
     return result.find(app_name) != -1
 
 
 def handle_list_devices():
-    s1 = execute_adb_command('devices -l')
+    cmd = 'devices -l'
+    return_code, stdout, stderr = execute_adb_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to execute command %s, error: %s ' % (cmd, stderr))
+
     # Skip the first line, it says "List of devices attached"
-    device_infos = s1.split('\n')[1:]
+    device_infos = stdout.split('\n')[1:]
 
     if len(device_infos) == 0 or (
             len(device_infos) == 1 and len(device_infos[0]) == 0):
@@ -376,8 +393,8 @@ def print_top_activity():
 
 def _get_top_activity_data():
     cmd = 'dumpsys window windows'
-    output = execute_adb_shell_command(cmd)
-    if not output:
+    return_code, output, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0 and not output:
         print_error_and_exit('Device returned no response, is it still connected?')
     for line in output.split('\n'):
         line = line.strip()
@@ -403,25 +420,37 @@ def dump_ui(xml_file):
     cmd3 = 'rm %s' % tmp_file
 
     print_verbose('Writing UI to %s' % tmp_file)
-    execute_adb_shell_command(cmd1)
+    return_code, _, stderr = execute_adb_shell_command2(cmd1)
+    if return_code != 0:
+        print_error_and_exit('Failed to execute \"%s\", stderr: \"%s\"' % (cmd1, stderr))
+
     print_verbose('Pulling file %s' % xml_file)
-    execute_adb_command(cmd2)
+    return_code, _, stderr = execute_adb_command2(cmd2)
     print_verbose('Deleting file %s' % tmp_file)
-    print_message('XML UI dumped to %s, you might want to format it using \"xmllint --format %s\"' %
-                  (xml_file, xml_file))
-    execute_adb_shell_command(cmd3)
+    execute_adb_shell_command2(cmd3)
+    if return_code != 0:
+        print_error_and_exit('Failed to fetch file %s' % tmp_file)
+    else:
+        print_message('XML UI dumped to %s, you might want to format it using \"xmllint --format %s\"' %
+                      (xml_file, xml_file))
 
 
 @ensure_package_exists
 def force_stop(app_name):
     cmd = 'am force-stop %s' % app_name
-    print_message(execute_adb_shell_command(cmd))
+    return_code, stdout, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to stop \"%s\"' % app_name)
+    else:
+        print_message(stdout)
 
 
 @ensure_package_exists
 def clear_disk_data(app_name):
     cmd = 'pm clear %s' % app_name
-    execute_adb_shell_command(cmd)
+    return_code, _, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to clear data of \"%s\"' % app_name)
 
 
 # Source:
@@ -431,7 +460,9 @@ def handle_mobile_data(turn_on):
         cmd = 'svc data enable'
     else:
         cmd = 'svc data disable'
-    execute_adb_shell_command(cmd)
+    return_code, _, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to change mobile data setting')
 
 
 def force_rtl(turn_on):
@@ -446,11 +477,14 @@ def force_rtl(turn_on):
 def dump_screenshot(filepath):
     screenshot_file_path_on_device = _create_tmp_file('screenshot', 'png')
     dump_cmd = 'screencap -p %s ' % screenshot_file_path_on_device
-    execute_adb_shell_command(dump_cmd)
+    return_code, stdout, stderr = execute_adb_shell_command2(dump_cmd)
+    if return_code != 0:
+        print_error_and_exit(
+            'Failed to capture the screenshot: (stdout: %s, stderr: %s)' % (stdout, stderr))
     pull_cmd = 'pull %s %s' % (screenshot_file_path_on_device, filepath)
-    execute_adb_command(pull_cmd)
+    execute_adb_command2(pull_cmd)
     del_cmd = 'rm %s' % screenshot_file_path_on_device
-    execute_adb_shell_command(del_cmd)
+    execute_adb_shell_command2(del_cmd)
 
 
 def dump_screenrecord(filepath):
@@ -470,15 +504,15 @@ def dump_screenrecord(filepath):
         print_message('Recording video, press Ctrl+C to end...')
         screen_record_file_path_on_device = _create_tmp_file('screenrecord', 'mp4')
         dump_cmd = 'screenrecord --verbose %s ' % screen_record_file_path_on_device
-        execute_adb_shell_command(dump_cmd)
+        execute_adb_shell_command2(dump_cmd)
 
     def _pull_and_delete_file_from_device():
         global screen_record_file_path_on_device
         print_message('Saving recording to %s' % filepath)
         pull_cmd = 'pull %s %s' % (screen_record_file_path_on_device, filepath)
-        execute_adb_command(pull_cmd)
+        execute_adb_command2(pull_cmd)
         del_cmd = 'rm %s' % screen_record_file_path_on_device
-        execute_adb_shell_command(del_cmd)
+        execute_adb_shell_command2(del_cmd)
 
     def _kill_all_child_processes():
         current_process = psutil.Process()
@@ -517,7 +551,9 @@ def handle_mobile_data_saver(turn_on):
         cmd = 'cmd netpolicy set restrict-background true'
     else:
         cmd = 'cmd netpolicy set restrict-background false'
-    execute_adb_shell_command(cmd)
+    return_code, _, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to modify data saver mode setting')
 
 
 # Ref: https://github.com/android/platform_packages_apps_settings/blob/4ce19f5c4fd40f3bedc41d3fbcbdede8b2614501/src/com/android/settings/DevelopmentSettings.java#L2123
@@ -585,12 +621,16 @@ def stay_awake_while_charging(turn_on):
 def input_text(text):
     # Replace whitespaces to %s which gets translated by Android back to whitespaces.
     cmd = 'input text %s' % text.replace(' ', '%s')
-    execute_adb_shell_command(cmd)
+    return_code, _, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to input text \"%s\"' % text)
 
 
 def press_back():
     cmd = 'input keyevent 4'
-    execute_adb_shell_command(cmd)
+    return_code, _, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to press back')
 
 
 def open_url(url):
@@ -600,12 +640,18 @@ def open_url(url):
         parsed_url2 = urlparse(url=url, scheme='http')
         url = parsed_url2.geturl()
     cmd = 'am start -a android.intent.action.VIEW -d %s' % url
-    execute_adb_shell_command(cmd)
+    return_code, _, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to open url \"%s\"' % url)
 
 
 def list_permission_groups():
     cmd = 'pm list permission-groups'
-    print_message(execute_adb_shell_command(cmd))
+    return_code, stdout, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to list permission groups')
+    else:
+        print_message(stdout)
 
 
 def list_permissions(dangerous_only_permissions):
@@ -615,7 +661,11 @@ def list_permissions(dangerous_only_permissions):
         cmd = 'pm list permissions -g -d'
     else:
         cmd = 'pm list permissions -g'
-    print_message(execute_adb_shell_command(cmd))
+    return_code, stdout, stderr = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to list permissions: (stdout: %s, stderr: %s)' % (stdout, stderr))
+    else:
+        print_message(stdout)
 
 
 # Creates a tmp file on Android device
@@ -639,9 +689,17 @@ def _create_tmp_file(filename_prefix=None, filename_suffix=None):
         return _create_tmp_file(filename_prefix, filename_suffix)
 
     # Create the file
-    execute_adb_shell_command('touch %s' % filepath_on_device)
+    return_code, stdout, stderr = execute_adb_shell_command2('touch %s' % filepath_on_device)
+    if return_code != 0:
+        print_error('Failed to create tmp file %s: (stdout: %s, stderr: %s)' % (filepath_on_device, stdout, stderr))
+        return None
+
     # Make the tmp file world-writable or else, run-as command might fail to write on it.
-    execute_adb_shell_command('chmod 666 %s' % filepath_on_device)
+    return_code, stdout, stderr = execute_adb_shell_command2('chmod 666 %s' % filepath_on_device)
+    if return_code != 0:
+        print_error('Failed to chmod tmp file %s: (stdout: %s, stderr: %s)' % (filepath_on_device, stdout, stderr))
+        return None
+
     return filepath_on_device
 
 
@@ -651,8 +709,8 @@ def _file_exists(file_path):
     # The second command "echo exists" will not be wrapped with run-as but that's OK in this case.
     # Since it is perfectly fine to output "exists" as a shell user.
     exists_cmd = _may_be_wrap_with_run_as(exists_cmd, file_path)
-    output = execute_adb_shell_command(exists_cmd)
-    return output is not None and output.find('exists') != -1
+    _, stdout, _ = execute_adb_shell_command2(exists_cmd)
+    return stdout is not None and stdout.find('exists') != -1
 
 
 def _is_sqlite_database(file_path):
@@ -686,7 +744,13 @@ def get_permission_group(args):
 # Pass the full-qualified permission group name to this method.
 def get_permissions_in_permission_group(permission_group):
     # List permissions by group
-    permission_output = execute_adb_shell_command('pm list permissions -g')
+    cmd = 'pm list permissions -g'
+    return_code, stdout, stderr = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to run command %s (stdout: %s, stderr: %s)' % (cmd, stdout, stderr))
+        return
+
+    permission_output = stdout
     # Remove ungrouped permissions section completely.
     if 'ungrouped:' in permission_output:
         permission_output, _ = permission_output.split('ungrouped:')
@@ -722,8 +786,8 @@ def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions)
 
 
 def _get_all_packages(pm_cmd):
-    result = execute_adb_shell_command(pm_cmd)
-    if result is None:
+    return_code, result, _ = execute_adb_shell_command2(pm_cmd)
+    if return_code != 0 or result is None:
         print_error_and_exit('Empty output, something is wrong')
     packages = []
     for line in result.split('\n'):
@@ -933,7 +997,7 @@ def move_file(src_path, dest_path, force):
 
 # Copies from remote_file_path on Android to local_file_path on the disk
 # local_file_path can be None
-def pull_file(remote_file_path, local_file_path, copy_ancillary = False):
+def pull_file(remote_file_path, local_file_path, copy_ancillary=False):
     if not _file_exists(remote_file_path):
         print_error_and_exit('File %s does not exist' % remote_file_path)
 
@@ -947,12 +1011,12 @@ def pull_file(remote_file_path, local_file_path, copy_ancillary = False):
     if cp_cmd == wrapped_cp_cmd:
         # cp command is not required at all, if copying it is not required.
         pull_cmd = 'pull %s %s' % (remote_file_path, local_file_path)
-        execute_adb_command(pull_cmd)
+        execute_adb_command2(pull_cmd)
     else:
         # First copy the files to sdcard, then pull them out, and then delete them from sdcard.
         execute_adb_shell_command(wrapped_cp_cmd)
         pull_cmd = 'pull %s %s' % (tmp_file, local_file_path)
-        execute_adb_command(pull_cmd)
+        execute_adb_command2(pull_cmd)
         del_cmd = 'rm -r %s' % tmp_file
         execute_adb_shell_command(del_cmd)
 
@@ -992,7 +1056,11 @@ def push_file(local_file_path, remote_file_path):
     rm_cmd = 'rm %s' % tmp_file
     execute_adb_shell_command(rm_cmd)
 
-    execute_adb_command(push_cmd)
+    return_code, _, stderr = execute_adb_command2(push_cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to push file, error: %s' % stderr)
+        return
+
     execute_adb_shell_command(mv_cmd)
 
 
@@ -1193,7 +1261,11 @@ def print_app_signature(app_name):
     with tmp_apk_file:
         tmp_apk_file_name = tmp_apk_file.name
         adb_cmd = 'pull %s %s' % (apk_path, tmp_apk_file_name)
-        execute_adb_command(adb_cmd)
+        return_code, _, stderr = execute_adb_command2(adb_cmd)
+        if return_code != 0:
+            print_error_and_exit('Failed to pull file %s, stderr: %s' % (apk_path, stderr))
+            return
+
         dir_of_this_script = os.path.split(__file__)[0]
         apk_signer_jar_path = os.path.join(dir_of_this_script, 'apksigner.jar')
         if not os.path.exists(apk_signer_jar_path):
@@ -1221,7 +1293,7 @@ def perform_app_backup(app_name, backup_tar_file):
     def backup_func():
         # Create backup.ab
         adb_backup_cmd = 'backup -noapk %s' % app_name
-        execute_adb_command(adb_backup_cmd)
+        execute_adb_command2(adb_backup_cmd)
 
     backup_thread = threading.Thread(target=backup_func)
     backup_thread.start()
@@ -1269,18 +1341,22 @@ def perform_app_backup(app_name, backup_tar_file):
 def perform_install(file_path):
     print_verbose('Installing %s' % file_path)
     # -r: replace existing application
-    execute_adb_command('install -r %s' % file_path)
+    return_code, _, stderr = execute_adb_command2('install -r %s' % file_path)
+    if return_code != 0:
+        print_error('Failed to install %s, stderr: %s' % (file_path, stderr))
 
 
 @ensure_package_exists
 def perform_uninstall(app_name):
     print_verbose('Uninstalling %s' % app_name)
-    execute_adb_command('uninstall %s' % app_name)
+    return_code, _, stderr = execute_adb_command2('uninstall %s' % app_name)
+    if return_code != 0:
+        print_error('Failed to uninstall %s, stderr: %s' % (app_name, stderr))
 
 
 def _get_window_size():
     adb_cmd = 'shell wm size'
-    result = execute_adb_command(adb_cmd)
+    _, result, _ = execute_adb_command2(adb_cmd)
 
     if result is None:
         return -1, -1
@@ -1294,12 +1370,17 @@ def _get_window_size():
 
 def _perform_tap(x, y):
     adb_shell_cmd = 'input tap %d %d' % (x, y)
-    execute_adb_shell_command(adb_shell_cmd)
+    execute_adb_shell_command2(adb_shell_cmd)
 
 
 def execute_adb_shell_settings_command(settings_cmd, device_serial=None):
     _error_if_min_version_less_than(19, device_serial=device_serial)
     return execute_adb_shell_command('settings %s' % settings_cmd, device_serial=device_serial)
+
+
+def execute_adb_shell_settings_command2(settings_cmd, device_serial=None):
+    _error_if_min_version_less_than(19)
+    return execute_adb_shell_command2('settings %s' % settings_cmd, device_serial)
 
 
 def execute_adb_shell_settings_command_and_poke_activity_service(settings_cmd):
