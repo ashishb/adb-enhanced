@@ -241,4 +241,9 @@ python3 -m pytest -v tests/adbe_tests.py  # Python3 tests
 
 A new build can be released using [`release/release.py`](https://github.com/ashishb/adb-enhanced/blob/master/release/release.py) script. A test release can be made using `release.py test release` and a production release using `release.py production release`
 
-Note: The inspiration for this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
+## Updating docs for ReadTheDocs
+
+`pandoc --from=markdown --to=rst --output=docs/README.rst README.md && cd docs && make html`
+You will have to do `brew install pandoc` if you are missing pandoc.
+
+Note: The inspiration of this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
