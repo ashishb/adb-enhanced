@@ -34,11 +34,11 @@ else:
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
-    from adbe.adb_helper import execute_adb_command2, execute_adb_shell_command, execute_adb_shell_command2
+    from adbe.adb_helper import get_adb_shell_property, execute_adb_command2, execute_adb_shell_command, execute_adb_shell_command2
     from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
 except ImportError:
     # This works when the code is executed directly.
-    from adb_helper import execute_adb_command2, execute_adb_shell_command, execute_adb_shell_command2
+    from adb_helper import get_adb_shell_property, execute_adb_command2, execute_adb_shell_command, execute_adb_shell_command2
     from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
@@ -357,10 +357,10 @@ def handle_list_devices():
 
 
 def _print_device_info(device_serial=None):
-    manufacturer = _get_prop('ro.product.manufacturer', device_serial=device_serial)
-    model = _get_prop('ro.product.model', device_serial=device_serial)
+    manufacturer = get_adb_shell_property('ro.product.manufacturer', device_serial=device_serial)
+    model = get_adb_shell_property('ro.product.model', device_serial=device_serial)
     # This worked on 4.4.3 API 19 Moto E
-    display_name = _get_prop('ro.product.display', device_serial=device_serial)
+    display_name = get_adb_shell_property('ro.product.display', device_serial=device_serial)
     # First fallback: undocumented
     if display_name is None or len(display_name) == 0 or display_name == 'null':
         # This works on 4.4.4 API 19 Galaxy Grand Prime
@@ -373,11 +373,11 @@ def _print_device_info(device_serial=None):
             display_name = execute_adb_shell_settings_command('get global device_name', device_serial=device_serial)
 
     # ABI info
-    abi =  _get_prop('ro.product.cpu.abi', device_serial=device_serial)
-    release =  _get_prop('ro.build.version.release', device_serial=device_serial)
+    abi =  get_adb_shell_property('ro.product.cpu.abi', device_serial=device_serial)
+    release =  get_adb_shell_property('ro.build.version.release', device_serial=device_serial)
 
-    release = _get_prop('ro.build.version.release', device_serial=device_serial)
-    sdk = _get_prop('ro.build.version.sdk', device_serial=device_serial)
+    release = get_adb_shell_property('ro.build.version.release', device_serial=device_serial)
+    sdk = get_adb_shell_property('ro.build.version.sdk', device_serial=device_serial)
     print_message(
         'Serial ID: %s\nManufacturer: %s\nModel: %s (%s)\nRelease: %s\nSDK version: %s\nCPU: %s\n' %
         (device_serial, manufacturer, model, display_name, release, sdk, abi))
@@ -1372,7 +1372,7 @@ def _perform_tap(x, y):
     adb_shell_cmd = 'input tap %d %d' % (x, y)
     execute_adb_shell_command2(adb_shell_cmd)
 
-
+# Deprecated
 def execute_adb_shell_settings_command(settings_cmd, device_serial=None):
     _error_if_min_version_less_than(19, device_serial=device_serial)
     return execute_adb_shell_command('settings %s' % settings_cmd, device_serial=device_serial)
@@ -1410,16 +1410,12 @@ def _error_if_min_version_less_than(min_acceptable_version, device_serial=None):
 
 # adb shell getprop ro.build.version.sdk
 def get_device_android_api_version(device_serial=None):
-    version_string = _get_prop('ro.build.version.sdk', device_serial=device_serial)
+    version_string = get_adb_shell_property('ro.build.version.sdk', device_serial=device_serial)
     if version_string is None:
         print_error_and_exit('Unable to get Android device version, is it still connected?')
     return int(version_string)
 
 
 def _is_emulator():
-    qemu = _get_prop('ro.kernel.qemu')
+    qemu = get_adb_shell_property('ro.kernel.qemu')
     return qemu is not None and qemu.strip() == '1'
-
-
-def _get_prop(property_name, device_serial=None):
-    return execute_adb_shell_command('getprop %s' % property_name, device_serial=device_serial)
