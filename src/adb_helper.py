@@ -25,6 +25,11 @@ def set_adb_prefix(adb_prefix):
     _adb_prefix = adb_prefix
 
 
+def get_adb_shell_property(property_name, device_serial=None):
+    _, stdout, _ = execute_adb_shell_command2('getprop %s' % property_name, device_serial=device_serial)
+    return stdout
+
+
 def execute_adb_shell_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
     return execute_adb_command2('shell %s' % adb_cmd, piped_into_cmd=piped_into_cmd,
                                 ignore_stderr=ignore_stderr, device_serial=device_serial)
