@@ -2,163 +2,163 @@
 
 ![Logo](docs/logo.png)
 
-Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation.
+ADB-Enhanced is a Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation.
 
 ## Release announcement
+
 See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/)
 
-
 ## Installation
+
 `sudo pip3 install adb-enhanced`
 
 ## Note
-1. `sudo pip install adb-enhanced` for python2 based install works as well but I would recommend moving to python3 since I will deprecate python2 support after Dec 31, 2018.
+
+1. `sudo pip install adb-enhanced` for python2 based install works as well but, I would recommend moving to python3 since I will deprecate python2 support anytime after Dec 31, 2018.
 2. If you don't have sudo access or you are installing without sudo then `adbe` might not be configured correctly in the path.
 3. To setup bash/z-sh auto-completion, execute `sudo pip3 install infi.docopt-completion && docopt-completion $(which adbe)` after installing adb-enhanced.
 
-
 ## Examples
 
-	
 ### Device configuration
 
 * Turn doze mode on
 
-	`adbe doze on`
+  `adbe doze on`
 
 * Turn mobile-data off
 
-	`adbe mobile-data off`
+  `adbe mobile-data off`
 
 * Turn on battery saver
 
-	`adbe battery saver on`
+  `adbe battery saver on`
 
 * Don't keep activities in the background
 
-	`adbe dont-keep-activities on`
-	
-* Take a screenshot
-	`adbe screenshot ~/Downloads/screenshot1.png`
-	
-* Take a video
-	`adbe screenrecord video.mp4 # Press ^C when finished`
-	
-### Permisions
+  `adbe dont-keep-activities on`
 
+* Take a screenshot
+  `adbe screenshot ~/Downloads/screenshot1.png`
+
+* Take a video
+  `adbe screenrecord video.mp4 # Press ^C when finished`
+
+### Permissions
 
 * Grant storage-related runtime permissions
 
-	`adbe permissions grant com.example storage`
+  `adbe permissions grant com.example storage`
 
 * Revoke storage-related runtime permissions
 
-	`adbe permissions revoke com.example storage`
-	
-	
+  `adbe permissions revoke com.example storage`
+
 ### Interacting with app
+
 * Start an app
 
-	`adbe start com.example`
+  `adbe start com.example`
 
 * Kill an app
 
-	`adbe force-stop com.example`
-	
+  `adbe force-stop com.example`
+
 * Clear app data - equivalent of uninstall and reinstall
 
-	`adbe clear-data com.example`
-	
+  `adbe clear-data com.example`
+
 * ls/cat/rm any file without worrying about adding "run-as" or "su root"
 
-	`adbe ls /data/data/com.example/databases`  # Works as long as com.example is a debuggable package, or shell has the root permission or directory has been made publicly accessible	
-	
+  `adbe ls /data/data/com.example/databases`  # Works as long as com.example is a debuggable package or shell has the root permission or directory has been made publicly accessible
+
 ### Device info
 
 * Detailed device info including model name, Android API version etc, device serial
 
-	```
-	$ adbe devices
-	Unlock Device "dcc54112" and give USB debugging access to this PC/Laptop by unlocking and reconnecting the device. More info about this device: "unauthorized usb:339869696X transport_id:17"
+  ```
+  $ adbe devices
+  Unlock Device "dcc54112" and give USB debugging access to this PC/Laptop by unlocking and reconnecting the device. More info about this device: "unauthorized usb:339869696X transport_id:17"
 
-	Serial ID: dcc54111
-	Manufacturer: OnePlus
-	Model: ONEPLUS A5000 (OnePlus 5T)
-	Release: 8.1.0
-	SDK version: 27
-	CPU: arm64-v8a
-	
-	Serial ID: emulator-5554
-	Manufacturer: unknown
-	Model: Android SDK built for x86
-	Release: 4.4.2
-	SDK version: 19
-	CPU: x86
-	```
+  Serial ID: dcc54111
+  Manufacturer: OnePlus
+  Model: ONEPLUS A5000 (OnePlus 5T)
+  Release: 8.1.0
+  SDK version: 27
+  CPU: arm64-v8a
+
+  Serial ID: emulator-5554
+  Manufacturer: unknown
+  Model: Android SDK built for x86
+  Release: 4.4.2
+  SDK version: 19
+  CPU: x86
+  ```
 
 ### App info
 
-* Detailed information about app version, target SDK version, permissions (requested, granted, denied), installer package name etc.
+* Detailed information about app version, target SDK version, permissions (requested, granted, denied), installer package name, etc.
 
-	```
-	$ adbe app info com.google.android.youtube
-	App name: com.google.android.youtube
-	Version: 12.17.41
-	Version Code: 121741370
-	Is debuggable: False
-	Min SDK version: 21
-	Target SDK version: 26
-	
-	Permissions:
-	
-	Install time granted permissions:
-	com.google.android.c2dm.permission.RECEIVE
-	android.permission.USE_CREDENTIALS
-	com.google.android.providers.gsf.permission.READ_GSERVICES
-	com.google.android.youtube.permission.C2D_MESSAGE
-	android.permission.MANAGE_ACCOUNTS
-	android.permission.SYSTEM_ALERT_WINDOW
-	android.permission.NFC
-	android.permission.CHANGE_NETWORK_STATE
-	android.permission.RECEIVE_BOOT_COMPLETED
-	com.google.android.gms.permission.AD_ID_NOTIFICATION
-	android.permission.INTERNET
-	android.permission.GET_PACKAGE_SIZE
-	android.permission.ACCESS_NETWORK_STATE
-	android.permission.VIBRATE
-	android.permission.ACCESS_WIFI_STATE
-	android.permission.WAKE_LOCK
-	
-	Runtime Permissions not granted and not yet requested:
-	android.permission.WRITE_EXTERNAL_STORAGE
-	android.permission.MANAGE_DOCUMENTS
-	android.permission.GET_ACCOUNTS
-	android.permission.CAMERA
-	android.permission.RECORD_AUDIO
-	android.permission.READ_CONTACTS
-	android.permission.ACCESS_FINE_LOCATION
-	android.permission.ACCESS_COARSE_LOCATION
-	android.permission.READ_PHONE_STATE
-	android.permission.SEND_SMS
-	android.permission.RECEIVE_SMS
-	com.sec.android.provider.badge.permission.READ
-	com.sec.android.provider.badge.permission.WRITE
-	com.htc.launcher.permission.READ_SETTINGS
-	com.htc.launcher.permission.UPDATE_SHORTCUT
-	com.sonyericsson.home.permission.BROADCAST_BADGE
-	com.sonymobile.home.permission.PROVIDER_INSERT_BADGE
-	android.permission.READ_EXTERNAL_STORAGE
-	
-	Installer package name: None
-	```
+  ```
+  $ adbe app info com.google.android.youtube
+  App name: com.google.android.youtube
+  Version: 12.17.41
+  Version Code: 121741370
+  Is debuggable: False
+  Min SDK version: 21
+  Target SDK version: 26
+
+  Permissions:
+
+  Install time granted permissions:
+  com.google.android.c2dm.permission.RECEIVE
+  android.permission.USE_CREDENTIALS
+  com.google.android.providers.gsf.permission.READ_GSERVICES
+  com.google.android.youtube.permission.C2D_MESSAGE
+  android.permission.MANAGE_ACCOUNTS
+  android.permission.SYSTEM_ALERT_WINDOW
+  android.permission.NFC
+  android.permission.CHANGE_NETWORK_STATE
+  android.permission.RECEIVE_BOOT_COMPLETED
+  com.google.android.gms.permission.AD_ID_NOTIFICATION
+  android.permission.INTERNET
+  android.permission.GET_PACKAGE_SIZE
+  android.permission.ACCESS_NETWORK_STATE
+  android.permission.VIBRATE
+  android.permission.ACCESS_WIFI_STATE
+  android.permission.WAKE_LOCK
+
+  Runtime Permissions not granted and not yet requested:
+  android.permission.WRITE_EXTERNAL_STORAGE
+  android.permission.MANAGE_DOCUMENTS
+  android.permission.GET_ACCOUNTS
+  android.permission.CAMERA
+  android.permission.RECORD_AUDIO
+  android.permission.READ_CONTACTS
+  android.permission.ACCESS_FINE_LOCATION
+  android.permission.ACCESS_COARSE_LOCATION
+  android.permission.READ_PHONE_STATE
+  android.permission.SEND_SMS
+  android.permission.RECEIVE_SMS
+  com.sec.android.provider.badge.permission.READ
+  com.sec.android.provider.badge.permission.WRITE
+  com.htc.launcher.permission.READ_SETTINGS
+  com.htc.launcher.permission.UPDATE_SHORTCUT
+  com.sonyericsson.home.permission.BROADCAST_BADGE
+  com.sonymobile.home.permission.PROVIDER_INSERT_BADGE
+  android.permission.READ_EXTERNAL_STORAGE
+
+  Installer package name: None
+  ```
 
 * App backup to a tar file unlike the Android-specific .ab format
 
-	```
-	$ adbe app backup com.google.android.youtube backup.tar
-	```
+  ```
+  $ adbe app backup com.google.android.youtube backup.tar
+  ```
 
 ### Usage
+
     adbe [options] rotate (landscape | portrait | left | right)
     adbe [options] gfx (on | off | lines)
     adbe [options] overdraw (on | off | deut)
@@ -222,23 +222,23 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     -f                      For forced deletion of a file, only valid for "rm" command
     -v, --verbose           Verbose mode
     --no-python2-warn       Don't warn about Python 2 deprecation
-    
+
 ## Python3 migration timeline
 
-- Nov 27, 2017 - Code is Python3 compatible
-- Jan 18, 2018 - pip (python package manager) has the updated version which is Python3 compatible
-- Nov 15, 2018 - Python2 based installation discouraged. Python3 is recommended.
-- Dec 31, 2018 - Python2 will not be officially supported after Dec 31, 2018.
+* Nov 27, 2017 - Code is Python3 compatible
+* Jan 18, 2018 - pip (python package manager) has the updated version which is Python3 compatible
+* Nov 15, 2018 - Python2 based installation discouraged. Python3 is recommended.
+* Dec 31, 2018 - Python2 will not be officially supported after Dec 31, 2018.
 
 ## Testing
+
 ```
 python -m pytest -v tests/adbe_tests.py  # Python2 tests
 python3 -m pytest -v tests/adbe_tests.py  # Python3 tests
 ```
 
+## Release a new build
 
-## Relase a new build
 A new build can be released using [`release/release.py`](https://github.com/ashishb/adb-enhanced/blob/master/release/release.py) script. A test release can be made using `release.py test release` and a production release using `release.py production release`
 
-Note: The inspiration of this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
-
+Note: The inspiration for this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
