@@ -1,4 +1,5 @@
 import subprocess
+import sys
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
@@ -13,6 +14,10 @@ _adb_prefix = 'adb'
 _IGNORED_LINES = [
     'WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.'
 ]
+
+# This won't be required once I deprecate Python 2.
+if sys.version_info[0] >= 3:
+    unicode = str
 
 
 def get_adb_prefix():
@@ -65,7 +70,7 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
             return return_code, stdout_data, stderr_data
         # str for Python 3 and unicode for Python 2
         # unicode is undefined for Python 3
-        elif isinstance(stdout_data, str) or isinstance(stdout_data, unicode):
+        elif isinstance(stdout_data, (str, unicode)):
             output = ''
             first_line = True
             for line in stdout_data.split('\n'):
@@ -121,7 +126,7 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devic
             return stdout_data
         # str for Python 3 and unicode for Python 2
         # unicode is undefined for Python 3
-        elif isinstance(stdout_data, str) or isinstance(stdout_data, unicode):
+        elif isinstance(stdout_data, (str, unicode)):
             output = ''
             first_line = True
             for line in stdout_data.split('\n'):
@@ -137,6 +142,8 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devic
                     output += '\n' + line
             print_verbose("Result is \"%s\"" % output)
             return output
+
+    return None
 
 
 def _check_for_more_than_one_device_error(stderr_data):
