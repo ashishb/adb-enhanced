@@ -3,14 +3,15 @@
 # Python 2 and 3, print compatibility
 from __future__ import print_function
 
+import sys
+import os
+import docopt
+
 # Without this urllib.parse which is python 3 only cannot be accessed in python 2.
 from future.standard_library import install_aliases
 
 install_aliases()
 
-import docopt
-import sys
-import os
 
 # This is required only for Python 2
 # pylint: disable=import-error

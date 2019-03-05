@@ -36,6 +36,7 @@ def _is_interactive_terminal():
 
 
 # Coloring approach inspired from https://stackoverflow.com/a/287944
+# pylint: disable=too-few-public-methods
 class BashColors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'

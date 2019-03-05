@@ -348,10 +348,10 @@ def handle_list_devices():
             if 'unauthorized' in device_info:
                 device_info = ' '.join(device_info.split()[1:])
                 print_error(
-                ('Unlock Device "%s" and give USB debugging access to ' +
-                        'this PC/Laptop by unlocking and reconnecting ' +
-                        'the device. More info about this device: "%s"\n') % (
-                                device_serial, device_info))
+                    ('Unlock Device "%s" and give USB debugging access to ' +
+                     'this PC/Laptop by unlocking and reconnecting ' +
+                     'the device. More info about this device: "%s"\n') % (
+                         device_serial, device_info))
             else:
                 _print_device_info(device_serial)
 
@@ -373,8 +373,8 @@ def _print_device_info(device_serial=None):
             display_name = execute_adb_shell_settings_command('get global device_name', device_serial=device_serial)
 
     # ABI info
-    abi =  get_adb_shell_property('ro.product.cpu.abi', device_serial=device_serial)
-    release =  get_adb_shell_property('ro.build.version.release', device_serial=device_serial)
+    abi = get_adb_shell_property('ro.product.cpu.abi', device_serial=device_serial)
+    release = get_adb_shell_property('ro.build.version.release', device_serial=device_serial)
 
     release = get_adb_shell_property('ro.build.version.release', device_serial=device_serial)
     sdk = get_adb_shell_property('ro.build.version.sdk', device_serial=device_serial)
@@ -562,10 +562,7 @@ def handle_mobile_data_saver(turn_on):
 # adb shell service call activity 43 i32 1 followed by that
 def handle_dont_keep_activities_in_background(turn_on):
     # Till Api 25, the value was True/False, above API 25, 1/0 work. Source: manual testing
-    if get_device_android_api_version() <= 25:
-        use_true_false_as_value = True
-    else:
-        use_true_false_as_value = False
+    use_true_false_as_value = get_device_android_api_version() <= 25
 
     if turn_on:
         value = 'true' if use_true_false_as_value else '1'
@@ -635,7 +632,7 @@ def press_back():
 
 def open_url(url):
     # Let's not do any URL encoding for now, if required, we will add that in the future.
-    parsed_url = urlparse(url = url)
+    parsed_url = urlparse(url=url)
     if parsed_url.scheme is None or len(parsed_url.scheme) == 0:
         parsed_url2 = urlparse(url=url, scheme='http')
         url = parsed_url2.geturl()
@@ -739,6 +736,7 @@ def get_permission_group(args):
         return 'android.permission-group.SMS'
     else:
         print_error_and_exit('Unexpected permission group: %s' % args)
+        return None
 
 
 # Pass the full-qualified permission group name to this method.
@@ -748,7 +746,7 @@ def get_permissions_in_permission_group(permission_group):
     return_code, stdout, stderr = execute_adb_shell_command2(cmd)
     if return_code != 0:
         print_error_and_exit('Failed to run command %s (stdout: %s, stderr: %s)' % (cmd, stdout, stderr))
-        return
+        return None
 
     permission_output = stdout
     # Remove ungrouped permissions section completely.
@@ -772,6 +770,7 @@ def get_permissions_in_permission_group(permission_group):
                 'Permissions in %s group are %s' %
                 (permission_group, permissions))
             return permissions
+    return None
 
 
 @ensure_package_exists3
@@ -858,6 +857,7 @@ def _is_debug_package(app_name):
         return app_name, True
     else:
         print_error_and_exit('Unexpected output for %s | %s = %s' % (pm_cmd, grep_cmd, app_info_dump))
+        return None, False
 
 
 def list_allow_backup_apps():
@@ -904,6 +904,7 @@ def _is_allow_backup_package(app_name):
         return app_name, True
     else:
         print_error_and_exit('Unexpected output for %s | %s = %s' % (pm_cmd, grep_cmd, app_info_dump))
+        return None, False
 
 
 # Source: https://developer.android.com/reference/android/app/usage/UsageStatsManager#STANDBY_BUCKET_ACTIVE
@@ -1215,9 +1216,9 @@ def _get_permissions_info_above_api_23(app_info_dump):
             runtime_denied_permissions.append(permission)
     runtime_not_granted_permissions = list(filter(
         lambda p: p not in runtime_granted_permissions and
-                  p not in runtime_denied_permissions and
-                  p not in install_time_granted_permissions and
-                  p not in install_time_denied_permissions, requested_permissions))
+        p not in runtime_denied_permissions and
+        p not in install_time_granted_permissions and
+        p not in install_time_denied_permissions, requested_permissions))
 
     permissions_info_msg = ''
     permissions_info_msg += '\nPermissions:\n\n'
@@ -1270,7 +1271,7 @@ def print_app_signature(app_name):
         apk_signer_jar_path = os.path.join(dir_of_this_script, 'apksigner.jar')
         if not os.path.exists(apk_signer_jar_path):
             print_error_and_exit('apksigner.jar is missing, your adb-enhanced installation is corrupted')
-            
+
         print_signature_cmd = 'java -jar %s verify --print-certs %s' % (apk_signer_jar_path, tmp_apk_file_name)
         print_verbose('Executing command %s' % print_signature_cmd)
         ps1 = subprocess.Popen(print_signature_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
