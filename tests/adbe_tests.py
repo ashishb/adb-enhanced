@@ -27,6 +27,7 @@ def test_binary(testpythoninstallation):
     if testpythoninstallation:
         _TEST_PYTHON_INSTALLATION = True
 
+
 def test_rotate():
     if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
         check = _assert_success
@@ -258,6 +259,17 @@ def test_file_move2():
     _assert_fail('pull %s' % tmp_file1)
     _assert_success('pull %s' % tmp_file2)
 
+
+def test_file_move3():
+    tmp_file1 = '/data/local/tmp/development.xml'
+    tmp_file2 = '/data/data/com.android.contacts/development.xml'
+    ps = subprocess.Popen('adb shell touch %s' % tmp_file1,
+                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = ps.communicate()
+    assert ps.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
+    _assert_success('mv %s %s' % (tmp_file1, tmp_file2))
+    _assert_fail('pull %s' % tmp_file1)
+    _assert_success('pull %s' % tmp_file2)
 
 def test_list_devices():
     _assert_success('devices')

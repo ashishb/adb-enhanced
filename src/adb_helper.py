@@ -15,6 +15,9 @@ _IGNORED_LINES = [
     'WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.'
 ]
 
+# Below version 24, if an adb shell command fails, then it still has an incorrect exit code of 0.
+_MIN_VERSION_ABOVE_WHICH_ADB_SHELL_RETURNS_CORRECT_EXIT_CODE = 24
+
 # This won't be required once I deprecate Python 2.
 if sys.version_info[0] >= 3:
     unicode = str
@@ -90,10 +93,44 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
         return return_code, None, stderr_data
 
 
-# Deprecated
 def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
     _, stdout, _ = execute_adb_command2(
         'shell %s' % adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
+    return stdout
+
+
+def execute_file_related_adb_shell_command(adb_shell_cmd, file_path, piped_into_cmd=None, ignore_stderr=False,
+                                           device_serial=None):
+    file_not_found_message = 'No such file or directory'
+    is_a_directory_message = 'Is a directory'  # Error when someone tries to delete a dir with "-r"
+
+    adb_cmds_prefix = []
+    run_as_package = get_package(file_path)
+    if run_as_package:
+        adb_cmds_prefix.append('shell run-as %s' % run_as_package)
+    if root_required_to_access_file(file_path):
+        adb_cmds_prefix.append('shell su root')
+    # As a backup, still try with a plain-old access, if run-as is not possible and root is not available.
+    adb_cmds_prefix.append('shell')
+
+    stdout = None
+    for adb_cmd_prefix in adb_cmds_prefix:
+        adb_cmd = '%s %s' % (adb_cmd_prefix, adb_shell_cmd)
+        return_code, stdout, stderr = execute_adb_command2(adb_cmd, piped_into_cmd, ignore_stderr,
+                                                           device_serial=device_serial)
+
+        if stderr.find(file_not_found_message) >= 0:
+            print_error('File not found: %s' % file_path)
+            return stderr
+        if stderr.find(is_a_directory_message) >= 0:
+            print_error('%s is a directory' % file_path)
+            return stderr
+
+        api_version = get_device_android_api_version()
+        #
+        if api_version >= _MIN_VERSION_ABOVE_WHICH_ADB_SHELL_RETURNS_CORRECT_EXIT_CODE and return_code == 0:
+            return stdout
+
     return stdout
 
 
@@ -144,6 +181,34 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devic
             return output
 
     return None
+
+
+# Gets the package name given a file path.
+# Eg. if the file is in /data/data/com.foo/.../file1 then package is com.foo
+# Limitation: Does not work with the new multi-user mode on Android.
+def get_package(file_path):
+    if file_path and file_path.startswith('/data/data/'):
+        run_as_package = file_path.split('/')[3]
+        return run_as_package
+    return None
+
+
+# adb shell getprop ro.build.version.sdk
+def get_device_android_api_version(device_serial=None):
+    version_string = get_adb_shell_property('ro.build.version.sdk', device_serial=device_serial)
+    if version_string is None:
+        print_error_and_exit('Unable to get Android device version, is it still connected?')
+    return int(version_string)
+
+
+def root_required_to_access_file(remote_file_path):
+    if not remote_file_path:
+        return False
+    elif remote_file_path.startswith('/data/local/tmp'):
+        return False
+    elif remote_file_path.startswith('/sdcard'):
+        return False
+    return True
 
 
 def _check_for_more_than_one_device_error(stderr_data):
