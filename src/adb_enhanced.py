@@ -34,11 +34,15 @@ else:
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
-    from adbe.adb_helper import get_adb_shell_property, execute_adb_command2, execute_adb_shell_command, execute_adb_shell_command2
+    from adbe.adb_helper import (get_adb_shell_property, execute_adb_command2, execute_adb_shell_command,
+                                 execute_adb_shell_command2, execute_file_related_adb_shell_command, get_package,
+                                 root_required_to_access_file, get_device_android_api_version)
     from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
 except ImportError:
     # This works when the code is executed directly.
-    from adb_helper import get_adb_shell_property, execute_adb_command2, execute_adb_shell_command, execute_adb_shell_command2
+    from adb_helper import (get_adb_shell_property, execute_adb_command2, execute_adb_shell_command,
+                            execute_adb_shell_command2, execute_file_related_adb_shell_command, get_package,
+                            root_required_to_access_file, get_device_android_api_version)
     from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
@@ -194,7 +198,9 @@ def handle_airplane(turn_on):
 
     # At some version, this became a protected intent, so, it might require root to succeed.
     broadcast_change_cmd = 'am broadcast -a android.intent.action.AIRPLANE_MODE'
-    broadcast_change_cmd = _may_be_wrap_with_run_as(broadcast_change_cmd, '')
+    # This is a protected intent which would require root to run
+    # https://developer.android.com/reference/android/content/Intent.html#ACTION_AIRPLANE_MODE_CHANGED
+    broadcast_change_cmd = 'su root %s' % broadcast_change_cmd
     execute_adb_shell_settings_command2(cmd)
     return_code, _, _ = execute_adb_shell_command2(broadcast_change_cmd)
     if return_code != 0:
@@ -702,11 +708,8 @@ def _create_tmp_file(filename_prefix=None, filename_suffix=None):
 
 # Returns true if the file_path exists on the device, false if it does not exists or is inaccessible.
 def _file_exists(file_path):
-    exists_cmd = "ls %s 1>/dev/null 2>/dev/null && echo exists" % file_path
-    # The second command "echo exists" will not be wrapped with run-as but that's OK in this case.
-    # Since it is perfectly fine to output "exists" as a shell user.
-    exists_cmd = _may_be_wrap_with_run_as(exists_cmd, file_path)
-    _, stdout, _ = execute_adb_shell_command2(exists_cmd)
+    exists_cmd = "\"ls %s 1>/dev/null 2>/dev/null && echo exists\"" % file_path
+    stdout = execute_file_related_adb_shell_command(exists_cmd, file_path)
     return stdout is not None and stdout.find('exists') != -1
 
 
@@ -969,8 +972,7 @@ def list_directory(file_path, long_format, recursive, include_hidden_files):
     if include_hidden_files:
         cmd_prefix += ' -a'
     cmd = '%s %s' % (cmd_prefix, file_path)
-    cmd = _may_be_wrap_with_run_as(cmd, file_path)
-    print_message(execute_adb_shell_command(cmd))
+    print_message(execute_file_related_adb_shell_command(cmd, file_path))
 
 
 def delete_file(file_path, force, recursive):
@@ -980,8 +982,7 @@ def delete_file(file_path, force, recursive):
     if recursive:
         cmd_prefix += ' -r'
     cmd = '%s %s' % (cmd_prefix, file_path)
-    cmd = _may_be_wrap_with_run_as(cmd, file_path)
-    print_message(execute_adb_shell_command(cmd))
+    print_message(execute_file_related_adb_shell_command(cmd, file_path))
 
 
 # Limitation: This command will only do run-as for the src file so, if a file is being copied from pkg1 to pkg2
@@ -992,8 +993,19 @@ def move_file(src_path, dest_path, force):
     if force:
         cmd_prefix += '-f'
     cmd = '%s %s %s' % (cmd_prefix, src_path, dest_path)
-    cmd = _may_be_wrap_with_run_as(cmd, src_path)
-    print_message(execute_adb_shell_command(cmd))
+    if get_package(src_path) and get_package(dest_path) and get_package(src_path) != get_package(dest_path):
+        print_error_and_exit('Cannot copy a file from one package into another, copy it via /data/local/tmp instead')
+        return
+
+    file_path = None
+    if get_package(src_path):
+        file_path = src_path
+    elif get_package(dest_path):
+        file_path = dest_path
+    move_stdout = execute_file_related_adb_shell_command(cmd, file_path)
+    if move_stdout:
+        print_message(move_stdout)
+    print_verbose('Moved "%s" to "%s"' % (src_path, dest_path))
 
 
 # Copies from remote_file_path on Android to local_file_path on the disk
@@ -1006,25 +1018,30 @@ def pull_file(remote_file_path, local_file_path, copy_ancillary=False):
         local_file_path = remote_file_path.split('/')[-1]
         print_verbose('Local file path not provided, using \"%s\" for that' % local_file_path)
 
-    tmp_file = _create_tmp_file()
-    cp_cmd = 'cp -r %s %s' % (remote_file_path, tmp_file)
-    wrapped_cp_cmd = _may_be_wrap_with_run_as(cp_cmd, remote_file_path)
-    if cp_cmd == wrapped_cp_cmd:
-        # cp command is not required at all, if copying it is not required.
+    remote_file_path_package = get_package(remote_file_path)
+    if remote_file_path_package is None and not root_required_to_access_file(remote_file_path):
+        print_verbose('File %s is not inside a package, no temporary file required' % remote_file_path_package)
         pull_cmd = 'pull %s %s' % (remote_file_path, local_file_path)
         execute_adb_command2(pull_cmd)
     else:
         # First copy the files to sdcard, then pull them out, and then delete them from sdcard.
-        execute_adb_shell_command(wrapped_cp_cmd)
+        tmp_file = _create_tmp_file()
+        cp_cmd = 'cp -r %s %s' % (remote_file_path, tmp_file)
+        execute_file_related_adb_shell_command(cp_cmd, remote_file_path)
         pull_cmd = 'pull %s %s' % (tmp_file, local_file_path)
         execute_adb_command2(pull_cmd)
         del_cmd = 'rm -r %s' % tmp_file
         execute_adb_shell_command(del_cmd)
 
-    print_message('Copying remote file \"%s\" to local file \"%s\" (Size: %d bytes)' % (
-        remote_file_path,
-        local_file_path,
-        os.path.getsize(local_file_path)))
+    if os.path.exists(local_file_path):
+        print_message('Copied remote file \"%s\" to local file \"%s\" (Size: %d bytes)' % (
+            remote_file_path,
+            local_file_path,
+            os.path.getsize(local_file_path)))
+    else:
+        print_error_and_exit('Failed to copy remote file \"%s\" to local file \"%s\"' % (
+            remote_file_path,
+            local_file_path))
 
     if _is_sqlite_database(remote_file_path):
         # Copy temporary Sqlite files
@@ -1041,6 +1058,8 @@ def pull_file(remote_file_path, local_file_path, copy_ancillary=False):
                                'https://ashishb.net/all/android-the-right-way-to-pull-sqlite-database-from-the-device/'))
 
 
+# Limitation: It seems that pushing to a directory on some versions of Android fail silently.
+# It is safer to push to a full path containing the filename.
 def push_file(local_file_path, remote_file_path):
     if not os.path.exists(local_file_path):
         print_error_and_exit('Local file %s does not exist' % local_file_path)
@@ -1052,44 +1071,25 @@ def push_file(local_file_path, remote_file_path):
     push_cmd = 'push %s %s' % (local_file_path, tmp_file)
     # "mv" from /data/local/tmp with run-as <app_id> does not always work even when the underlying
     # dir has mode set to 777. Therefore, do a two-step cp and rm.
-    mv_cmd = 'cp %s %s' % (tmp_file, remote_file_path)
-    mv_cmd = _may_be_wrap_with_run_as(mv_cmd, remote_file_path)
+    cp_cmd = 'cp %s %s' % (tmp_file, remote_file_path)
     rm_cmd = 'rm %s' % tmp_file
-    execute_adb_shell_command(rm_cmd)
 
     return_code, _, stderr = execute_adb_command2(push_cmd)
     if return_code != 0:
         print_error_and_exit('Failed to push file, error: %s' % stderr)
         return
 
-    execute_adb_shell_command(mv_cmd)
+    execute_file_related_adb_shell_command(cp_cmd, remote_file_path)
+    execute_adb_shell_command(rm_cmd)
 
 
 def cat_file(file_path):
     cmd_prefix = 'cat'
     cmd = '%s %s' % (cmd_prefix, file_path)
-    cmd = _may_be_wrap_with_run_as(cmd, file_path)
-    print_message(execute_adb_shell_command(cmd))
-
-
-def _may_be_wrap_with_run_as(cmd, file_path):
-    if file_path.startswith('/data/data/'):
-        run_as_package = file_path.split('/')[3]
-        if run_as_package is not None and len(run_as_package.strip()) > 0:
-            print_verbose('Running as package: %s' % run_as_package)
-            cmd_with_run_as = 'run-as %s %s ' % (run_as_package, _escape_quotes(cmd))
-            cmd_with_su = 'su root %s ' % _escape_quotes(cmd)
-            # First try with run-as and if that fails, try with su , and if that fails, try directly.
-            return '\" %s 2>/dev/null || %s 2>/dev/null || %s \"' % (
-                cmd_with_run_as, cmd_with_su, cmd)
-
-    # Try with su as well.
-    cmd_with_su = 'su root %s' % _escape_quotes(cmd)
-    return '\"  %s 2>/dev/null ||  %s\"' % (cmd_with_su, cmd)
-
-
-def _escape_quotes(cmd):
-    return cmd.replace('\'', '\\\'').replace('\"', '\\\"')
+    cat_stdout = execute_file_related_adb_shell_command(cmd, file_path)
+    # Don't print "None" for an empty file
+    if cat_stdout:
+        print_message(execute_file_related_adb_shell_command(cmd, file_path))
 
 
 # Source: https://stackoverflow.com/a/25398877
@@ -1407,14 +1407,6 @@ def _error_if_min_version_less_than(min_acceptable_version, device_serial=None):
         print_error_and_exit(
             '\"%s\" can only be executed on API %d and above, your device version is %d' %
             (cmd, min_acceptable_version, api_version))
-
-
-# adb shell getprop ro.build.version.sdk
-def get_device_android_api_version(device_serial=None):
-    version_string = get_adb_shell_property('ro.build.version.sdk', device_serial=device_serial)
-    if version_string is None:
-        print_error_and_exit('Unable to get Android device version, is it still connected?')
-    return int(version_string)
 
 
 def _is_emulator():
