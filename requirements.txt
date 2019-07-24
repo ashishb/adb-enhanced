@@ -2,4 +2,4 @@ asyncio
 docopt
 future
 psutil
-pytest
+pytest==4.6.4
