@@ -232,7 +232,7 @@ matrix:
         # Python setup
         - cp README.md release
         - cp -r src/* release/adbe/
-        - sudo pip3 install pytest
+        - sudo pip3 install pytest==4.6.4
         - sudo python3 -m pip install --upgrade pip
         - sudo python3 -m pip install -e release
         # Immediate test
