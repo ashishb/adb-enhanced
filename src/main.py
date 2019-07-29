@@ -15,18 +15,17 @@ install_aliases()
 
 # This is required only for Python 2
 # pylint: disable=import-error
-
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
     from adbe import adb_enhanced
     from adbe import adb_helper
-    from adbe.output_helper import print_error, print_error_and_exit, set_verbose
+    from adbe.output_helper import print_error, print_error_and_exit, print_message, set_verbose
 except ImportError:
     # This works when the code is executed directly.
     import adb_enhanced
     import adb_helper
-    from output_helper import print_error, print_error_and_exit, set_verbose
+    from output_helper import print_error, print_error_and_exit, print_message, set_verbose
 
 # List of things which this enhanced adb tool does as of today.
 USAGE_STRING = """
@@ -166,7 +165,11 @@ def main():
 
     # battery
     elif args['battery'] and args['saver']:
+        current_state = adb_enhanced.get_battery_saver_state()
         adb_enhanced.handle_battery_saver(args['on'])
+        new_state = adb_enhanced.get_battery_saver_state()
+        print_state_change_info('Battery saver', current_state, new_state)
+
     elif args['battery'] and args['level']:
         adb_enhanced.handle_battery_level(int(args['<percentage>']))
     elif args['battery'] and args['reset']:
@@ -191,9 +194,16 @@ def main():
 
     # mobile-data
     elif args['mobile-data'] and args['saver']:
+        current_state = adb_enhanced.get_mobile_data_saver_state()
         adb_enhanced.handle_mobile_data_saver(args['on'])
+        new_state = adb_enhanced.get_mobile_data_saver_state()
+        print_state_change_info('Mobile data saver', current_state, new_state)
+
     elif args['mobile-data']:
+        current_state = adb_enhanced.get_mobile_data_state()
         adb_enhanced.handle_mobile_data(args['on'])
+        new_state = adb_enhanced.get_mobile_data_state()
+        print_state_change_info('Mobile data', current_state, new_state)
 
     elif args['rtl']: # This is not working as expected
         adb_enhanced.force_rtl(args['on'])
@@ -202,14 +212,26 @@ def main():
     elif args['screenrecord']:
         adb_enhanced.dump_screenrecord(args['<filename.mp4>'])
     elif args['dont-keep-activities']:
+        current_state = adb_enhanced.get_dont_keep_activities_in_background_state()
         adb_enhanced.handle_dont_keep_activities_in_background(args['on'])
+        new_state = adb_enhanced.get_dont_keep_activities_in_background_state()
+        print_state_change_info('Don\'t keep activities', current_state, new_state)
+
     elif args['animations']:
         adb_enhanced.toggle_animations(args['on'])
     elif args['show-taps']:
+        current_state = adb_enhanced.get_show_taps_state()
         adb_enhanced.toggle_show_taps(args['on'])
+        new_state = adb_enhanced.get_show_taps_state()
+        print_state_change_info('Show user taps', current_state, new_state)
+
     elif args['stay-awake-while-charging']:
+        current_state = adb_enhanced.get_stay_awake_while_charging_state()
         # Keep screen on while the device is charging.
         adb_enhanced.stay_awake_while_charging(args['on'])
+        new_state = adb_enhanced.get_stay_awake_while_charging_state()
+        print_state_change_info('Stay awake while charging', current_state, new_state)
+
     elif args['input-text']:
         adb_enhanced.input_text(args['<text>'])
     elif args['back']:
@@ -309,6 +331,13 @@ def main():
         adb_enhanced.perform_uninstall(args['<app_name>'])
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
+
+
+def print_state_change_info(state_name, old_state, new_state):
+    if old_state != new_state:
+        print_message('\"%s\" state changed from "%s" -> "%s"' % (state_name, old_state, new_state))
+    else:
+        print_message('\"%s\" state unchanged (%s)' % (state_name, old_state))
 
 
 def validate_options(args):
