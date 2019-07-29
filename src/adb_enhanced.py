@@ -49,6 +49,15 @@ except ImportError:
 _KEYCODE_BACK = 4
 _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 
+# Value to be return as 'on' to the user
+_USER_PRINT_VALUE_ON = 'on'
+# Value to be return as 'partially on' to the user
+_USER_PRINT_VALUE_PARTIALLY_ON = 'partially on'
+# Value to be return as 'off' to the user
+_USER_PRINT_VALUE_OFF = 'off'
+# Value to be return as 'unknown' to the user
+_USER_PRINT_VALUE_UNKNOWN = 'unknown'
+
 
 def _ensure_package_exists(package_name):
     """
@@ -207,6 +216,28 @@ def handle_airplane(turn_on):
         print_error_and_exit('Failed to change airplane mode')
     else:
         print_message('Airplane mode changed successfully')
+
+
+def get_battery_saver_state():
+    _error_if_min_version_less_than(19)
+    cmd = 'get global low_power'
+    return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
+    if return_code != 0:
+        print_error('Failed to get battery saver state')
+        return _USER_PRINT_VALUE_UNKNOWN
+    if stdout.strip() == 'null':
+        return _USER_PRINT_VALUE_OFF
+
+    state = 0
+    try:
+        state = int(stdout.strip())
+    except ValueError:
+        print_error('Unable to get int value from "%s"' % stdout.strip())
+        return _USER_PRINT_VALUE_UNKNOWN
+    if state == 0:
+        return _USER_PRINT_VALUE_OFF
+    else:
+        return _USER_PRINT_VALUE_ON
 
 
 # Source:
@@ -459,6 +490,23 @@ def clear_disk_data(app_name):
         print_error_and_exit('Failed to clear data of \"%s\"' % app_name)
 
 
+def get_mobile_data_state():
+    # Using "adb shell dumpsys telephony.registry | ag mDataConnectionState"
+    cmd = 'dumpsys telephony.registry'
+    return_code, stdout, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error('Failed to get mobile data setting')
+        return _USER_PRINT_VALUE_UNKNOWN
+    m = re.search(r'mDataConnectionState=(\d+)', stdout)
+    if not m:
+        print_error('Failed to get mobile data setting from "%s"' % stdout)
+        return _USER_PRINT_VALUE_UNKNOWN
+    if int(m.group(1)) == 0:
+        return _USER_PRINT_VALUE_OFF
+    else:
+        return _USER_PRINT_VALUE_ON
+
+
 # Source:
 # https://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later
 def handle_mobile_data(turn_on):
@@ -551,6 +599,19 @@ def dump_screenrecord(filepath):
     _start_recording()
 
 
+def get_mobile_data_saver_state():
+    cmd = 'cmd netpolicy get restrict-background'
+    return_code, stdout, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error('Failed to get mobile data saver mode setting')
+        return _USER_PRINT_VALUE_UNKNOWN
+    enabled = stdout.strip().find('enabled') != -1
+    if enabled:
+        return _USER_PRINT_VALUE_ON
+    else:
+        return _USER_PRINT_VALUE_OFF
+
+
 # https://developer.android.com/training/basics/network-ops/data-saver.html
 def handle_mobile_data_saver(turn_on):
     if turn_on:
@@ -560,6 +621,23 @@ def handle_mobile_data_saver(turn_on):
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
         print_error_and_exit('Failed to modify data saver mode setting')
+
+
+def get_dont_keep_activities_in_background_state():
+    cmd = 'get global always_finish_activities'
+    return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
+    if return_code != 0:
+        print_error('Failed to get don\'t keep activities in the background setting')
+        return _USER_PRINT_VALUE_UNKNOWN
+
+    if stdout.strip() == 'null':
+        return _USER_PRINT_VALUE_OFF
+
+    enabled = int(stdout.strip()) != 0
+    if enabled:
+        return _USER_PRINT_VALUE_ON
+    else:
+        return _USER_PRINT_VALUE_OFF
 
 
 # Ref: https://github.com/android/platform_packages_apps_settings/blob/4ce19f5c4fd40f3bedc41d3fbcbdede8b2614501/src/com/android/settings/DevelopmentSettings.java#L2123
@@ -598,6 +676,19 @@ def toggle_animations(turn_on):
     execute_adb_shell_settings_command(cmd3)
 
 
+def get_show_taps_state():
+    cmd = 'get system show_touches'
+    return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
+    if return_code != 0:
+        print_error('Failed to get current state of "show user taps" setting')
+        return _USER_PRINT_VALUE_UNKNOWN
+
+    if int(stdout.strip()) == 1:
+        return _USER_PRINT_VALUE_ON
+    else:
+        return _USER_PRINT_VALUE_OFF
+
+
 def toggle_show_taps(turn_on):
     if turn_on:
         value = 1
@@ -607,6 +698,21 @@ def toggle_show_taps(turn_on):
     # Source: https://stackoverflow.com/a/32621809/434196
     cmd = 'put system show_touches %d' % value
     execute_adb_shell_settings_command(cmd)
+
+
+def get_stay_awake_while_charging_state():
+    cmd = 'get global stay_on_while_plugged_in'
+    return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
+    if return_code != 0:
+        print_error('Failed to get "stay awake while plugged in" in the background setting')
+        return _USER_PRINT_VALUE_UNKNOWN
+    value = int(stdout.strip())
+    if value == 0:
+        return _USER_PRINT_VALUE_OFF
+    elif value == 7:
+        return _USER_PRINT_VALUE_ON
+    else:
+        return _USER_PRINT_VALUE_PARTIALLY_ON
 
 
 # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#STAY_ON_WHILE_PLUGGED_IN
@@ -926,10 +1032,10 @@ def get_standby_bucket(package_name):
     cmd = 'am get-standby-bucket %s' % package_name
     result = execute_adb_shell_command(cmd)
     if result is None:
-        print_error_and_exit('Unknown')
+        print_error_and_exit(_USER_PRINT_VALUE_UNKNOWN)
     print_verbose('App standby bucket for \"%s\" is %s' %(
-        package_name, _APP_STANDBY_BUCKETS.get(int(result), 'unknown')))
-    print(_APP_STANDBY_BUCKETS.get(int(result), 'unknown'))
+        package_name, _APP_STANDBY_BUCKETS.get(int(result), _USER_PRINT_VALUE_UNKNOWN)))
+    print(_APP_STANDBY_BUCKETS.get(int(result), _USER_PRINT_VALUE_UNKNOWN))
 
 
 @ensure_package_exists2
