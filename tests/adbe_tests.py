@@ -1,4 +1,5 @@
 import re
+import pytest
 import subprocess
 import sys
 import os
@@ -163,35 +164,60 @@ def test_apps():
     _assert_success('apps list backup-enabled')
 
 
-def test_app_start_related_cmds():
+def test_app_start_and_jank():
     _assert_success('start %s' % _TEST_APP_ID)
     # Jank requires app to be running.
     _assert_success('jank %s' % _TEST_APP_ID)
-    _assert_success('stop %s' % _TEST_APP_ID)
-    _assert_success('restart %s' % _TEST_APP_ID)
-    _assert_success('force-stop %s' % _TEST_APP_ID)
-    _assert_success('clear-data %s' % _TEST_APP_ID)
-
-    # All commands should fail for non-existant app
+    # Command should fail for non-existant app
     _assert_fail('start %s' % _TEST_NON_EXISTANT_APP_ID)
     _assert_fail('jank %s' % _TEST_NON_EXISTANT_APP_ID)
+
+
+def test_app_stop():
+    _assert_success('stop %s' % _TEST_APP_ID)
+    # Command should fail for non-existant app
     _assert_fail('stop %s' % _TEST_NON_EXISTANT_APP_ID)
+
+
+def test_app_restart():
+    _assert_success('restart %s' % _TEST_APP_ID)
+    # Command should fail for non-existant app
     _assert_fail('restart %s' % _TEST_NON_EXISTANT_APP_ID)
+
+
+def test_app_force_stop():
+    _assert_success('force-stop %s' % _TEST_APP_ID)
+    # Command should fail for non-existant app
     _assert_fail('force-stop %s' % _TEST_NON_EXISTANT_APP_ID)
+
+
+def test_app_clear_data():
+    _assert_success('clear-data %s' % _TEST_APP_ID)
+    # Command should fail for non-existant app
     _assert_fail('clear-data %s' % _TEST_NON_EXISTANT_APP_ID)
 
 
-def test_app_info_related_cmds():
+@pytest.mark.skip("This fails on both Circle CI and Travis CI")
+def test_app_backup_command():
+    _assert_success('app backup %s %s-backup.tar' % (_TEST_APP_ID, _TEST_APP_ID))
+
+
+def test_app_info_cmd():
     _assert_success('app info %s' % _TEST_APP_ID)
+    # Command should fail for non-existant app
+    _assert_fail('app info %s' % _TEST_NON_EXISTANT_APP_ID)
+
+
+def test_app_signature_cmd():
     _assert_success('app signature %s' % _TEST_APP_ID)
-    # This fails on both Circle CI and Travis
-    # _assert_success('app backup %s %s-backup.tar' % (_TEST_APP_ID, _TEST_APP_ID))
+    # Command should fail for non-existant app
+    _assert_fail('app signature %s' % _TEST_NON_EXISTANT_APP_ID)
+
+
+def test_app_path_cmd():
     app_path, _ = _assert_success('app path %s' % _TEST_APP_ID)
     print('app path is %s' % app_path)
-
-    # All commands should fail for non-existant app
-    _assert_fail('app info %s' % _TEST_NON_EXISTANT_APP_ID)
-    _assert_fail('app signature %s' % _TEST_NON_EXISTANT_APP_ID)
+    # Command should fail for non-existant app
     _assert_fail('app path %s' % _TEST_NON_EXISTANT_APP_ID)
 
 
@@ -270,6 +296,7 @@ def test_file_move3():
     _assert_success('mv %s %s' % (tmp_file1, tmp_file2))
     _assert_fail('pull %s' % tmp_file1)
     _assert_success('pull %s' % tmp_file2)
+
 
 def test_list_devices():
     _assert_success('devices')
@@ -392,8 +419,18 @@ def main():
     test_permissions_list()
     test_permissions_grant_revoke()
     test_apps()
-    test_app_start_related_cmds()
-    test_app_info_related_cmds()
+    test_app_start_and_jank()
+    test_app_stop()
+    test_app_restart()
+    test_app_force_stop()
+    test_app_clear_data()
+    test_app_info_cmd()
+    test_app_signature_cmd()
+    test_app_path_cmd()
+
+    # does not work on CircleCI or Travis CI
+    # test_app_backup_command()
+
     test_file_delete()
     test_file_move1()
     test_file_move2()
