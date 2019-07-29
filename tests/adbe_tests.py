@@ -13,7 +13,7 @@ _RUNTIME_PERMISSIONS_SUPPORTED = 23
 
 _PYTHON_CMD = 'python'
 if sys.version_info >= (3, 0):
-    _PYTHON_CMD = 'python3'
+    _PYTHON_CMD = 'python%d.%d' % (sys.version_info.major, sys.version_info.minor)
 
 _TEST_APP_ID = 'com.android.phone'
 _TEST_NON_EXISTANT_APP_ID = 'com.android.nonexistant'

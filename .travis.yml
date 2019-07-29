@@ -16,7 +16,6 @@ matrix:
       python:
         - "2.7"
       install:
-        # sudo not required here
         - pip install -r requirements.txt
         - pip install pylint
       script:
@@ -57,7 +56,7 @@ matrix:
     # https://stackoverflow.com/a/28751112/434196
     - name: Test Python 2.7 and Android API 16
       language: android  # Python 2 testing
-      sudo: required  # For pip installation, otherwise, pip install fails.
+      sudo: false
       jdk: oraclejdk8
       env:
         global:
@@ -78,8 +77,7 @@ matrix:
           # Specify at least one system image
           - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
       before_script:
-        # Python setup - for some weird reason, sudo is required here
-        - sudo pip install -r requirements.txt
+        - pip install --user -r requirements.txt
         # Android setup
         - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
         # -noaudio is not supported by this version of the emulator
@@ -92,7 +90,7 @@ matrix:
     # Source: https://stackoverflow.com/a/28751112/434196
     - name: Test Python 3 and Android API 16
       language: android
-      sudo: required  # For pip installation, otherwise, pip install fails.
+      sudo: false
       jdk: oraclejdk8
       env:
         global:
@@ -113,32 +111,39 @@ matrix:
           # Specify at least one system image
           - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
       before_script:
-        # Python setup - for some weird reason, sudo is required here
-        - sudo pip3 install -r requirements.txt
+        - set -eo pipefail
+        # Ensure python3.5 is installed
+        - python3.5 --version
+        - python3.5 -m pip install --user --upgrade pip
+        - python3.5 -m pip install --user setuptools
         # Android setup
         - echo no | android create avd --force -n test -t android-$ANDROID_EMU_API_LEVEL --abi google_apis/$ANDROID_ABI
         # -noaudio is not supported by this version of the emulator
         - emulator -avd test -no-window -no-boot-anim &
-        - android-wait-for-emulator
       script:
-        - python3 -m pytest -v tests/adbe_tests.py  --durations=0
+        - python3.5 -m pip install --user -r requirements.txt
+        - android-wait-for-emulator
+        - python3.5 -m pytest -v tests/adbe_tests.py  --durations=0
       # Default installation is python 2. Let's force python3 and test the code against it.
       # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
       addons:
         apt:
+          # Required to install Python 3.5
+          update: true
           sources:
             - deadsnakes
           packages:
             # Highest available version whitelisted at
             # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
             - python3.5
+            - python3.5-dev
             - python3-pip
 
     # Source: https://medium.com/@harmittaa/travis-ci-android-example-357f6e632fc4
     # Source: https://stackoverflow.com/a/28751112/434196
     - name: Test Python 3 and Android API 24
       language: android
-      sudo: required  # For pip installation, otherwise, pip install fails.
+      sudo: false
       jdk: oraclejdk8
       # https://docs.travis-ci.com/user/languages/android/#caching
       cache:
@@ -178,8 +183,11 @@ matrix:
         - echo y | $HOME/android-sdk/tools/bin/sdkmanager "system-images;android-$ANDROID_EMU_API_LEVEL;default;$ANDROID_ABI" > /dev/null
 
       before_script:
-        # Python setup - for some weird reason, sudo is required here
-        - sudo pip3 install -r requirements.txt
+        - set -eo pipefail
+        # Ensure python3.5 is installed
+        - python3.5 --version
+        - python3.5 -m pip install --user --upgrade pip
+        - python3.5 -m pip install --user setuptools
         # Android setup
         - echo no | $HOME/android-sdk/tools/bin/avdmanager create avd --force -n test --tag default --abi $ANDROID_ABI --package "system-images;android-$ANDROID_API_LEVEL;default;$ANDROID_ABI"
         - ls -al $HOME
@@ -188,27 +196,31 @@ matrix:
         - alias emulator=$HOME/android-sdk/tools/emulator
         # -noaudio is not supported by this version of the emulator
         - emulator -avd test -no-window -no-boot-anim &
-        - android-wait-for-emulator
       script:
-        - python3 -m pytest -v tests/adbe_tests.py --durations=0
+        - python3.5 -m pip install --user -r requirements.txt
+        - android-wait-for-emulator
+        - python3.5 -m pytest -v tests/adbe_tests.py --durations=0
         # We can even run only these two tests which are not triggered below API 23
-        # - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_permissions_grant_revoke
-        # - python3 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_doze
+        # - python3.5 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_permissions_grant_revoke
+        # - python3.5 -m pytest -v tests/adbe_tests.py  --durations=0 -k test_doze
       # Default installation is python 2. Let's force python3 and test the code against it.
       # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
       addons:
         apt:
+          # Required to install Python 3.5
+          update: true
           sources:
             - deadsnakes
           packages:
             # Highest available version whitelisted at
             # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
             - python3.5
+            - python3.5-dev
             - python3-pip
 
     - name: Test installation with Python 3 and Android API 16
       language: android
-      sudo: required  # For pip installation, otherwise, pip install fails.
+      sudo: false
       jdk: oraclejdk8
       env:
         global:
@@ -229,12 +241,14 @@ matrix:
           # Specify at least one system image
           - sys-img-$ANDROID_ABI-google_apis-$ANDROID_EMU_API_LEVEL
       before_script:
-        # Python setup
+        # Ensure python3.5 is installed
+        - python3.5 --version
+        - python3.5 -m pip install --user --upgrade pip
+        - python3.5 -m pip install --user setuptools
         - cp README.md release
         - cp -r src/* release/adbe/
-        - sudo pip3 install pytest==4.6.4
-        - sudo python3 -m pip install --upgrade pip
-        - sudo python3 -m pip install -e release
+        - pip3.5 install --user pytest
+        - python3.5 -m pip install --user -e release
         # Immediate test
         - adbe --version
         # Android setup
@@ -243,17 +257,20 @@ matrix:
         - emulator -avd test -no-window -no-boot-anim &
         - android-wait-for-emulator
       script:
-        - python3 -m pytest -v tests/adbe_tests.py  --durations=0 --testpythoninstallation true
+        - python3.5 -m pytest -v tests/adbe_tests.py  --durations=0 --testpythoninstallation true
       # Default installation is python 2. Let's force python3 and test the code against it.
       # Source: https://github.com/crate/crate/blob/0.56/.travis.yml
       addons:
         apt:
+        # Required to install Python 3.5
+          update: true
           sources:
             - deadsnakes
           packages:
             # Highest available version whitelisted at
             # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
             - python3.5
+            - python3.5-dev
             - python3-pip
 
 # Good .travis.yml files to learn from
