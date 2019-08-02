@@ -1,0 +1,65 @@
+# Documentation for this file
+# https://github.com/palantir/bulldozer#configuration
+
+# "version" is the configuration version, currently "1".
+version: 1
+
+# "merge" defines how and when pull requests are merged. If the section is
+# missing, bulldozer will consider all pull requests and use default settings.
+merge:
+  # "whitelist" defines the set of pull requests considered by bulldozer. If
+  # the section is missing, bulldozer considers all pull requests not excluded
+  # by the blacklist.
+  whitelist:
+    # Pull requests with any of these labels (case-insensitive) are added to
+    # the whitelist.
+    labels: ["automerge"]
+
+  # "method" defines the merge method. The available options are "merge",
+  # "rebase", and "squash".
+  method: squash
+
+  # "options" defines additional options for the individual merge methods.
+  options:
+    # "squash" options are only used when the merge method is "squash"
+    squash:
+      # "title" defines how the title of the commit message is created when
+      # generating a squash commit. The options are "pull_request_title",
+      # "first_commit_title", and "github_default_title". The default is
+      # "pull_request_title".
+      title: "pull_request_title"
+
+      # "body" defines how the body of the commit message is created when
+      # generating a squash commit. The options are "pull_request_body",
+      # "summarize_commits", and "empty_body". The default is "empty_body".
+      body: "pull_request_body"
+
+      # If "body" is "pull_request_body", then the commit message will be the
+      # part of the pull request body surrounded by "message_delimiter"
+      # strings. This is disabled (empty string) by default.
+      message_delimiter: ==commits==
+
+  # "required_statuses" is a list of additional status contexts that must pass
+  # before bulldozer can merge a pull request. This is useful if you want to
+  # require extra testing for automated merges, but not for manual merges.
+  required_statuses:
+    - "ci/circleci: general-test"
+    - "ci/circleci: install_dependencies"
+    - "ci/circleci: lint-checks"
+    - "ci/circleci: mobile-test"
+    - "ci/circleci: protocol-test"
+    - "ci/circleci: verification-pool-api"
+    - "ci/circleci: end-to-end-geth-transfer-test"
+    - "ci/circleci: end-to-end-geth-sync-test"
+    - "ci/circleci: end-to-end-geth-governance-test"
+
+  # If true, bulldozer will delete branches after their pull requests merge.
+  delete_after_merge: true
+
+# "update" defines how and when to update pull request branches. Unlike with
+# merges, if this section is missing, bulldozer will not update any pull requests.
+update:
+  # "whitelist" defines the set of pull requests that should be updated by
+  # bulldozer. It accepts the same keys as the whitelist in the "merge" block.
+  whitelist:
+    labels: ["automerge"]
