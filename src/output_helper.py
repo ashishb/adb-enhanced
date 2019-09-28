@@ -14,7 +14,7 @@ def print_message(message):
 
 def print_error_and_exit(error_string):
     print_error(error_string)
-    quit(1)
+    sys.exit(1)
 
 
 def print_error(error_string):
