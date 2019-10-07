@@ -62,6 +62,7 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
         print_error('Unable to decode data as UTF-8, defaulting to printing the binary data')
     stderr_data = stderr_data.decode('utf-8')
 
+    _check_for_adb_not_found_error(stderr_data)
     _check_for_more_than_one_device_error(stderr_data)
     _check_for_device_not_found_error(stderr_data)
     if not ignore_stderr and stderr_data and len(stderr_data) > 0:
@@ -152,6 +153,7 @@ def execute_adb_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devic
         print_error('Unable to decode data as UTF-8, defaulting to printing the binary data')
     stderr_data = stderr_data.decode('utf-8')
 
+    _check_for_adb_not_found_error(stderr_data)
     _check_for_more_than_one_device_error(stderr_data)
     _check_for_device_not_found_error(stderr_data)
     if not ignore_stderr and stderr_data and len(stderr_data) > 0:
@@ -209,6 +211,16 @@ def root_required_to_access_file(remote_file_path):
     elif remote_file_path.startswith('/sdcard'):
         return False
     return True
+
+
+def _check_for_adb_not_found_error(stderr_data):
+    if not stderr_data:
+        return
+    stderr_data = stderr_data.strip()
+    if stderr_data.endswith('%s: command not found' % _adb_prefix):
+        message = 'ADB (Android debug bridge) command not found.\n'
+        message += 'Install ADB via https://developer.android.com/studio/releases/platform-tools.html'
+        print_error_and_exit(message)
 
 
 def _check_for_more_than_one_device_error(stderr_data):
