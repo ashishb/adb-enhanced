@@ -23,13 +23,12 @@ jobs:
         profile: Nexus 6
         script:
           adb wait-for-device
-          python release/setup.py install
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install adb-enhanced
-      run: python3 release/setup.py install
+      run: python release/setup.py install
 # jobs:
 #   build:
 
