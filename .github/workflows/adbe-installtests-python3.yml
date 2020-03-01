@@ -1,0 +1,34 @@
+name: AdbeInstallTestsPython3
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        api-level: [21, 26]
+        target: [default]  # Other option: google_apis
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: x86_64
+          profile: Nexus 6
+          script: |
+            python3 -m pip install --upgrade pip
+            python3 -m pip install --user -r requirements.txt
+            cp README.md release
+            cp -r src/* release/adbe/
+            sudo python3 -m pip install -e release
+            /usr/local/bin/adbe --version  # Verify adbe is installed
+            alias adbe=/usr/local/bin/adbe
+            adbe --version  # Verify adbe is installed
+            echo "Wait for device"
+            adb wait-for-device
+            echo "Run the tests"
+            python3 -m pytest -v tests/adbe_tests.py  --durations=0 --testpythoninstallation true
