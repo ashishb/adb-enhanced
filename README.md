@@ -1,4 +1,9 @@
-# ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced) [![Build Status](https://img.shields.io/travis/ashishb/adb-enhanced/master.svg?label=Travis%20CI)](https://travis-ci.org/ashishb/adb-enhanced) [![CircleCI](https://img.shields.io/circleci/project/github/ashishb/adb-enhanced.svg?label=Circle%20CI)](https://circleci.com/gh/ashishb/adb-enhanced)
+# ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
+
+![LintPython2](https://github.com/ashishb/adb-enhanced/workflows/LintPython2/badge.svg) ![LintPython3](https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg) ![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg)
+
+![AdbeUnitTestsPython2.7](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython2.7/badge.svg) ![AdbeUnitTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg) ![AdbeInstallTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg)
+
 
 ![Logo](docs/logo.png)
 
