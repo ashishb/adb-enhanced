@@ -20,9 +20,9 @@ jobs:
         target: ${{ matrix.target }}
         arch: x86_64
         profile: Nexus 6
-        script: |
-          - ./gradlew connectedCheck 
-          - python3 release/setup.py install
+        script:
+          ./gradlew connectedCheck 
+          python3 release/setup.py install
 # jobs:
 #   build:
 
