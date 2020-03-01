@@ -1,0 +1,30 @@
+name: AdbeUnitTestsPython3Scheduled
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Sunday midnight UTC
+
+jobs:
+  test:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        api-level: [21, 22, 23, 24, 25, 26, 27, 28]
+        target: [default]  # Other option: google_apis
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: x86_64
+          profile: Nexus 6
+          script: |
+            python3 -m pip install --upgrade pip
+            python3 -m pip install --user -r requirements.txt
+            echo "Wait for device"
+            adb wait-for-device
+            echo "Run the tests"
+            python3 -m pytest -v tests/adbe_tests.py  --durations=0
