@@ -1,4 +1,4 @@
-name: InstallAdbeTest
+name: LintPython2
 
 on: [push]
 
@@ -7,7 +7,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: [2.7, 3.7, 3.8]
+        python-version: [2.7]
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -16,8 +16,8 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install adb-enhanced
+      - name: Lint
         run: |
-          cp README.md release
-          cp -r src/* release/adbe/
-          python release/setup.py install
+          pip install -r requirements.txt
+          pip install pylint
+          ./tests/lint_check_python2.sh
