@@ -1,0 +1,47 @@
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        api-level: [21, 23, 29]
+        target: [default, google_apis]
+        python-version: [2.7, 3.7, 3.8]
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+
+    - name: run tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: ${{ matrix.api-level }}
+        target: ${{ matrix.target }}
+        arch: x86_64
+        profile: Nexus 6
+        script:
+          adb wait-for-device
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install adb-enhanced
+      run: |
+        cp README.md release
+        cp -r src/* release/adbe/
+        python release/setup.py install
+# jobs:
+#   build:
+
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - uses: actions/checkout@v2
+#     - name: Run a one-line script
+#       run: echo Hello, world!
+#     - name: Run a multi-line script
+#       run: |
+#         echo Add other actions to build,
+#         echo test, and deploy your project.
