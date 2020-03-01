@@ -28,7 +28,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install adb-enhanced
-      run: python release/setup.py install
+      run: |
+        cp -r src/* release/adbe/
+        python release/setup.py install
 # jobs:
 #   build:
 
