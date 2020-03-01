@@ -21,8 +21,7 @@ jobs:
         arch: x86_64
         profile: Nexus 6
         script:
-          ./gradlew connectedCheck 
-          python3 release/setup.py install
+          adb wait-for-device
 # jobs:
 #   build:
 
