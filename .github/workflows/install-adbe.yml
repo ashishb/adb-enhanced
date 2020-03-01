@@ -1,0 +1,23 @@
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python-version: [2.7, 3.7, 3.8]
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install adb-enhanced
+      run: |
+        cp README.md release
+        cp -r src/* release/adbe/
+        python release/setup.py install

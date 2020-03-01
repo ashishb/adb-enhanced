@@ -21,27 +21,15 @@ jobs:
         target: ${{ matrix.target }}
         arch: x86_64
         profile: Nexus 6
-        script:
-          adb wait-for-device
+        script: adb wait-for-device
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install adb-enhanced
+    - name: Install adb-enhanced dependencies
       run: |
-        cp README.md release
-        cp -r src/* release/adbe/
-        python release/setup.py install
-# jobs:
-#   build:
-
-#     runs-on: ubuntu-latest
-
-#     steps:
-#     - uses: actions/checkout@v2
-#     - name: Run a one-line script
-#       run: echo Hello, world!
-#     - name: Run a multi-line script
-#       run: |
-#         echo Add other actions to build,
-#         echo test, and deploy your project.
+        python -m pip install --upgrade pip
+        python -m pip install --user -r requirements.txt
+    - name: Run adb-enhanced tests
+      run: |
+        python -m pytest -v tests/adbe_tests.py  --durations=0
