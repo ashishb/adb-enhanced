@@ -983,7 +983,7 @@ def list_allow_backup_apps():
                 debug_packages.append(package_name)
         print('\n'.join(debug_packages))
     else:
-        print_message('Use python3 for faster execution of this call')
+        print_message('Use python3 with Async IO package for faster execution of this call')
         _list_allow_backup_apps_no_async(packages)
 
 
