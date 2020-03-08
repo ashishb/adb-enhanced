@@ -2,7 +2,7 @@
 
 ![LintPython2](https://github.com/ashishb/adb-enhanced/workflows/LintPython2/badge.svg) ![LintPython3](https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg) ![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg)
 
-![AdbeUnitTestsPython2.7](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython2.7/badge.svg) ![AdbeUnitTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg) ![AdbeInstallTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg)
+![AdbeUnitTestsPython2.7](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython2.7/badge.svg) ![AdbeUnitTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg) ![AdbeInstallTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg) ![AdbeUnitTestsPython3Scheduled](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3Scheduled/badge.svg)
 
 
 ![Logo](docs/logo.png)
