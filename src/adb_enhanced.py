@@ -895,12 +895,13 @@ def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions)
 
 def _get_all_packages(pm_cmd):
     return_code, result, _ = execute_adb_shell_command2(pm_cmd)
-    if return_code != 0 or result is None:
-        print_error_and_exit('Empty output, something is wrong')
+    if return_code != 0:
+        print_error_and_exit('Command "%s" failed, something is wrong', pm_cmd)
     packages = []
-    for line in result.split('\n'):
-        _, package_name = line.split(':', 2)
-        packages.append(package_name)
+    if result:
+        for line in result.split('\n'):
+            _, package_name = line.split(':', 2)
+            packages.append(package_name)
     return packages
 
 
