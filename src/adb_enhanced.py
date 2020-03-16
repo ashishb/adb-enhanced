@@ -630,7 +630,7 @@ def get_dont_keep_activities_in_background_state():
         print_error('Failed to get don\'t keep activities in the background setting')
         return _USER_PRINT_VALUE_UNKNOWN
 
-    if stdout.strip() == 'null':
+    if stdout == None or stdout.strip() == 'null':
         return _USER_PRINT_VALUE_OFF
 
     enabled = int(stdout.strip()) != 0
