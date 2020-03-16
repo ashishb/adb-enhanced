@@ -22,7 +22,4 @@ jobs:
           script: |
             python3 -m pip install --upgrade pip
             python3 -m pip install --user -r requirements.txt
-            echo "Wait for device"
-            adb wait-for-device
-            echo "Run the tests"
-            python3 -m pytest -v tests/adbe_tests.py  --durations=0
+            make test_python3

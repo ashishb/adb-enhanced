@@ -238,13 +238,16 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 ## Testing
 
 ```
-python -m pytest -v tests/adbe_tests.py  # Python2 tests
-python3 -m pytest -v tests/adbe_tests.py  # Python3 tests
+make lint
+make test_python2
+make test_python3
 ```
 
 ## Release a new build
 
-A new build can be released using [`release/release.py`](https://github.com/ashishb/adb-enhanced/blob/master/release/release.py) script. A test release can be made using `release.py test release` and a production release using `release.py production release`
+A new build can be released using [`release/release.py`](https://github.com/ashishb/adb-enhanced/blob/master/release/release.py) script.
+Build a test release via `make release_debug`.
+Build a production release via `make release_production`
 
 ## Updating docs for ReadTheDocs
 
