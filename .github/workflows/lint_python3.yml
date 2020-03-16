@@ -20,4 +20,4 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install pylint
-          ./tests/lint_check_python3.sh
+          make lint_python3

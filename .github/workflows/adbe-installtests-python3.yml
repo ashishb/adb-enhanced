@@ -28,7 +28,4 @@ jobs:
             /usr/local/bin/adbe --version  # Verify adbe is installed
             alias adbe=/usr/local/bin/adbe
             adbe --version  # Verify adbe is installed
-            echo "Wait for device"
-            adb wait-for-device
-            echo "Run the tests"
-            python3 -m pytest -v tests/adbe_tests.py  --durations=0 --testpythoninstallation true
+            make test_python3_installation
