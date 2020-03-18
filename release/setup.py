@@ -30,7 +30,6 @@ setup(name='adb-enhanced',
       zip_safe=True,
       install_requires=[
           # -*- Extra requirements: -*-
-          'asyncio',
           'docopt',
           'future',
           'psutil',
