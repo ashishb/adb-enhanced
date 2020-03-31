@@ -5,6 +5,19 @@ test: test_python3
 documentation:
 	pandoc --from=markdown --to=rst --output=docs/README.rst README.md && cd docs && make html
 
+clean:
+		rm -rf build/ dist/  # Cleanup build dir
+
+
+build: clean
+	# Upgrade setup tools
+	python3 -m pip install --user --upgrade setuptools wheel twine
+	# Build package
+	python3 setup.py sdist bdist_wheel
+	# Check package
+	python3 -m twine check dist/*
+
+
 release_debug: documentation
 	./release.py test release
 

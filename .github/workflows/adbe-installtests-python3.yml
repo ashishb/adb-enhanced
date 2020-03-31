@@ -22,9 +22,9 @@ jobs:
           script: |
             python3 -m pip install --upgrade pip
             python3 -m pip install --user -r requirements.txt
-            cp README.md release
-            cp -r src/* release/adbe/
-            sudo python3 -m pip install -e release
+            touch docs/README.rst
+            make build
+            sudo python3 -m pip install -e .
             /usr/local/bin/adbe --version  # Verify adbe is installed
             alias adbe=/usr/local/bin/adbe
             adbe --version  # Verify adbe is installed

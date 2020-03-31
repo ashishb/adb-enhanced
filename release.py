@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import os
-import shutil
 import subprocess
 import sys
+
 import docopt
 
 _DIR_OF_THIS_SCRIPT = os.path.split(__file__)[0]
@@ -48,35 +48,6 @@ def _prompt_user_to_update_version(version_file):
     file_handle.close()
 
 
-def _copy_files(src_file_names, src_dir, dest_dir):
-    for src_file in src_file_names:
-        src_path = os.path.join(src_dir, src_file)
-        dest_path = os.path.join(dest_dir, src_file.split('/')[-1])
-        _run_cmd_or_fail('cp %s %s' % (src_path, dest_path))
-
-
-def _update_python_setup_tools():
-    setup_tools = ['setuptools', 'wheel', 'twine']
-    cmd = 'python3 -m pip install --user --upgrade %s' % ' '.join(setup_tools)
-    _run_cmd_or_fail(cmd)
-
-
-def _cleanup_build_dir(base_dir):
-    build_dirs = ['build', 'dist']
-    for build_dir in build_dirs:
-        full_path = os.path.join(base_dir, build_dir)
-        if os.path.exists(full_path):
-            print('Deleting %s' % full_path)
-            shutil.rmtree(full_path)
-
-
-def _create_package():
-    _run_cmd_or_fail('python3 %s/setup.py sdist bdist_wheel' % _DIR_OF_THIS_SCRIPT)
-
-def _check_package():
-    _run_cmd_or_fail('python3 -m twine check dist/*')
-
-
 def _push_new_release_to_git(version_file):
     version = open(version_file).read()
     cmds = [
@@ -116,15 +87,10 @@ def _publish_release(testing_release=False):
     version_file = os.path.join('adbe', 'version.txt')
 
     _prompt_user_to_update_version(version_file)
-
-    _update_python_setup_tools()
-    _cleanup_build_dir(_DIR_OF_THIS_SCRIPT)
-    _create_package()
-    _check_package()
+    _run_cmd_or_fail('make build')
 
     _push_new_release_to_git(version_file)
     _publish_package_to_pypi(testing_release)
-    _cleanup_build_dir(_DIR_OF_THIS_SCRIPT)
 
 
 # List of things which this release tool does as of today.

@@ -18,6 +18,5 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install adb-enhanced
         run: |
-          cp README.md release
-          cp -r src/* release/adbe/
-          python release/setup.py install
+          touch docs/README.rst
+          python setup.py install
