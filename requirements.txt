@@ -1,4 +1,3 @@
-asyncio
 docopt
 future
 psutil
