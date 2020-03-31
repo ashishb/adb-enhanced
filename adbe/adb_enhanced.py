@@ -228,7 +228,6 @@ def get_battery_saver_state():
     if stdout.strip() == 'null':
         return _USER_PRINT_VALUE_OFF
 
-    state = 0
     try:
         state = int(stdout.strip())
     except ValueError:
@@ -505,6 +504,31 @@ def get_mobile_data_state():
         return _USER_PRINT_VALUE_OFF
     else:
         return _USER_PRINT_VALUE_ON
+
+
+# Source: https://developer.android.com/reference/android/provider/Settings.Global#WIFI_ON
+def get_wifi_state():
+    _error_if_min_version_less_than(17)
+
+    return_code, stdout, _ = execute_adb_shell_settings_command2('get global wifi_on')
+    if return_code != 0:
+        print_error('Failed to get global Wi-Fi setting')
+        return _USER_PRINT_VALUE_UNKNOWN
+
+    if int(stdout.strip()) == 1:
+        return _USER_PRINT_VALUE_ON
+    else:
+        return _USER_PRINT_VALUE_OFF
+
+
+def set_wifi(turn_on):
+    if turn_on:
+        cmd = 'svc wifi enable'
+    else:
+        cmd = 'svc wifi disable'
+    return_code, _, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Failed to change Wi-Fi setting')
 
 
 # Source:
@@ -1479,6 +1503,7 @@ def _get_window_size():
 def _perform_tap(x, y):
     adb_shell_cmd = 'input tap %d %d' % (x, y)
     execute_adb_shell_command2(adb_shell_cmd)
+
 
 # Deprecated
 def execute_adb_shell_settings_command(settings_cmd, device_serial=None):

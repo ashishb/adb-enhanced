@@ -47,6 +47,7 @@ Usage:
     adbe [options] dump-ui <xml_file>
     adbe [options] mobile-data (on | off)
     adbe [options] mobile-data saver (on | off)
+    adbe [options] wifi (on | off)
     adbe [options] rtl (on | off)
     adbe [options] screenshot <filename.png>
     adbe [options] screenrecord <filename.mp4>
@@ -102,7 +103,6 @@ List of things which this tool will do in the future
 
 * adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
 * adbe app-standby $app_name
-* adbe wifi [on|off]  # svc wifi enable/disable does not seem to always work
 * adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
 * adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
 * adb shell input keyevent KEYCODE_POWER can do the toggle
@@ -204,6 +204,12 @@ def main():
         adb_enhanced.handle_mobile_data(args['on'])
         new_state = adb_enhanced.get_mobile_data_state()
         print_state_change_info('Mobile data', current_state, new_state)
+
+    elif args['wifi']:
+        current_state = adb_enhanced.get_wifi_state()
+        adb_enhanced.set_wifi(args['on'])
+        new_state = adb_enhanced.get_wifi_state()
+        print_state_change_info('Wi-Fi', current_state, new_state)
 
     elif args['rtl']: # This is not working as expected
         adb_enhanced.force_rtl(args['on'])
