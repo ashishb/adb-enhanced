@@ -5,11 +5,24 @@ test: test_python3
 documentation:
 	pandoc --from=markdown --to=rst --output=docs/README.rst README.md && cd docs && make html
 
+clean:
+		rm -rf build/ dist/  # Cleanup build dir
+
+
+build: clean
+	# Upgrade setup tools
+	python3 -m pip install --user --upgrade setuptools wheel twine
+	# Build package
+	python3 setup.py sdist bdist_wheel
+	# Check package
+	python3 -m twine check dist/*
+
+
 release_debug: documentation
-	./release/release.py test release
+	./release.py test release
 
 release_production: documentation
-	./release/release.py production release
+	./release.py production release
 
 lint_python2:
 # R = refactor
@@ -17,16 +30,16 @@ lint_python2:
 # W = warning
 
 # Don't check asyncio_helper for Python2 since it is written only for Python3
-	python -m pylint src/adb_enhanced.py src/adb_helper.py src/main.py src/output_helper.py tests/*.py release/setup.py --disable=R,C,W
+	python -m pylint adbe/adb_enhanced.py adbe/adb_helper.py adbe/main.py adbe/output_helper.py tests/*.py setup.py --disable=R,C,W
 
 lint_python3:
 # E0602 is due to undefined variable unicode which is defined only for Python 2
 # W0511 is fixme due to TODOs in the code.
-# src/adbe.py:756:8: W0601: Global variable 'screen_record_file_path_on_device' undefined at the module level (global-variable-undefined)
-# src/adbe.py:764:8: W0601: Global variable 'screen_record_file_path_on_device' undefined at the module level (global-variable-undefined)
-# src/adbe.py:752:4: W0621: Redefining name 'screen_record_file_path_on_device' from outer scope (line 759) (redefined-outer-name)
+# adbe/adbe.py:756:8: W0601: Global variable 'screen_record_file_path_on_device' undefined at the module level (global-variable-undefined)
+# adbe/adbe.py:764:8: W0601: Global variable 'screen_record_file_path_on_device' undefined at the module level (global-variable-undefined)
+# adbe/adbe.py:752:4: W0621: Redefining name 'screen_record_file_path_on_device' from outer scope (line 759) (redefined-outer-name)
 # C0111: Missing function docstring (missing-docstring)
-	python3 -m pylint src/*.py tests/*.py release/setup.py release/release.py --disable=R0123,R0911,R0912,R0914,R0915,R1705,R1710,C0103,C0111,C0301,C0302,C0411,C0413,C1801,W0511,W0621,W0601,W0603
+	python3 -m pylint adbe/*.py tests/*.py setup.py release.py --disable=R0123,R0911,R0912,R0914,R0915,R1705,R1710,C0103,C0111,C0301,C0302,C0411,C0413,C1801,W0511,W0621,W0601,W0603
 
 test_python2:
 	echo "Wait for device"

@@ -20,7 +20,5 @@ jobs:
           arch: x86_64
           profile: Nexus 6
           script: |
-            # Remove this?
-            # python2.7 -m pip install --upgrade pip
             python2.7 -m pip install --user -r requirements.txt
             make test_python2
