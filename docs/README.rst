@@ -1,5 +1,10 @@
-ADB Enhanced |Downloads| |PyPI version| |Build Status| |CircleCI|
-=================================================================
+ADB Enhanced |Downloads| |PyPI version|
+=======================================
+
+|LintPython2| |LintPython3| |InstallAdbeTest|
+
+|AdbeUnitTestsPython2.7| |AdbeUnitTestsPython3|
+|AdbeInstallTestsPython3| |AdbeUnitTestsPython3Scheduled|
 
 .. figure:: docs/logo.png
    :alt: Logo
@@ -247,16 +252,17 @@ Testing
 
 ::
 
-    python -m pytest -v tests/adbe_tests.py  # Python2 tests
-    python3 -m pytest -v tests/adbe_tests.py  # Python3 tests
+    make lint
+    make test_python2
+    make test_python3
 
 Release a new build
 -------------------
 
 A new build can be released using
 ```release/release.py`` <https://github.com/ashishb/adb-enhanced/blob/master/release/release.py>`__
-script. A test release can be made using ``release.py test release`` and
-a production release using ``release.py production release``
+script. Build a test release via ``make release_debug``. Build a
+production release via ``make release_production``
 
 Updating docs for ReadTheDocs
 -----------------------------
@@ -271,7 +277,11 @@ Note: The inspiration of this project came from
    :target: http://pepy.tech/project/adb-enhanced
 .. |PyPI version| image:: https://badge.fury.io/py/adb-enhanced.svg
    :target: https://badge.fury.io/py/adb-enhanced
-.. |Build Status| image:: https://img.shields.io/travis/ashishb/adb-enhanced/master.svg?label=Travis%20CI
-   :target: https://travis-ci.org/ashishb/adb-enhanced
-.. |CircleCI| image:: https://img.shields.io/circleci/project/github/ashishb/adb-enhanced.svg?label=Circle%20CI
-   :target: https://circleci.com/gh/ashishb/adb-enhanced
+.. |LintPython2| image:: https://github.com/ashishb/adb-enhanced/workflows/LintPython2/badge.svg
+.. |LintPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg
+.. |InstallAdbeTest| image:: https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg
+.. |AdbeUnitTestsPython2.7| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython2.7/badge.svg
+.. |AdbeUnitTestsPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg
+.. |AdbeInstallTestsPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg
+.. |AdbeUnitTestsPython3Scheduled| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3Scheduled/badge.svg
+

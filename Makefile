@@ -2,10 +2,13 @@ lint: lint_python2 lint_python3
 
 test: test_python3
 
-release_debug:
+documentation:
+	pandoc --from=markdown --to=rst --output=docs/README.rst README.md && cd docs && make html
+
+release_debug: documentation
 	./release/release.py test release
 
-release_production:
+release_production: documentation
 	./release/release.py production release
 
 lint_python2:
