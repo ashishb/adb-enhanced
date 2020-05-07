@@ -43,13 +43,13 @@ def _prompt_user_to_update_version(version_file):
     print('Current version is %s' % current_version)
     new_version = input("Enter new version: ")
     _set_version(new_version or current_version)
-    file_handle = open(version_file, 'w')
-    file_handle.write(new_version)
-    file_handle.close()
+    with open(version_file, 'w') as file_handle:
+        file_handle.write(new_version)
 
 
 def _push_new_release_to_git(version_file):
-    version = open(version_file).read()
+    with open(version_file) as file_handle:
+        version = file_handle.read()
     cmds = [
         'git add %s' % version_file,
         'git commit -m "Setup release %s"' % version,
