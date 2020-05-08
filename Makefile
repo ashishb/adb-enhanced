@@ -47,6 +47,8 @@ test_python2:
 	echo "Run the tests"
 	python -m pytest -v tests/adbe_tests.py  # Python2 tests
 
+# To run a single test, for example, test_file_move3, try this
+# python3 -m pytest -v tests/adbe_tests.py -k test_file_move3
 test_python3:
 	echo "Wait for device"
 	adb wait-for-device

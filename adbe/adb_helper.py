@@ -115,7 +115,10 @@ def execute_file_related_adb_shell_command(adb_shell_cmd, file_path, piped_into_
     adb_cmds_prefix.append('shell')
 
     stdout = None
+    attempt_count = 1
     for adb_cmd_prefix in adb_cmds_prefix:
+        print_verbose('Attempt %d/%d: "%s"' % (attempt_count, len(adb_cmds_prefix), adb_cmd_prefix))
+        attempt_count += 1
         adb_cmd = '%s %s' % (adb_cmd_prefix, adb_shell_cmd)
         return_code, stdout, stderr = execute_adb_command2(adb_cmd, piped_into_cmd, ignore_stderr,
                                                            device_serial=device_serial)
@@ -128,7 +131,6 @@ def execute_file_related_adb_shell_command(adb_shell_cmd, file_path, piped_into_
             return stderr
 
         api_version = get_device_android_api_version()
-        #
         if api_version >= _MIN_VERSION_ABOVE_WHICH_ADB_SHELL_RETURNS_CORRECT_EXIT_CODE and return_code == 0:
             return stdout
 
@@ -195,6 +197,8 @@ def get_package(file_path):
     return None
 
 
+# TODO: enable this once we move to python3, this is not available on python 2
+# @functools.lru_cache(maxsize=10)
 # adb shell getprop ro.build.version.sdk
 def get_device_android_api_version(device_serial=None):
     version_string = get_adb_shell_property('ro.build.version.sdk', device_serial=device_serial)
