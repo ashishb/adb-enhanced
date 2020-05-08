@@ -15,7 +15,7 @@ with open(_README_FILE_PATH, 'r') as fh:
     long_description = fh.read()
 
 packages = find_packages(exclude=['ez_setup', 'examples', 'tests'])
-if len(packages) == 0 or packages.index('adbe') == -1:
+if not packages or packages.index('adbe') == -1:
     print('Failed to find adbe package')
     sys.exit(1)
 
@@ -43,5 +43,6 @@ setup(name='adb-enhanced',
       entry_points={
           # -*- Entry points: -*-
           'console_scripts': ['adbe=adbe.main:main'],
-      }
-     )
+      },
+      python_requires='>=3.4'
+      )

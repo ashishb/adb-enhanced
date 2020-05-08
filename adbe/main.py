@@ -20,12 +20,12 @@ try:
     # I definitely need a better way to handle this.
     from adbe import adb_enhanced
     from adbe import adb_helper
-    from adbe.output_helper import print_error, print_error_and_exit, print_message, set_verbose
+    from adbe.output_helper import print_error_and_exit, print_message, set_verbose
 except ImportError:
     # This works when the code is executed directly.
     import adb_enhanced
     import adb_helper
-    from output_helper import print_error, print_error_and_exit, print_message, set_verbose
+    from output_helper import print_error_and_exit, print_message, set_verbose
 
 # List of things which this enhanced adb tool does as of today.
 USAGE_STRING = """
@@ -94,7 +94,6 @@ Options:
     -r                      For delete file, only valid for "ls" and "rm" command
     -f                      For forced deletion of a file, only valid for "rm" command
     -v, --verbose           Verbose mode
-    --no-python2-warn       Don't warn about Python 2 deprecation
 
 """
 
@@ -119,11 +118,10 @@ _VERSION_FILE_NAME = 'version.txt'
 
 
 def main():
+    if _using_python2():
+        _fail_with_python2_warning()
+
     args = docopt.docopt(USAGE_STRING, version=get_version())
-
-    if _using_python2() and not args['--no-python2-warn']:
-        _warn_about_python2_deprecation()
-
     set_verbose(args['--verbose'])
 
     validate_options(args)
@@ -377,14 +375,15 @@ def get_version():
 
 
 def _using_python2():
+    print(sys.version_info)
     return sys.version_info < (3, 0)
 
 
-def _warn_about_python2_deprecation():
-    msg = ('You are using Python 2, ADB-enhanced would stop supporting Python 2 after Dec 31, 2018\n' +
-           'First install Python 3 and then re-install this tool using\n' +
+def _fail_with_python2_warning():
+    msg = ('You are using Python 2\nADB-enhanced no longer supports Python 2.\n' +
+           'Install Python 3 and then re-install this tool using\n' +
            '\"sudo pip uninstall adb-enhanced && sudo pip3 install adb-enhanced\"')
-    print_error(msg)
+    print_error_and_exit(msg)
 
 
 if __name__ == '__main__':
