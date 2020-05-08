@@ -1,12 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
-# Python 2 and 3, print compatibility
-from __future__ import print_function
-# Without this urllib.parse which is python 3 only cannot be accessed in python 2.
-from future.standard_library import install_aliases
-install_aliases()
-
-import psutil
 import re
 import signal
 import subprocess
@@ -16,9 +9,8 @@ import threading
 import time
 import os
 import random
-# This is required only for Python 2
-# pylint: disable=import-error
 from urllib.parse import urlparse
+import psutil
 
 # asyncio was introduced in version 3.5
 if sys.version_info >= (3, 5):
@@ -378,7 +370,7 @@ def handle_list_devices():
         _print_device_info()
     else:
         for device_info in device_infos:
-            if len(device_info) == 0:
+            if not device_info:
                 continue
             device_serial = device_info.split()[0]
             if 'unauthorized' in device_info:
@@ -398,13 +390,13 @@ def _print_device_info(device_serial=None):
     # This worked on 4.4.3 API 19 Moto E
     display_name = get_adb_shell_property('ro.product.display', device_serial=device_serial)
     # First fallback: undocumented
-    if display_name is None or len(display_name) == 0 or display_name == 'null':
+    if not display_name or display_name == 'null':
         # This works on 4.4.4 API 19 Galaxy Grand Prime
         if get_device_android_api_version(device_serial=device_serial) >= 19:
             display_name = execute_adb_shell_settings_command('get system device_name', device_serial=device_serial)
     # Second fallback, documented to work on API 25 and above
     # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#DEVICE_NAME
-    if display_name is None or len(display_name) == 0 or display_name == 'null':
+    if not display_name or display_name == 'null':
         if get_device_android_api_version(device_serial=device_serial) >= 25:
             display_name = execute_adb_shell_settings_command('get global device_name', device_serial=device_serial)
 
@@ -765,7 +757,7 @@ def press_back():
 def open_url(url):
     # Let's not do any URL encoding for now, if required, we will add that in the future.
     parsed_url = urlparse(url=url)
-    if parsed_url.scheme is None or len(parsed_url.scheme) == 0:
+    if not parsed_url.scheme:
         parsed_url2 = urlparse(url=url, scheme='http')
         url = parsed_url2.geturl()
     cmd = 'am start -a android.intent.action.VIEW -d %s' % url
@@ -1294,7 +1286,7 @@ def _get_permissions_info_below_api_23(app_info_dump):
         install_time_granted_permissions.append(permission_string)
 
     permissions_info_msg = ''
-    if len(install_time_granted_permissions) > 0:
+    if install_time_granted_permissions:
         permissions_info_msg += 'Install time granted permissions:\n%s\n\n' % '\n'.join(
             install_time_granted_permissions)
     return permissions_info_msg
@@ -1348,19 +1340,19 @@ def _get_permissions_info_above_api_23(app_info_dump):
 
     permissions_info_msg = ''
     permissions_info_msg += '\nPermissions:\n\n'
-    if len(install_time_granted_permissions) > 0:
+    if install_time_granted_permissions:
         permissions_info_msg += 'Install time granted permissions:\n%s\n\n' % '\n'.join(
             install_time_granted_permissions)
-    if len(install_time_denied_permissions) > 0:
+    if install_time_denied_permissions:
         permissions_info_msg += 'Install time denied permissions:\n%s\n\n' % '\n'.join(
             install_time_denied_permissions)
-    if len(runtime_granted_permissions) > 0:
+    if runtime_granted_permissions:
         permissions_info_msg += 'Runtime granted permissions:\n%s\n\n' % '\n'.join(
             runtime_granted_permissions)
-    if len(runtime_denied_permissions) > 0:
+    if runtime_denied_permissions:
         permissions_info_msg += 'Runtime denied permissions:\n%s\n\n' % '\n'.join(
             runtime_denied_permissions)
-    if len(runtime_not_granted_permissions) > 0:
+    if runtime_not_granted_permissions:
         permissions_info_msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(
             runtime_not_granted_permissions)
     return permissions_info_msg
