@@ -1,3 +1,4 @@
+import functools
 import subprocess
 import sys
 
@@ -146,9 +147,8 @@ def get_package(file_path):
     return None
 
 
-# TODO: enable this once we move to python3, this is not available on python 2
-# @functools.lru_cache(maxsize=10)
 # adb shell getprop ro.build.version.sdk
+@functools.lru_cache(maxsize=10)
 def get_device_android_api_version(device_serial=None):
     version_string = get_adb_shell_property('ro.build.version.sdk', device_serial=device_serial)
     if version_string is None:

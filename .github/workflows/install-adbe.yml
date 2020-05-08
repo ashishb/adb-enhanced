@@ -7,7 +7,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: [2.7, 3.7, 3.8]
+        python-version: [3.5, 3.7, 3.8]
     steps:
       - name: checkout
         uses: actions/checkout@v2

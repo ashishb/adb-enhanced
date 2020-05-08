@@ -418,7 +418,7 @@ def _execute(sub_cmd):
         dir_of_this_script = os.path.split(__file__)[0]
         adbe_py = os.path.join(dir_of_this_script, '../adbe/main.py')
         cmd = '%s %s' % (_PYTHON_CMD, adbe_py)
-    ps = subprocess.Popen('%s --no-python2-warn %s' % (cmd, sub_cmd),
+    ps = subprocess.Popen('%s %s' % (cmd, sub_cmd),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout_data, stderr_data = ps.communicate()
     stdout_data = stdout_data.decode('utf-8').strip()

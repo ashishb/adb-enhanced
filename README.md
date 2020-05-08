@@ -226,7 +226,6 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     -r                      For delete file, only valid for "ls" and "rm" command
     -f                      For forced deletion of a file, only valid for "rm" command
     -v, --verbose           Verbose mode
-    --no-python2-warn       Don't warn about Python 2 deprecation
 
 ## Python3 migration timeline
 
