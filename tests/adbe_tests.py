@@ -1,9 +1,9 @@
 import functools
 import re
-import pytest
 import subprocess
 import sys
 import os
+import pytest
 
 _SETTINGS_CMD_VERSION = 19
 # Deut overdraw mode was added in API 19

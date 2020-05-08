@@ -66,7 +66,7 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
     _check_for_adb_not_found_error(stderr_data)
     _check_for_more_than_one_device_error(stderr_data)
     _check_for_device_not_found_error(stderr_data)
-    if not ignore_stderr and stderr_data and len(stderr_data) > 0:
+    if not ignore_stderr and stderr_data:
         print_error(stderr_data)
 
     if stdout_data:
@@ -80,7 +80,7 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
             first_line = True
             for line in stdout_data.split('\n'):
                 line = line.strip()
-                if not line or len(line) == 0:
+                if not line:
                     continue
                 if line in _IGNORED_LINES:
                     continue
@@ -181,7 +181,7 @@ def _check_for_more_than_one_device_error(stderr_data):
         return
     for line in stderr_data.split('\n'):
         line = line.strip()
-        if line and len(line) > 0:
+        if line:
             print_verbose(line)
         if line.find('error: more than one') != -1:
             message = ''
@@ -196,7 +196,7 @@ def _check_for_device_not_found_error(stderr_data):
         return
     for line in stderr_data.split('\n'):
         line = line.strip()
-        if line and len(line) > 0:
+        if line:
             print_verbose(line)
         if line.find('error: device') > -1 and line.find('not found') > -1:
             print_error_and_exit(line)
