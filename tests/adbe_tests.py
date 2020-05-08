@@ -1,3 +1,4 @@
+import functools
 import re
 import pytest
 import subprocess
@@ -17,9 +18,25 @@ if sys.version_info >= (3, 0):
     _PYTHON_CMD = 'python%d.%d' % (sys.version_info.major, sys.version_info.minor)
 
 _TEST_APP_ID = 'com.android.phone'
+_DEBUG_APP = 'net.ashishb.deviceinformationhelper'
 _TEST_NON_EXISTANT_APP_ID = 'com.android.nonexistant'
 _DIR_PATH = '/data/data/%s' % _TEST_APP_ID
 _TEST_PYTHON_INSTALLATION = False
+
+
+# Source: https://gist.github.com/jasongrout/3804691
+def run_once(f):
+    """Runs a function (successfully) only once.
+    The running can be reset by setting the `has_run` attribute to False
+    """
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            result = f(*args, **kwargs)
+            wrapper.has_run = True
+            return result
+    wrapper.has_run = False
+    return wrapper
 
 
 # This method will be invoked only if testpythoninstallation is passed
@@ -133,8 +150,10 @@ def test_permissions_list():
 def test_permissions_grant_revoke():
     test_app_id = _TEST_APP_ID
 
-    permissions_groups = ['calendar', 'camera', 'contacts', 'location', 'microphone', 'phone', 'sensors',
-                          'sms', 'storage']
+    # Only test with permissions which our test app com.android.phone has
+    # or it fails
+    # https://github.com/ashishb/adb-enhanced/pull/117/checks?check_run_id=655009375
+    permissions_groups = ['contacts', 'location', 'microphone', 'phone', 'sms']
 
     for permission_group in permissions_groups:
         if _get_device_sdk_version() >= _RUNTIME_PERMISSIONS_SUPPORTED:
@@ -274,21 +293,35 @@ def test_file_move1():
     _delete_local_file('tmp_file2')
 
 
+@run_once
+def _install_debug_apk():
+    ps = subprocess.Popen('adb install -t -r ./tests/net.ashishb.deviceinformationhelper_debug_app.apk',
+                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = ps.communicate()
+    assert ps.returncode == 0, 'Install failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
+
+
 def test_file_move2():
+    _install_debug_apk()
     tmp_file1 = '/data/local/tmp/development.xml'
-    tmp_file2 = '/data/data/com.android.contacts'
+    tmp_file2_location = '/data/data/%s' % _DEBUG_APP
     ps = subprocess.Popen('adb shell touch %s' % tmp_file1,
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = ps.communicate()
     assert ps.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
-    _assert_success('mv %s %s' % (tmp_file1, tmp_file2))
+    _assert_success('mv %s %s' % (tmp_file1, tmp_file2_location))
     _assert_fail('pull %s' % tmp_file1)
-    _assert_success('pull %s' % tmp_file2)
+    _assert_success('pull %s/%s' % (tmp_file2_location, 'development.xml'))
+    # Cleanup
+    ps = subprocess.Popen('rm ./development.xml', shell=True)
+    ps.communicate()
+    assert ps.returncode == 0, 'Failed to deleted pulled file development.xml'
 
 
 def test_file_move3():
+    _install_debug_apk()
     tmp_file1 = '/data/local/tmp/development.xml'
-    tmp_file2 = '/data/data/com.android.contacts/development.xml'
+    tmp_file2 = '/data/data/%s/development.xml' % _DEBUG_APP
     ps = subprocess.Popen('adb shell touch %s' % tmp_file1,
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = ps.communicate()
@@ -296,6 +329,10 @@ def test_file_move3():
     _assert_success('mv %s %s' % (tmp_file1, tmp_file2))
     _assert_fail('pull %s' % tmp_file1)
     _assert_success('pull %s' % tmp_file2)
+    # Cleanup
+    ps = subprocess.Popen('rm ./development.xml', shell=True)
+    ps.communicate()
+    assert ps.returncode == 0, 'Failed to deleted pulled file development.xml'
 
 
 def test_list_devices():
