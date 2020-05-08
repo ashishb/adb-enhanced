@@ -24,7 +24,6 @@ def print_error(error_string):
 
 
 def print_verbose(message):
-    global __VERBOSE_MODE
     if __VERBOSE_MODE:
         if _is_interactive_terminal():
             message = '%s%s%s' % (BashColors.WARNING, message, BashColors.ENDC)

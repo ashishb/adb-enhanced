@@ -517,8 +517,7 @@ def get_wifi_state():
 
     if int(stdout.strip()) == 1:
         return _USER_PRINT_VALUE_ON
-    else:
-        return _USER_PRINT_VALUE_OFF
+    return _USER_PRINT_VALUE_OFF
 
 
 def set_wifi(turn_on):
@@ -660,8 +659,7 @@ def get_dont_keep_activities_in_background_state():
     enabled = int(stdout.strip()) != 0
     if enabled:
         return _USER_PRINT_VALUE_ON
-    else:
-        return _USER_PRINT_VALUE_OFF
+    return _USER_PRINT_VALUE_OFF
 
 
 # Ref: https://github.com/android/platform_packages_apps_settings/blob/4ce19f5c4fd40f3bedc41d3fbcbdede8b2614501/src/com/android/settings/DevelopmentSettings.java#L2123
@@ -709,8 +707,7 @@ def get_show_taps_state():
 
     if int(stdout.strip()) == 1:
         return _USER_PRINT_VALUE_ON
-    else:
-        return _USER_PRINT_VALUE_OFF
+    return _USER_PRINT_VALUE_OFF
 
 
 def toggle_show_taps(turn_on):
@@ -735,8 +732,7 @@ def get_stay_awake_while_charging_state():
         return _USER_PRINT_VALUE_OFF
     elif value == 7:
         return _USER_PRINT_VALUE_ON
-    else:
-        return _USER_PRINT_VALUE_PARTIALLY_ON
+    return _USER_PRINT_VALUE_PARTIALLY_ON
 
 
 # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#STAY_ON_WHILE_PLUGGED_IN
@@ -1081,8 +1077,8 @@ def calculate_standby_mode(args):
         return 'frequent'
     elif args['rare']:
         return 'rare'
-    else:
-        raise ValueError('Illegal argument: %s' % args)
+
+    raise ValueError('Illegal argument: %s' % args)
 
 
 # Source: https://developer.android.com/preview/features/power
@@ -1243,10 +1239,9 @@ def stop_app(app_name):
 
 def _regex_extract(regex, data):
     regex_object = re.search(regex, data, re.IGNORECASE)
-    if regex_object is None:
-        return None
-    else:
+    if regex_object:
         return regex_object.group(1)
+    return None
 
 
 # adb shell pm dump <app_name> produces about 1200 lines, mostly useless,

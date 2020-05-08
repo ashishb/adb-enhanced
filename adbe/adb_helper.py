@@ -90,8 +90,7 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
                     output += '\n' + line
             print_verbose("Result is \"%s\"" % output)
             return return_code, output, stderr_data
-    else:
-        return return_code, None, stderr_data
+    return return_code, None, stderr_data
 
 
 def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
