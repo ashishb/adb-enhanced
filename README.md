@@ -2,7 +2,7 @@
 
 ![LintPython2](https://github.com/ashishb/adb-enhanced/workflows/LintPython2/badge.svg) ![LintPython3](https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg) ![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg)
 
-![AdbeUnitTestsPython2.7](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython2.7/badge.svg) ![AdbeUnitTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg) ![AdbeInstallTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg) ![AdbeUnitTestsPython3Scheduled](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3Scheduled/badge.svg)
+![AdbeUnitTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg) ![AdbeInstallTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg) ![AdbeUnitTestsPython3Scheduled](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3Scheduled/badge.svg)
 
 
 ![Logo](docs/logo.png)
@@ -233,6 +233,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 * Jan 18, 2018 - pip (python package manager) has the updated version which is Python3 compatible
 * Nov 15, 2018 - Python2 based installation discouraged. Python3 is recommended.
 * Dec 31, 2018 - Python2 will not be officially supported after Dec 31, 2018.
+* May 7, 2020 - Python2 no longer works with the current master branch
 
 ## Testing
 
