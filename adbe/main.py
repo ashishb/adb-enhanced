@@ -1,16 +1,10 @@
 #!/usr/bin/env python3
 
-# Python 2 and 3, print compatibility
-from __future__ import print_function
-
 import sys
 import os
+import time
+
 import docopt
-
-# Without this urllib.parse which is python 3 only cannot be accessed in python 2.
-from future.standard_library import install_aliases
-
-install_aliases()
 
 
 # This is required only for Python 2
@@ -200,6 +194,8 @@ def main():
     elif args['mobile-data']:
         current_state = adb_enhanced.get_mobile_data_state()
         adb_enhanced.handle_mobile_data(args['on'])
+        # sleep before getting the new value or you will get a stale value
+        time.sleep(1)
         new_state = adb_enhanced.get_mobile_data_state()
         print_state_change_info('Mobile data', current_state, new_state)
 
@@ -375,7 +371,6 @@ def get_version():
 
 
 def _using_python2():
-    print(sys.version_info)
     return sys.version_info < (3, 0)
 
 
