@@ -485,7 +485,7 @@ def get_mobile_data_state():
     # Using "adb shell dumpsys telephony.registry | ag mDataConnectionState"
     cmd = 'dumpsys telephony.registry'
     return_code, stdout, _ = execute_adb_shell_command2(cmd)
-    if return_code != 0:
+    if return_code != 0 or not stdout:
         print_error('Failed to get mobile data setting')
         return _USER_PRINT_VALUE_UNKNOWN
     m = re.search(r'mDataConnectionState=(\d+)', stdout)

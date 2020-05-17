@@ -69,29 +69,32 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
     if not ignore_stderr and stderr_data:
         print_error(stderr_data)
 
-    if stdout_data:
-        if isinstance(stdout_data, bytes):
-            print_verbose("Result is \"%s\"" % stdout_data)
-            return return_code, stdout_data, stderr_data
-        # str for Python 3 and unicode for Python 2
-        # unicode is undefined for Python 3
-        elif isinstance(stdout_data, (str, unicode)):
-            output = ''
-            first_line = True
-            for line in stdout_data.split('\n'):
-                line = line.strip()
-                if not line:
-                    continue
-                if line in _IGNORED_LINES:
-                    continue
-                if first_line:
-                    output += line
-                    first_line = False
-                else:
-                    output += '\n' + line
-            print_verbose("Result is \"%s\"" % output)
-            return return_code, output, stderr_data
-    return return_code, None, stderr_data
+    if not stdout_data:
+        return return_code, None, stderr_data
+
+    # stdout_data is not None
+    if isinstance(stdout_data, bytes):
+        print_verbose("Result is \"%s\"" % stdout_data)
+        return return_code, stdout_data, stderr_data
+    # str for Python 3, this used to be unicode type for python 2
+    elif isinstance(stdout_data, str):
+        output = ''
+        first_line = True
+        for line in stdout_data.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            if line in _IGNORED_LINES:
+                continue
+            if first_line:
+                output += line
+                first_line = False
+            else:
+                output += '\n' + line
+        print_verbose("Result is \"%s\"" % output)
+        return return_code, output, stderr_data
+    else:
+        print_error_and_exit('stdout_data is weird type: %s' % type(stdout_data))
 
 
 def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
