@@ -179,6 +179,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe [options] dump-ui <xml_file>
     adbe [options] mobile-data (on | off)
     adbe [options] mobile-data saver (on | off)
+    adbe [options] wifi (on | off)
     adbe [options] rtl (on | off)
     adbe [options] screenshot <filename.png>
     adbe [options] screenrecord <filename.mp4>
