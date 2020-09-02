@@ -17,10 +17,6 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 `sudo pip3 install adb-enhanced`
 
-### Sponsor
-
-<a href="https://tracking.gitads.io/?repo=adb-enhanced"> <img src="https://images.gitads.io/adb-enhanced" alt="GitAds"/>
-
 ## Note
 
 1. `sudo pip install adb-enhanced` for python2 based install works as well but, I would recommend moving to python3 since I will deprecate python2 support anytime after Dec 31, 2018.
