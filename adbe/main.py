@@ -77,6 +77,7 @@ Usage:
     adbe [options] app backup <app_name> [<backup_tar_file_path>]
     adbe [options] install <file_path>
     adbe [options] uninstall <app_name>
+    adbe [options] wireless
 
 Options:
     -e, --emulator          directs the command to the only running emulator
@@ -329,6 +330,10 @@ def main():
         adb_enhanced.perform_install(file_path)
     elif args['uninstall']:
         adb_enhanced.perform_uninstall(args['<app_name>'])
+
+    elif args['wireless']:
+        adb_enhanced.reconnect_wireless()
+
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 

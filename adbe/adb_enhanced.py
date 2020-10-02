@@ -28,7 +28,7 @@ try:
     # I definitely need a better way to handle this.
     from adbe.adb_helper import (get_adb_shell_property, execute_adb_command2, execute_adb_shell_command,
                                  execute_adb_shell_command2, execute_file_related_adb_shell_command, get_package,
-                                 root_required_to_access_file, get_device_android_api_version)
+                                 root_required_to_access_file, get_device_android_api_version, execute_command)
     from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
 except ImportError:
     # This works when the code is executed directly.
@@ -1531,3 +1531,19 @@ def _error_if_min_version_less_than(min_acceptable_version, device_serial=None):
 def _is_emulator():
     qemu = get_adb_shell_property('ro.kernel.qemu')
     return qemu is not None and qemu.strip() == '1'
+
+
+def reconnect_wireless():
+    code, result, stderr = execute_adb_shell_command2("ip address")
+    if code != 0:
+        print_error('Failed to switch device to wireless debug mode, stderr: %s' % stderr)
+        return
+
+    ip = re.findall(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$", result, re.MULTILINE)[0]
+
+    code, _, stderr = execute_adb_command2("tcpip 5555")
+    if code != 0:
+        print_error('Failed to switch device %s to wireless debug mode, stderr: %s' % (ip, stderr))
+        return
+
+    return execute_adb_command2("connect %s" % ip)
