@@ -203,3 +203,7 @@ def _check_for_device_not_found_error(stderr_data):
             print_verbose(line)
         if line.find('error: device') > -1 and line.find('not found') > -1:
             print_error_and_exit(line)
+
+
+def toggle_screen():
+    return execute_adb_shell_command2("input keyevent KEYCODE_POWER")

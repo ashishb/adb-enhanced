@@ -28,13 +28,13 @@ try:
     # I definitely need a better way to handle this.
     from adbe.adb_helper import (get_adb_shell_property, execute_adb_command2, execute_adb_shell_command,
                                  execute_adb_shell_command2, execute_file_related_adb_shell_command, get_package,
-                                 root_required_to_access_file, get_device_android_api_version)
+                                 root_required_to_access_file, get_device_android_api_version, toggle_screen)
     from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
 except ImportError:
     # This works when the code is executed directly.
     from adb_helper import (get_adb_shell_property, execute_adb_command2, execute_adb_shell_command,
                             execute_adb_shell_command2, execute_file_related_adb_shell_command, get_package,
-                            root_required_to_access_file, get_device_android_api_version)
+                            root_required_to_access_file, get_device_android_api_version, toggle_screen)
     from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
@@ -1536,24 +1536,22 @@ def _is_emulator():
     return qemu is not None and qemu.strip() == '1'
 
 
-def switch_screen(turn_on):
-    if turn_on == SCREEN_TOGGLE:
-        code, output, err = execute_adb_shell_command2("input keyevent KEYCODE_POWER")
+def switch_screen(switch_type):
+    if switch_type == SCREEN_TOGGLE:
+        c, o, e = toggle_screen()
     else:
-        code, output, err = execute_adb_shell_command2("dumpsys display")
-        if code != 0:
-            print_error_and_exit("Something gone wrong on screen control operation. Error: %s" % err)
+        c, o, e = execute_adb_shell_command2("dumpsys display")
+        if c != 0:
+            print_error_and_exit("Something gone wrong on screen control operation. Error: %s" % e)
 
-        state = re.findall(r"^\s*mScreenState=(\w*)$", output, re.MULTILINE)[0]
+        state = re.findall(r"^\s*mScreenState=(\w*)$", o, re.MULTILINE)[0]
 
-        if state == "ON":
-            if turn_on == SCREEN_OFF or turn_on == SCREEN_TOGGLE:
-                code, output, err = execute_adb_shell_command2("input keyevent KEYCODE_POWER")
-        elif state == "OFF" or state == "DOZE":
-            if turn_on == SCREEN_ON or turn_on == SCREEN_TOGGLE:
-                code, output, err = execute_adb_shell_command2("input keyevent KEYCODE_POWER")
+        if (state == "ON" and switch_type == SCREEN_OFF) or\
+                ((state == "OFF" or state == "DOZE") and switch_type == SCREEN_ON):
+            c, o, e = toggle_screen()
 
-    if code != 0:
-        print_error_and_exit("Something gone wrong on screen control operation. Error: %s" % err)
+    if c != 0:
+        print_error_and_exit("Something gone wrong on screen control operation. Error: %s" % e)
 
-    return output
+    return o
+
