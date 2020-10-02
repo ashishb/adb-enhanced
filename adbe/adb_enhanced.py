@@ -1542,16 +1542,17 @@ def switch_screen(switch_type):
     else:
         c, o, e = execute_adb_shell_command2("dumpsys display")
         if c != 0:
-            print_error_and_exit("Something gone wrong on screen control operation. Error: %s" % e)
+            print_error_and_exit("Something gone wrong on "
+                                 "screen control operation. Error: %s" % e)
 
         state = re.findall(r"^\s*mScreenState=(\w*)$", o, re.MULTILINE)[0]
 
         if (state == "ON" and switch_type == SCREEN_OFF) or\
-                ((state == "OFF" or state == "DOZE") and switch_type == SCREEN_ON):
+                (state in ["OFF", "DOZE"] and switch_type == SCREEN_ON):
             c, o, e = toggle_screen()
 
     if c != 0:
-        print_error_and_exit("Something gone wrong on screen control operation. Error: %s" % e)
+        print_error_and_exit("Something gone wrong on "
+                             "screen control operation. Error: %s" % e)
 
     return o
-
