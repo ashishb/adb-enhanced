@@ -398,6 +398,10 @@ def test_version():
     _assert_success('--version')
 
 
+def test_wireless():
+    _assert_success('wireless')
+
+
 def _assert_fail(sub_cmd):
     exit_code, stdout_data, stderr_data = _execute(sub_cmd)
     assert exit_code == 1, 'Command "%s" failed with stdout: "%s" and stderr: "%s"' %(sub_cmd, stdout_data, stderr_data)
@@ -482,6 +486,7 @@ def main():
     test_press_back()
     test_open_url()
     test_version()
+    test_wireless()
     # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
 
 
