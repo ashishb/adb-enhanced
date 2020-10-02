@@ -399,7 +399,7 @@ def test_version():
 
 
 def test_screen_toggle():
-    _assert_success("shell input keyevent KEYCODE_POWER")
+    _assert_success("screen toggle")
 
 
 def _assert_fail(sub_cmd):
