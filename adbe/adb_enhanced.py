@@ -28,7 +28,7 @@ try:
     # I definitely need a better way to handle this.
     from adbe.adb_helper import (get_adb_shell_property, execute_adb_command2, execute_adb_shell_command,
                                  execute_adb_shell_command2, execute_file_related_adb_shell_command, get_package,
-                                 root_required_to_access_file, get_device_android_api_version, execute_command)
+                                 root_required_to_access_file, get_device_android_api_version)
     from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
 except ImportError:
     # This works when the code is executed directly.
