@@ -50,6 +50,9 @@ _USER_PRINT_VALUE_OFF = 'off'
 # Value to be return as 'unknown' to the user
 _USER_PRINT_VALUE_UNKNOWN = 'unknown'
 
+SCREEN_ON = 1
+SCREEN_OFF = 2
+SCREEN_TOGGLE = 3
 
 def _ensure_package_exists(package_name):
     """
@@ -1531,3 +1534,26 @@ def _error_if_min_version_less_than(min_acceptable_version, device_serial=None):
 def _is_emulator():
     qemu = get_adb_shell_property('ro.kernel.qemu')
     return qemu is not None and qemu.strip() == '1'
+
+
+def switch_screen(turn_on):
+    if turn_on == SCREEN_TOGGLE:
+        code, output, err = execute_adb_shell_command2("input keyevent KEYCODE_POWER")
+    else:
+        code, output, err = execute_adb_shell_command2("dumpsys display")
+        if code != 0:
+            print_error_and_exit("Something gone wrong on screen control operation. Error: %s" % err)
+
+        state = re.findall(r"^\s*mScreenState=(\w*)$", output, re.MULTILINE)[0]
+
+        if state == "ON":
+            if turn_on == SCREEN_OFF or turn_on == SCREEN_TOGGLE:
+                code, output, err = execute_adb_shell_command2("input keyevent KEYCODE_POWER")
+        elif state == "OFF" or state == "DOZE":
+            if turn_on == SCREEN_ON or turn_on == SCREEN_TOGGLE:
+                code, output, err = execute_adb_shell_command2("input keyevent KEYCODE_POWER")
+
+    if code != 0:
+        print_error_and_exit("Something gone wrong on screen control operation. Error: %s" % err)
+
+    return output
