@@ -65,6 +65,10 @@ Device configuration
 
 -  Take a video ``adbe screenrecord video.mp4 # Press ^C when finished``
 
+-  Switch Debug to Wireless mode
+
+``adbe wireless``
+
 Permissions
 ~~~~~~~~~~~
 
@@ -219,6 +223,7 @@ Usage
     adbe [options] app backup <app_name> [<backup_tar_file_path>]
     adbe [options] install <file_path>
     adbe [options] uninstall <app_name>
+    adbe [options] wireless
 
 Options
 ~~~~~~~
