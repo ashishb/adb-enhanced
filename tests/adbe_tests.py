@@ -399,7 +399,8 @@ def test_version():
 
 
 def test_wireless():
-    _assert_success('wireless')
+    _assert_success('enable wireless debugging')
+    _assert_success('disable wireless debugging')
 
 
 def _assert_fail(sub_cmd):
