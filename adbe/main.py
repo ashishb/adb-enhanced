@@ -10,13 +10,12 @@ import docopt
 # This is required only for Python 2
 # pylint: disable=import-error
 try:
-    # This fails when the code is executed directly and not as a part of python package installation,
-    # I definitely need a better way to handle this.
-    from adbe import adb_enhanced
-    from adbe import adb_helper
-    from adbe.output_helper import print_error_and_exit, print_message, set_verbose
+    # First try local import for development
+    from .adbe import adb_enhanced
+    from .adbe import adb_helper
+    from .adbe.output_helper import print_error_and_exit, print_message, set_verbose
 except ImportError:
-    # This works when the code is executed directly.
+    # This works when the code is executed as a part of the module
     import adb_enhanced
     import adb_helper
     from output_helper import print_error_and_exit, print_message, set_verbose
