@@ -1541,6 +1541,11 @@ def enable_wireless_debug():
         print_error('Failed to switch device to wireless debug mode, stderr: %s' % stderr)
         return
 
+    matching = re.match(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$", result)
+    if matching is None:
+        print_error('Failed to switch device to wireless debug mode')
+        return
+
     ip = re.findall(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$", result, re.MULTILINE)[0]
 
     code, _, stderr = execute_adb_command2("tcpip 5555")
