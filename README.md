@@ -48,9 +48,8 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 * Take a video
   `adbe screenrecord video.mp4 # Press ^C when finished`
-  
-* Turn Wireless Debug mode on
 
+* Turn Wireless Debug mode on
   `adbe enable wireless debugging`  
 
 ### Permissions
