@@ -26,17 +26,19 @@ else:
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
+
     from adbe.adb_helper import (get_adb_shell_property, execute_adb_command2, execute_adb_shell_command,
                                  execute_adb_shell_command2, execute_file_related_adb_shell_command, get_package,
                                  root_required_to_access_file, get_device_android_api_version, set_adb_prefix,
-                                 get_adb_prefix)
+                                 get_adb_prefix, toggle_screen)
     from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
 except ImportError:
     # This works when the code is executed directly.
     from adb_helper import (get_adb_shell_property, execute_adb_command2, execute_adb_shell_command,
                             execute_adb_shell_command2, execute_file_related_adb_shell_command, get_package,
                             root_required_to_access_file, get_device_android_api_version, set_adb_prefix,
-                            get_adb_prefix)
+                            get_adb_prefix, toggle_screen)
+
     from output_helper import print_message, print_error, print_error_and_exit, print_verbose
 
 
@@ -51,6 +53,10 @@ _USER_PRINT_VALUE_PARTIALLY_ON = 'partially on'
 _USER_PRINT_VALUE_OFF = 'off'
 # Value to be return as 'unknown' to the user
 _USER_PRINT_VALUE_UNKNOWN = 'unknown'
+
+SCREEN_ON = 1
+SCREEN_OFF = 2
+SCREEN_TOGGLE = 3
 
 
 def _ensure_package_exists(package_name):
@@ -1570,3 +1576,30 @@ def disable_wireless_debug():
         print_error_and_exit("Can't disconnect from offline devices. Error: %s" % stderr)
 
     return result
+
+
+def switch_screen(switch_type):
+    if switch_type == SCREEN_TOGGLE:
+        c, o, e = toggle_screen()
+
+        if c != 0:
+            print_error_and_exit("Something gone wrong on "
+                                 "screen control operation. Error: %s" % e)
+        return o
+
+    c, o, e = execute_adb_shell_command2("dumpsys display")
+    if c != 0:
+        print_error_and_exit("Something gone wrong on "
+                             "screen control operation. Error: %s" % e)
+
+    state = re.findall(r"^\s*mScreenState=(\w*)$", o, re.MULTILINE)[0]
+
+    if (state == "ON" and switch_type == SCREEN_OFF) or \
+            (state in ["OFF", "DOZE"] and switch_type == SCREEN_ON):
+        c, o, e = toggle_screen()
+
+        if c != 0:
+            print_error_and_exit("Something gone wrong on "
+                                 "screen control operation. Error: %s" % e)
+
+    return o

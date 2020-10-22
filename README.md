@@ -221,6 +221,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe [options] uninstall <app_name>
     adbe [options] enable wireless debugging
     adbe [options] disable wireless debugging
+    adbe [options] screen (on | off | toggle)
 
 ### Options
 

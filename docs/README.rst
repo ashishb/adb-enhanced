@@ -225,6 +225,7 @@ Usage
     adbe [options] uninstall <app_name>
     adbe [options] enable wireless debugging
     adbe [options] disable wireless debugging
+    adbe [options] screen (on | off | toggle)
 
 Options
 ~~~~~~~

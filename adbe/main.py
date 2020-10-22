@@ -10,13 +10,12 @@ import docopt
 # This is required only for Python 2
 # pylint: disable=import-error
 try:
-    # This fails when the code is executed directly and not as a part of python package installation,
-    # I definitely need a better way to handle this.
-    from adbe import adb_enhanced
-    from adbe import adb_helper
-    from adbe.output_helper import print_error_and_exit, print_message, set_verbose
+    # First try local import for development
+    from .adbe import adb_enhanced
+    from .adbe import adb_helper
+    from .adbe.output_helper import print_error_and_exit, print_message, set_verbose
 except ImportError:
-    # This works when the code is executed directly.
+    # This works when the code is executed as a part of the module
     import adb_enhanced
     import adb_helper
     from output_helper import print_error_and_exit, print_message, set_verbose
@@ -79,6 +78,7 @@ Usage:
     adbe [options] uninstall <app_name>
     adbe [options] enable wireless debugging
     adbe [options] disable wireless debugging
+    adbe [options] screen (on | off | toggle)
 
 Options:
     -e, --emulator          directs the command to the only running emulator
@@ -99,7 +99,6 @@ List of things which this tool will do in the future
 * adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
 * adbe app-standby $app_name
 * adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
-* adbe screen (on|off|toggle)  # https://stackoverflow.com/questions/7585105/turn-on-screen-on-device
 * adb shell input keyevent KEYCODE_POWER can do the toggle
 * adbe press up
 * adbe set_app_name [-f] $app_name
@@ -325,6 +324,13 @@ def main():
         if not backup_tar_file_path:
             backup_tar_file_path = '%s_backup.tar' % app_name
         adb_enhanced.perform_app_backup(app_name, backup_tar_file_path)
+
+    elif args['screen'] and args['on']:
+        adb_enhanced.switch_screen(adb_enhanced.SCREEN_ON)
+    elif args['screen'] and args['off']:
+        adb_enhanced.switch_screen(adb_enhanced.SCREEN_OFF)
+    elif args['screen'] and args['toggle']:
+        adb_enhanced.switch_screen(adb_enhanced.SCREEN_TOGGLE)
 
     elif args['install']:
         file_path = args['<file_path>']
