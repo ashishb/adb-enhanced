@@ -1538,20 +1538,17 @@ def _is_emulator():
 def enable_wireless_debug():
     code, result, stderr = execute_adb_shell_command2("ip address")
     if code != 0:
-        print_error('Failed to switch device to wireless debug mode, stderr: %s' % stderr)
-        return
+        print_error_and_exit('Failed to switch device to wireless debug mode, stderr: %s' % stderr)
 
     matching = re.match(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$", result)
     if matching is None:
-        print_error('Failed to switch device to wireless debug mode')
-        return
+        print_error_and_exit('Failed to switch device to wireless debug mode')
 
     ip = re.findall(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$", result, re.MULTILINE)[0]
 
     code, _, stderr = execute_adb_command2("tcpip 5555")
     if code != 0:
-        print_error('Failed to switch device %s to wireless debug mode, stderr: %s' % (ip, stderr))
-        return
+        print_error_and_exit('Failed to switch device %s to wireless debug mode, stderr: %s' % (ip, stderr))
 
     return execute_adb_command2("connect %s" % ip)
 
