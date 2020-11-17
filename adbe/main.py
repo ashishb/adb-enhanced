@@ -14,7 +14,8 @@ try:
     from .adbe import adb_enhanced
     from .adbe import adb_helper
     from .adbe.output_helper import print_error_and_exit, print_message, set_verbose
-except ImportError:
+# Python 3.6 onwards, this throws ModuleNotFoundError
+except (ImportError, ModuleNotFoundError):
     # This works when the code is executed as a part of the module
     import adb_enhanced
     import adb_helper
