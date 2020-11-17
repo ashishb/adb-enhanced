@@ -119,11 +119,11 @@ def handle_overdraw(value):
     version = get_device_android_api_version()
 
     if version < 19:
-        if value is 'on':
+        if value == 'on':
             cmd = 'setprop debug.hwui.show_overdraw true'
-        elif value is 'off':
+        elif value == 'off':
             cmd = 'setprop debug.hwui.show_overdraw false'
-        elif value is 'deut':
+        elif value == 'deut':
             print_error_and_exit(
                 'deut mode is available only on API 19 and above, your Android API version is %d' % version)
             return
@@ -131,11 +131,11 @@ def handle_overdraw(value):
             print_error_and_exit('Unexpected value for overdraw %s' % value)
             return
     else:
-        if value is 'on':
+        if value == 'on':
             cmd = 'setprop debug.hwui.overdraw show'
-        elif value is 'off':
+        elif value == 'off':
             cmd = 'setprop debug.hwui.overdraw false'
-        elif value is 'deut':
+        elif value == 'deut':
             cmd = 'setprop debug.hwui.overdraw show_deuteranomaly'
         else:
             print_error_and_exit('Unexpected value for overdraw %s' % value)
@@ -151,17 +151,17 @@ def handle_rotate(direction):
     disable_acceleration = 'put system accelerometer_rotation 0'
     execute_adb_shell_settings_command(disable_acceleration)
 
-    if direction is 'portrait':
+    if direction == 'portrait':
         new_direction = 0
-    elif direction is 'landscape':
+    elif direction == 'landscape':
         new_direction = 1
-    elif direction is 'left':
+    elif direction == 'left':
         current_direction = get_current_rotation_direction()
         print_verbose("Current direction: %s" % current_direction)
         if current_direction is None:
             return
         new_direction = (current_direction + 1) % 4
-    elif direction is 'right':
+    elif direction == 'right':
         current_direction = get_current_rotation_direction()
         print_verbose("Current direction: %s" % current_direction)
         if current_direction is None:
