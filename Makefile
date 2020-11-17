@@ -10,6 +10,7 @@ clean:
 
 setup:
 	brew install pandoc sphinx-doc
+	brew link --force sphinx-doc
 	python3 -m pip install -r requirements.txt
 
 build: clean
