@@ -8,6 +8,9 @@ documentation:
 clean:
 		rm -rf build/ dist/  # Cleanup build dir
 
+setup:
+	brew install pandoc sphinx-doc
+	python3 -m pip install -r requirements.txt
 
 build: clean
 	# Upgrade setup tools
