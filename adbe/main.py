@@ -11,9 +11,9 @@ import docopt
 # pylint: disable=import-error
 try:
     # First try local import for development
-    from .adbe import adb_enhanced
-    from .adbe import adb_helper
-    from .adbe.output_helper import print_error_and_exit, print_message, set_verbose
+    from adbe import adb_enhanced
+    from adbe import adb_helper
+    from adbe.output_helper import print_error_and_exit, print_message, set_verbose
 # Python 3.6 onwards, this throws ModuleNotFoundError
 except (ImportError, ModuleNotFoundError):
     # This works when the code is executed as a part of the module
