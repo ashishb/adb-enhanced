@@ -193,6 +193,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe [options] permission-groups list all
     adbe [options] permissions list (all | dangerous)
     adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe [options] notifications list
     adbe [options] apps list (all | system | third-party | debug | backup-enabled)
     adbe [options] standby-bucket get <app_name>
     adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
