@@ -1571,11 +1571,11 @@ def print_notifications():
         print_error_and_exit("Something gone wrong on "
                              "fetching notification info. Error: %s" % err)
     notification_records = re.findall(r"\s*NotificationRecord\(.*", output, re.MULTILINE)
-    for i in range(0, len(notification_records)):
-        output_for_this_notification = output.split(notification_records[i])[1]
+    for i, notification_record in enumerate(notification_records):
+        output_for_this_notification = output.split(notification_record)[1]
         if i + 1 < len(notification_records):
             output_for_this_notification = output_for_this_notification.split(notification_records[i+1])[0]
-        notification_package = re.findall(r"pkg=(\S*)", notification_records[i])[0]
+        notification_package = re.findall(r"pkg=(\S*)", notification_record)[0]
         titles = re.findall("android.title=(.*)", output_for_this_notification)
         if len(titles) > 0:
             notification_title = titles[0]
