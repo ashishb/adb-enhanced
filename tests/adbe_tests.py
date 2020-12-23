@@ -399,7 +399,11 @@ def test_version():
 
 
 def test_screen_toggle():
-    _assert_success("screen toggle")
+    _assert_success('screen toggle')
+
+
+def test_notifications():
+    _assert_success('notifications list')
 
 
 def _assert_fail(sub_cmd):
@@ -487,6 +491,7 @@ def main():
     test_open_url()
     test_version()
     test_screen_toggle()
+    test_notifications()
     # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
 
 
