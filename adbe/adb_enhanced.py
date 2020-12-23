@@ -1571,22 +1571,34 @@ def print_notifications():
         print_error_and_exit("Something gone wrong on "
                              "fetching notification info. Error: %s" % err)
     notification_records = re.findall(r"\s*NotificationRecord\(.*", output, re.MULTILINE)
-    for notification_record in notification_records:
-        output = output.split(notification_record)[1]
-        notification_package = re.findall(r"pkg=(\S*)", notification_record)[0]
-        titles = re.findall("android.title=(.*)", output)
+    for i in range(0, len(notification_records)):
+        output_for_this_notification = output.split(notification_records[i])[1]
+        if i + 1 < len(notification_records):
+            output_for_this_notification = output_for_this_notification.split(notification_records[i+1])[0]
+        notification_package = re.findall(r"pkg=(\S*)", notification_records[i])[0]
+        titles = re.findall("android.title=(.*)", output_for_this_notification)
         if len(titles) > 0:
             notification_title = titles[0]
         else:
             notification_title = None
-        texts = re.findall("android.text=(.*)", output)
+        texts = re.findall("android.text=(.*)", output_for_this_notification)
         if len(texts) > 0:
             notification_text = texts[0]
         else:
             notification_text = None
+        notification_actions = []
+        action_strings = re.findall(r"actions=\{(.*?)\n\}", output_for_this_notification, re.MULTILINE | re.DOTALL)
+        if len(action_strings) > 0:
+            if i+1 >= len(notification_records) or \
+                    output_for_this_notification.find(action_strings[0]) > output_for_this_notification.find(notification_records[i+1]):
+                for actions in action_strings[0].split('\n'):
+                    notification_actions += re.findall(r"\".*?\"", actions)
+
         print_message('Package: %s' % notification_package)
         if notification_title:
             print_message('Title: %s' % notification_title)
-        if notification_text:
+        if notification_text and notification_text != 'null':
             print_message('Text: %s' % notification_text)
+        for action in notification_actions:
+            print_message('Action: %s' % action)
         print_message('')
