@@ -55,6 +55,7 @@ Usage:
     adbe [options] permission-groups list all
     adbe [options] permissions list (all | dangerous)
     adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe [options] notifications list
     adbe [options] apps list (all | system | third-party | debug | backup-enabled)
     adbe [options] standby-bucket get <app_name>
     adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
@@ -251,6 +252,9 @@ def main():
             print_error_and_exit('No permissions found in permissions group: %s' % permission_group)
         adb_enhanced.grant_or_revoke_runtime_permissions(
             app_name, args['grant'], permissions)
+
+    elif args['notifications'] and args['list']:
+        adb_enhanced.print_notifications()
 
     # apps list
     elif args['apps'] and args['list'] and args['all']:

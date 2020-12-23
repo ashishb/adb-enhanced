@@ -1562,3 +1562,31 @@ def switch_screen(switch_type):
                                  "screen control operation. Error: %s" % e)
 
     return o
+
+
+def print_notifications():
+    # Noredact is neeed on >= Android 6.0 to see title and text
+    code, output, err = execute_adb_shell_command2("dumpsys notification --noredact")
+    if code != 0:
+        print_error_and_exit("Something gone wrong on "
+                             "fetching notification info. Error: %s" % err)
+    notification_records = re.findall(r"\s*NotificationRecord\(.*", output, re.MULTILINE)
+    for notification_record in notification_records:
+        output = output.split(notification_record)[1]
+        notification_package = re.findall(r"pkg=(\S*)", notification_record)[0]
+        titles = re.findall("android.title=(.*)", output)
+        if len(titles) > 0:
+            notification_title = titles[0]
+        else:
+            notification_title = None
+        texts = re.findall("android.text=(.*)", output)
+        if len(texts) > 0:
+            notification_text = texts[0]
+        else:
+            notification_text = None
+        print_message('Package: %s' % notification_package)
+        if notification_title:
+            print_message('Title: %s' % notification_title)
+        if notification_text:
+            print_message('Text: %s' % notification_text)
+        print_message('')
