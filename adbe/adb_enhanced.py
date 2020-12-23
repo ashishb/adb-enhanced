@@ -432,18 +432,16 @@ def _get_top_activity_data():
         print_error_and_exit('Device returned no response, is it still connected?')
     for line in output.split('\n'):
         line = line.strip()
-        if line.startswith('mFocusedApp'):
-            regex_result = re.search(r'ActivityRecord{.* (\S+)/(\S+)', line)
-            if regex_result is None:
-                print_error('Unable to parse activity name from:')
-                print_error(line)
-                return None, None
-            app_name, activity_name = regex_result.group(1), regex_result.group(2)
-            # If activity name is a short hand then complete it.
-            if activity_name.startswith('.'):
-                activity_name = '%s%s' %(app_name, activity_name)
-            return app_name, activity_name
+        regex_result = re.search(r'ActivityRecord{.* (\S+)/(\S+)', line)
+        if regex_result is None:
+            continue
+        app_name, activity_name = regex_result.group(1), regex_result.group(2)
+        # If activity name is a short hand then complete it.
+        if activity_name.startswith('.'):
+            activity_name = '%s%s' %(app_name, activity_name)
+        return app_name, activity_name
 
+    print_error('Unable to extract activity name')
     return None, None
 
 
