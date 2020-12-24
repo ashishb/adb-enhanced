@@ -16,7 +16,6 @@ import psutil
 if sys.version_info >= (3, 5):
     try:
         import asyncio_helper
-
         _ASYNCIO_AVAILABLE = True
     except ImportError:
         # This is to deal with python versions below 3.5
@@ -28,17 +27,18 @@ try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
     from adbe.adb_helper import (get_adb_shell_property, execute_adb_command2,
-                                 execute_adb_shell_command, execute_adb_shell_command2,
-                                 execute_file_related_adb_shell_command, get_package,
-                                 root_required_to_access_file, get_device_android_api_version, toggle_screen)
+            execute_adb_shell_command, execute_adb_shell_command2,
+            execute_file_related_adb_shell_command, get_package,
+            root_required_to_access_file, get_device_android_api_version, toggle_screen)
     from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
 except ImportError:
     # This works when the code is executed directly.
     from adb_helper import (get_adb_shell_property, execute_adb_command2,
-                            execute_adb_shell_command, execute_adb_shell_command2,
-                            execute_file_related_adb_shell_command, get_package,
-                            root_required_to_access_file, get_device_android_api_version, toggle_screen)
+            execute_adb_shell_command, execute_adb_shell_command2,
+            execute_file_related_adb_shell_command, get_package,
+            root_required_to_access_file, get_device_android_api_version, toggle_screen)
     from output_helper import print_message, print_error, print_error_and_exit, print_verbose
+
 
 _KEYCODE_BACK = 4
 _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
@@ -61,7 +61,7 @@ def _ensure_package_exists(package_name):
     """
     Don't call this directly. Instead consider decorating your method with
     @ensure_package_exists or @ensure_package_exists2
-   :return: True if package_name package is installed on the device
+    :return: True if package_name package is installed on the device
     """
     if not _package_exists(package_name):
         print_error_and_exit("Package %s does not exist" % package_name)
@@ -72,7 +72,6 @@ def ensure_package_exists(func):
     def func_wrapper(package_name):
         _ensure_package_exists(package_name)
         return func(package_name)
-
     return func_wrapper
 
 
@@ -81,7 +80,6 @@ def ensure_package_exists2(func):
     def func_wrapper(package_name, arg2):
         _ensure_package_exists(package_name)
         return func(package_name, arg2)
-
     return func_wrapper
 
 
@@ -90,7 +88,6 @@ def ensure_package_exists3(func):
     def func_wrapper(package_name, arg2, arg3):
         _ensure_package_exists(package_name)
         return func(package_name, arg2, arg3)
-
     return func_wrapper
 
 
@@ -388,7 +385,7 @@ def handle_list_devices():
                     ('Unlock Device "%s" and give USB debugging access to ' +
                      'this PC/Laptop by unlocking and reconnecting ' +
                      'the device. More info about this device: "%s"\n') % (
-                        device_serial, device_info))
+                         device_serial, device_info))
             else:
                 _print_device_info(device_serial)
 
@@ -435,18 +432,16 @@ def _get_top_activity_data():
         print_error_and_exit('Device returned no response, is it still connected?')
     for line in output.split('\n'):
         line = line.strip()
-        if line.startswith('mFocusedApp'):
-            regex_result = re.search(r'ActivityRecord{.* (\S+)/(\S+)', line)
-            if regex_result is None:
-                print_error('Unable to parse activity name from:')
-                print_error(line)
-                return None, None
-            app_name, activity_name = regex_result.group(1), regex_result.group(2)
-            # If activity name is a short hand then complete it.
-            if activity_name.startswith('.'):
-                activity_name = '%s%s' % (app_name, activity_name)
-            return app_name, activity_name
+        regex_result = re.search(r'ActivityRecord{.* (\S+)/(\S+)', line)
+        if regex_result is None:
+            continue
+        app_name, activity_name = regex_result.group(1), regex_result.group(2)
+        # If activity name is a short hand then complete it.
+        if activity_name.startswith('.'):
+            activity_name = '%s%s' %(app_name, activity_name)
+        return app_name, activity_name
 
+    print_error('Unable to extract activity name')
     return None, None
 
 
@@ -925,14 +920,12 @@ def _get_all_packages(pm_cmd):
             packages.append(package_name)
     return packages
 
-
 def list_all_apps():
     # The command "pm list packages -e" does not return all installed and enabled Apps, the alternative is to use
     # "dumpsys package" instead.
     cmd = 'dumpsys package'
     grep_cmd = 'grep -Po "Package \[\K[^\]]+"'
     apps_list = execute_adb_shell_command(cmd, piped_into_cmd=grep_cmd)
-    # packages = _get_all_packages(cmd)
     print(apps_list)
 
 
@@ -944,13 +937,6 @@ def list_system_apps():
 
 def list_non_system_apps():
     cmd = 'pm list packages -3'
-    packages = _get_all_packages(cmd)
-    print('\n'.join(packages))
-
-
-# will list enabled Apps (including system Apps)
-def list_enabled_apps():
-    cmd = "pm list packages -e"
     packages = _get_all_packages(cmd)
     print('\n'.join(packages))
 
@@ -1066,7 +1052,7 @@ def get_standby_bucket(package_name):
     result = execute_adb_shell_command(cmd)
     if result is None:
         print_error_and_exit(_USER_PRINT_VALUE_UNKNOWN)
-    print_verbose('App standby bucket for \"%s\" is %s' % (
+    print_verbose('App standby bucket for \"%s\" is %s' %(
         package_name, _APP_STANDBY_BUCKETS.get(int(result), _USER_PRINT_VALUE_UNKNOWN)))
     print(_APP_STANDBY_BUCKETS.get(int(result), _USER_PRINT_VALUE_UNKNOWN))
 
@@ -1184,13 +1170,13 @@ def pull_file(remote_file_path, local_file_path, copy_ancillary=False):
 
     if _is_sqlite_database(remote_file_path):
         # Copy temporary Sqlite files
-        # Source:https://ashishb.net/all/android-the-right-way-to-pull-sqlite-database-from-the-device/
+        # Source :https://ashishb.net/all/android-the-right-way-to-pull-sqlite-database-from-the-device/
         for suffix in ['wal', 'journal', 'shm']:
             tmp_db_file = '%s-%s' % (remote_file_path, suffix)
             if not _file_exists(tmp_db_file):
                 continue
             if copy_ancillary:
-                pull_file(tmp_db_file, '%s-%s' % (local_file_path, suffix), copy_ancillary=True)
+                pull_file(tmp_db_file, '%s-%s' %(local_file_path, suffix), copy_ancillary=True)
             else:
                 print_error('File \"%s\" has an ancillary file \"%s\" which should be copied.\nSee %s for details'
                             % (remote_file_path, tmp_db_file,
@@ -1354,9 +1340,9 @@ def _get_permissions_info_above_api_23(app_info_dump):
             runtime_denied_permissions.append(permission)
     runtime_not_granted_permissions = list(filter(
         lambda p: p not in runtime_granted_permissions and
-                   p not in runtime_denied_permissions and
-                   p not in install_time_granted_permissions and
-                   p not in install_time_denied_permissions, requested_permissions))
+        p not in runtime_denied_permissions and
+        p not in install_time_granted_permissions and
+        p not in install_time_denied_permissions, requested_permissions))
 
     permissions_info_msg = ''
     permissions_info_msg += '\nPermissions:\n\n'
@@ -1427,8 +1413,7 @@ def perform_app_backup(app_name, backup_tar_file):
     # TODO: Add a check to ensure that the screen is unlocked
     password = '00'
     print_verbose('Performing backup to backup.ab file')
-    print_message(
-        'you might have to confirm the backup manually on your device\'s screen, enter \"%s\" as password...' % password)
+    print_message('you might have to confirm the backup manually on your device\'s screen, enter \"%s\" as password...' % password)
 
     def backup_func():
         # Create backup.ab
@@ -1579,3 +1564,43 @@ def switch_screen(switch_type):
                                  "screen control operation. Error: %s" % e)
 
     return o
+
+
+def print_notifications():
+    # Noredact is neeed on >= Android 6.0 to see title and text
+    code, output, err = execute_adb_shell_command2("dumpsys notification --noredact")
+    if code != 0:
+        print_error_and_exit("Something gone wrong on "
+                             "fetching notification info. Error: %s" % err)
+    notification_records = re.findall(r"\s*NotificationRecord\(.*", output, re.MULTILINE)
+    for i, notification_record in enumerate(notification_records):
+        output_for_this_notification = output.split(notification_record)[1]
+        if i + 1 < len(notification_records):
+            output_for_this_notification = output_for_this_notification.split(notification_records[i+1])[0]
+        notification_package = re.findall(r"pkg=(\S*)", notification_record)[0]
+        titles = re.findall("android.title=(.*)", output_for_this_notification)
+        if len(titles) > 0:
+            notification_title = titles[0]
+        else:
+            notification_title = None
+        texts = re.findall("android.text=(.*)", output_for_this_notification)
+        if len(texts) > 0:
+            notification_text = texts[0]
+        else:
+            notification_text = None
+        notification_actions = []
+        action_strings = re.findall(r"actions=\{(.*?)\n\}", output_for_this_notification, re.MULTILINE | re.DOTALL)
+        if len(action_strings) > 0:
+            if i+1 >= len(notification_records) or \
+                    output_for_this_notification.find(action_strings[0]) > output_for_this_notification.find(notification_records[i+1]):
+                for actions in action_strings[0].split('\n'):
+                    notification_actions += re.findall(r"\".*?\"", actions)
+
+        print_message('Package: %s' % notification_package)
+        if notification_title:
+            print_message('Title: %s' % notification_title)
+        if notification_text and notification_text != 'null':
+            print_message('Text: %s' % notification_text)
+        for action in notification_actions:
+            print_message('Action: %s' % action)
+        print_message('')
