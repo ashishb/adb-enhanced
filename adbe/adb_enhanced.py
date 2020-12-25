@@ -921,10 +921,11 @@ def _get_all_packages(pm_cmd):
             packages.append(package_name)
     return packages
 
+
 # https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
 def list_all_apps():
-    # The command "pm list packages -e" does not return all installed and enabled Apps, the alternative is to use
-    # "dumpsys package" instead.
+    # The command "pm list packages -e" does not return all installed and
+    # enabled Apps, the alternative is to use "dumpsys package" instead.
     cmd = 'dumpsys package'
     grep_cmd = 'grep -Po "Package \[\K[^\]]+"'
     apps_list = execute_adb_shell_command(cmd, piped_into_cmd=grep_cmd)
@@ -1476,7 +1477,8 @@ def perform_install(file_path):
 @ensure_package_exists
 def perform_uninstall(app_name):
     print_verbose('Uninstalling %s' % app_name)
-    return_code, _, stderr = execute_adb_shell_command2('pm uninstall --user 0 %s' % app_name)
+    cmd = 'pm uninstall --user 0 %s'
+    return_code, _, stderr = execute_adb_shell_command2(cmd % app_name)
     if return_code != 0:
         print_error('Failed to uninstall %s, stderr: %s' % (app_name, stderr))
 
@@ -1567,6 +1569,7 @@ def switch_screen(switch_type):
 
     return o
 
+
 def print_notifications():
     # Noredact is neeed on >= Android 6.0 to see title and text
     code, output, err = execute_adb_shell_command2("dumpsys notification --noredact")
@@ -1607,6 +1610,7 @@ def print_notifications():
         print_message('')
 
 
+# Alarm Enum
 class AlarmEnum(Enum):
     TOP = 't'
     PENDING = 'p'
@@ -1614,6 +1618,7 @@ class AlarmEnum(Enum):
     ALL = 'a'
 
 
+# Prettify alarm logs
 def alarm_manager(param):
     cmd = "dumpsys alarm"
     c, o, e = execute_adb_shell_command2(cmd)
@@ -1625,8 +1630,10 @@ def alarm_manager(param):
 
     if isinstance(param, AlarmEnum):
         if param == AlarmEnum.TOP:
-            pattern_top_alarm = re.compile(r'(?<=Top Alarms:\n).*?(?=Alarm Stats:)', re.DOTALL)
-            alarm_to_parse = re.sub(r' +', ' ', re.search(pattern_top_alarm, o).group(0)).split("\n")
+            pattern_top_alarm = re.compile(r'(?<=Top Alarms:\n).*?(?=Alarm Stats:)',
+                                           re.DOTALL)
+            alarm_to_parse = re.sub(r' +', ' ',
+                                    re.search(pattern_top_alarm, o).group(0)).split("\n")
             temp_dict = dict()
 
             for i in range(len(alarm_to_parse)):

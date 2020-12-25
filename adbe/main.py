@@ -9,7 +9,6 @@ import docopt
 
 # This is required only for Python 2
 # pylint: disable=import-error
-from adb_enhanced import AlarmEnum
 
 try:
     # First try local import for development
