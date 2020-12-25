@@ -11,6 +11,7 @@ import os
 import random
 from urllib.parse import urlparse
 import psutil
+from enum import Enum
 
 # asyncio was introduced in version 3.5
 if sys.version_info >= (3, 5):
@@ -1565,7 +1566,6 @@ def switch_screen(switch_type):
 
     return o
 
-
 def print_notifications():
     # Noredact is neeed on >= Android 6.0 to see title and text
     code, output, err = execute_adb_shell_command2("dumpsys notification --noredact")
@@ -1604,3 +1604,71 @@ def print_notifications():
         for action in notification_actions:
             print_message('Action: %s' % action)
         print_message('')
+
+
+class AlarmEnum(Enum):
+    TOP = 't'
+    COMING = 'c'
+    ALL = 'a'
+
+
+def alarm_manager(package_name=None, param=AlarmEnum.TOP):
+    cmd = "dumpsys alarm"
+    c, o, e = execute_adb_shell_command2(cmd)
+
+    if c != 0:
+        print_error_and_exit("Something gone wrong on "
+                             "dumping alarms. Error: %s" % e)
+        return o
+
+    if isinstance(param, AlarmEnum):
+
+        if param == AlarmEnum.TOP:
+            pattern_top_alarm = re.compile(r'(?<=Top Alarms:\n).*?(?=Alarm Stats:)', re.DOTALL)
+            alarm_to_parse = re.sub(r' +', ' ', re.search(pattern_top_alarm, o).group(0)).split("\n")
+            temp_dict = dict()
+
+            for i in range(len(alarm_to_parse)):
+                if re.match(r"^\+", alarm_to_parse[i]):
+                    temp_dict[alarm_to_parse[i]] = alarm_to_parse[i + 1]
+                    i += 1
+
+            for key, value in temp_dict.items():
+                # key example: +2m19s468ms running, 0 wakeups, 708 alarms: 1000:android
+                # value example: *alarm*:com.android.server.action.NETWORK_STATS_POLL
+                # Getting information from key:
+
+                temp = key.split(',')
+                running_time = temp[0].split(" ")[0]
+                wakeups = temp[1].strip().split(" ")[0]
+                nb_alarms = temp[2].strip().split(" ")[0]
+                uid = temp[2].strip().split(":")[1].strip()
+                package_name = temp[2].strip().split(":")[2].strip()
+
+                print(package_name)
+                print("\tRunning Time: %s" % running_time)
+                print("\tWakeups: %s" % wakeups)
+                print("\tNumber of Alarms: %s" % nb_alarms)
+                print("\tUser ID: %s" % uid)
+        elif param == AlarmEnum.COMING:
+            # TO-DO
+            print("not implemented yet")
+        elif param == AlarmEnum.ALL:
+            # TO-DO
+            print("not implemented yet")
+
+    # package name is given
+    else:
+        # TO-DO
+        print("not implemented yet")
+
+
+
+
+
+
+
+
+
+
+
