@@ -921,6 +921,7 @@ def _get_all_packages(pm_cmd):
             packages.append(package_name)
     return packages
 
+# https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
 def list_all_apps():
     # The command "pm list packages -e" does not return all installed and enabled Apps, the alternative is to use
     # "dumpsys package" instead.
@@ -1475,7 +1476,7 @@ def perform_install(file_path):
 @ensure_package_exists
 def perform_uninstall(app_name):
     print_verbose('Uninstalling %s' % app_name)
-    return_code, _, stderr = execute_adb_command2('uninstall %s' % app_name)
+    return_code, _, stderr = execute_adb_shell_command2('pm uninstall --user 0 %s' % app_name)
     if return_code != 0:
         print_error('Failed to uninstall %s, stderr: %s' % (app_name, stderr))
 
@@ -1608,11 +1609,12 @@ def print_notifications():
 
 class AlarmEnum(Enum):
     TOP = 't'
-    COMING = 'c'
+    PENDING = 'p'
+    HISTORY = 'h'
     ALL = 'a'
 
 
-def alarm_manager(package_name=None, param=AlarmEnum.TOP):
+def alarm_manager(param):
     cmd = "dumpsys alarm"
     c, o, e = execute_adb_shell_command2(cmd)
 
@@ -1622,7 +1624,6 @@ def alarm_manager(package_name=None, param=AlarmEnum.TOP):
         return o
 
     if isinstance(param, AlarmEnum):
-
         if param == AlarmEnum.TOP:
             pattern_top_alarm = re.compile(r'(?<=Top Alarms:\n).*?(?=Alarm Stats:)', re.DOTALL)
             alarm_to_parse = re.sub(r' +', ' ', re.search(pattern_top_alarm, o).group(0)).split("\n")
@@ -1640,17 +1641,23 @@ def alarm_manager(package_name=None, param=AlarmEnum.TOP):
 
                 temp = key.split(',')
                 running_time = temp[0].split(" ")[0]
-                wakeups = temp[1].strip().split(" ")[0]
+                nb_wokeups = temp[1].strip().split(" ")[0]
                 nb_alarms = temp[2].strip().split(" ")[0]
                 uid = temp[2].strip().split(":")[1].strip()
                 package_name = temp[2].strip().split(":")[2].strip()
+                action = value.split(":")[1]
 
                 print(package_name)
-                print("\tRunning Time: %s" % running_time)
-                print("\tWakeups: %s" % wakeups)
-                print("\tNumber of Alarms: %s" % nb_alarms)
+                print("\tAction: %s" % action)
+                print("\tRunning time: %s" % running_time)
+                print("\tNumber of device woke up: %s" % nb_wokeups)
+                print("\tNumber of alarms: %s" % nb_alarms)
                 print("\tUser ID: %s" % uid)
         elif param == AlarmEnum.COMING:
+            # TO-DO
+            print("not implemented yet")
+
+        elif param == AlarmEnum.HISTORY:
             # TO-DO
             print("not implemented yet")
         elif param == AlarmEnum.ALL:
@@ -1661,14 +1668,3 @@ def alarm_manager(package_name=None, param=AlarmEnum.TOP):
     else:
         # TO-DO
         print("not implemented yet")
-
-
-
-
-
-
-
-
-
-
-
