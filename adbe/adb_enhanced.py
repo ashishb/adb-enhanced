@@ -1629,7 +1629,12 @@ def alarm_manager(param):
         return o
 
     if isinstance(param, AlarmEnum):
-        if param == AlarmEnum.TOP:
+        run_all = 0
+        if param == AlarmEnum.ALL:
+            run_all = 1
+
+        if param == AlarmEnum.TOP or run_all == 1:
+            print("Top Alarms:")
             pattern_top_alarm = re.compile(r'(?<=Top Alarms:\n).*?(?=Alarm Stats:)',
                                            re.DOTALL)
             alarm_to_parse = re.sub(r' +', ' ',
@@ -1644,30 +1649,63 @@ def alarm_manager(param):
             for key, value in temp_dict.items():
                 # key example: +2m19s468ms running, 0 wakeups, 708 alarms: 1000:android
                 # value example: *alarm*:com.android.server.action.NETWORK_STATS_POLL
-                # Getting information from key:
-
                 temp = key.split(',')
                 running_time = temp[0].split(" ")[0]
-                nb_wokeups = temp[1].strip().split(" ")[0]
+                nb_woke_up = temp[1].strip().split(" ")[0]
                 nb_alarms = temp[2].strip().split(" ")[0]
                 uid = temp[2].strip().split(":")[1].strip()
                 package_name = temp[2].strip().split(":")[2].strip()
+
                 action = value.split(":")[1]
 
-                print(package_name)
-                print("\tAction: %s" % action)
-                print("\tRunning time: %s" % running_time)
-                print("\tNumber of device woke up: %s" % nb_wokeups)
-                print("\tNumber of alarms: %s" % nb_alarms)
-                print("\tUser ID: %s" % uid)
-        elif param == AlarmEnum.COMING:
-            # TO-DO
-            print("not implemented yet")
+                print("Package name: %s" % package_name)
+                print("   Action: %s" % action)
+                print("   Running time: %s" % running_time)
+                print("   Number of device woke up: %s" % nb_woke_up)
+                print("   Number of alarms: %s" % nb_alarms)
+                print("   User ID: %s" % uid)
 
-        elif param == AlarmEnum.HISTORY:
-            # TO-DO
-            print("not implemented yet")
-        elif param == AlarmEnum.ALL:
+        elif param == AlarmEnum.PENDING or run_all == 1:
+            print("Pending Alarms:")
+            pattern_pending_alarm = \
+                re.compile(r'(?<=Pending alarm batches:)'
+                           r'.*?(?=Pending user blocked background alarms)',
+                           re.DOTALL)
+
+            # TO-DO: improve the regex
+            alarm_to_parse = re.sub(r' +', ' ',
+                                    re.search(pattern_pending_alarm, o).
+                                    group(0)).split("\n")[1:-1]
+            for line in alarm_to_parse:
+                line = line.strip()
+                if line.startswith("Batch"):
+                    pattern_batch_info = re.compile(r'(?<=Batch\{).*?(?=\}:)',
+                                                re.DOTALL)
+                    info = re.search(pattern_batch_info, line).group(0).split(" ")
+
+                    print("ID: %s" % info[0])
+                    print("   Number of alarms: %s" % info[1].split("=")[1])
+                    print_verbose("   Start: %s" % info[2].split("=")[1])
+                    print_verbose("   End: %s" % info[3].split("=")[1])
+
+                    if "flgs" in line:
+                        # TO-DO: translate the flags
+                        print_verbose("   flag: %s" % info[4].split("=")[1])
+
+                if line.startswith("RTC") or line.startswith("RTC_WAKEUP") or \
+                        line.startswith("ELAPSED") or line.startswith("ELAPSED_WAKEUP"):
+
+                    pat_betwn_brackets = re.compile(r'(?<=\{).*?(?=\})',
+                                                    re.DOTALL)
+                    info = re.search(pat_betwn_brackets, line).group(0).split(" ")
+                    print("   Alarm #%s:" % line.split("#")[1].split(":")[0])
+                    print_verbose("      Type: %s" % line.split("#")[0])
+                    print_verbose("      ID: %s" % info[0])
+                    print_verbose("      Type: %s" % info[2])
+                    print_verbose("      When: %s" % info[4])
+                    print("      Package: %s" % info[5])
+
+        elif param == AlarmEnum.HISTORY or run_all == 1:
             # TO-DO
             print("not implemented yet")
 
