@@ -80,7 +80,7 @@ Usage:
     adbe [options] install <file_path>
     adbe [options] uninstall <app_name>
     adbe [options] screen (on | off | toggle)
-    adbe [options] alarm (all | top | pending | history  | <app_name> )
+    adbe [options] alarm (all | top | pending | history)
 
 Options:
     -e, --emulator          directs the command to the only running emulator
@@ -344,16 +344,14 @@ def main():
         adb_enhanced.perform_uninstall(args['<app_name>'])
 
     # alarm
-    elif args['alarm'] and args['top']:
-        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.TOP)
     elif args['alarm'] and args['all']:
         adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.ALL)
     elif args['alarm'] and args['history']:
         adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.HISTORY)
     elif args['alarm'] and args['pending']:
         adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.PENDING)
-    elif args['alarm'] and args['<app_name>']:
-        adb_enhanced.alarm_manager(args['<app_name>'])
+    elif args['alarm'] and args['top']:
+        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.TOP)
 
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
