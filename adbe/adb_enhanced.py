@@ -1617,9 +1617,105 @@ class AlarmEnum(Enum):
     ALL = 'a'
 
 
-# Prettify alarm logs
+def print_history_alarms(output_dump_alarm, padding):
+    print("App Alarm history")
+
+    pattern_pending_alarm = \
+        re.compile(r'(?<=App Alarm history:)'
+                   r'.*?(?=Past-due non-wakeup alarms)',
+                   re.DOTALL)
+    alarm_to_parse = re.sub(r' +', ' ',
+                            re.search(pattern_pending_alarm, output_dump_alarm).
+                            group(0)).split("\n")[1:-1]
+
+    for line in alarm_to_parse:
+        package_name = line[0:line.find(",")]
+        # +1 to escape ',' before user id
+        user_id = line[line.find(",") + 1:].split(":")[0]
+        history = line[line.find(",") + 1:].split(":")[1]
+        print("%sPackage name: %s" % (padding, package_name))
+        print("%s   User ID: %s" % (padding * 2, user_id))
+        print("%s   history: %s" % (padding * 2, history))
+
+
+def print_top_alarms(output_dump_alarm, padding):
+    print("Top Alarms:")
+    pattern_top_alarm = re.compile(r'(?<=Top Alarms:\n).*?(?=Alarm Stats:)',
+                                   re.DOTALL)
+    alarm_to_parse = re.sub(r' +', ' ',
+                            re.search(pattern_top_alarm, output_dump_alarm)
+                            .group(0)).split("\n")
+    temp_dict = dict()
+
+    for i in range(len(alarm_to_parse)):
+        if re.match(r"^\+", alarm_to_parse[i]):
+            temp_dict[alarm_to_parse[i]] = alarm_to_parse[i + 1]
+            i += 1
+
+    for key, value in temp_dict.items():
+        # key example: +2m19s468ms running, 0 wakeups, 708 alarms: 1000:android
+        # value example: *alarm*:com.android.server.action.NETWORK_STATS_POLL
+        temp = key.split(',')
+        running_time = temp[0].split(" ")[0]
+        nb_woke_up = temp[1].strip().split(" ")[0]
+        nb_alarms = temp[2].strip().split(" ")[0]
+        uid = temp[2].strip().split(":")[1].strip()
+        package_name = temp[2].strip().split(":")[2].strip()
+
+        action = value.split(":")[1]
+
+        print("%sPackage name: %s" % (padding, package_name))
+        print("%s   Action: %s" % (padding * 2, action))
+        print("%s   Running time: %s" % (padding * 2, running_time))
+        print("%s   Number of device woke up: %s" % (padding * 2, nb_woke_up))
+        print("%s   Number of alarms: %s" % (padding * 2, nb_alarms))
+        print("%s   User ID: %s" % (padding * 2, uid))
+
+
+def print_pending_alarms(output_dump_alarm, padding):
+    print("Pending Alarms:")
+    pattern_pending_alarm = \
+        re.compile(r'(?<=Pending alarm batches:)'
+                   r'.*?(?=(Pending user blocked background alarms|Past-due non-wakeup alarms))',
+                   re.DOTALL)
+
+    print(output_dump_alarm)
+    alarm_to_parse = re.sub(r' +', ' ',
+                            re.search(pattern_pending_alarm, output_dump_alarm).group(0)).split("\n")[1:-1]
+    for line in alarm_to_parse:
+        line = line.strip()
+        if not line.startswith("Batch"):
+            continue
+        pattern_batch_info = re.compile(r'(?<=Batch\{).*?(?=\}:)',
+                                        re.DOTALL)
+        info = re.search(pattern_batch_info, line).group(0).split(" ")
+
+        print("%sID: %s" % (padding, info[0]))
+        print("%s   Number of alarms: %s" % (padding * 2, info[1].split("=")[1]))
+        print_verbose("%s   Start: %s" % (padding * 2, info[2].split("=")[1]))
+        print_verbose("%s   End: %s" % (padding * 2, info[3].split("=")[1]))
+
+        if "flgs" in line:
+            # TO-DO: translate the flags
+            print_verbose("%s   flag: %s" % (padding * 2, info[4].split("=")[1]))
+
+    if line.startswith("RTC") or line.startswith("RTC_WAKEUP") or \
+            line.startswith("ELAPSED") or line.startswith("ELAPSED_WAKEUP"):
+        pattern_between_brackets = re.compile(r'(?<=\{).*?(?=\})',
+                                              re.DOTALL)
+        info = re.search(pattern_between_brackets, line).group(0).split(" ")
+        print("%s   Alarm #%s:" % (padding * 2, line.split("#")[1].split(":")[0]))
+        print_verbose("%s      Type: %s" % (padding * 2, line.split("#")[0]))
+        print_verbose("%s      ID: %s" % (padding * 2, info[0]))
+        print_verbose("%s      Type: %s" % (padding * 2, info[2]))
+        print_verbose("%s      When: %s" % (padding * 2, info[4]))
+        print("%s      Package: %s" % (padding * 2, info[5]))
+
+
 def alarm_manager(param):
     cmd = "dumpsys alarm"
+    api_version = get_device_android_api_version()
+
     c, o, e = execute_adb_shell_command2(cmd)
 
     if c != 0:
@@ -1627,99 +1723,37 @@ def alarm_manager(param):
                              "dumping alarms. Error: %s" % e)
         return o
 
-    if isinstance(param, AlarmEnum):
-        run_all = 0
-        padding = ""
+    if not isinstance(param, AlarmEnum):
+        print_error("Not supported parameter")
 
-        if param == AlarmEnum.ALL:
-            run_all = 1
-            padding = "   "
+        return
 
-        if param == AlarmEnum.TOP or run_all == 1:
-            print("Top Alarms:")
-            pattern_top_alarm = re.compile(r'(?<=Top Alarms:\n).*?(?=Alarm Stats:)',
-                                           re.DOTALL)
-            alarm_to_parse = re.sub(r' +', ' ',
-                                    re.search(pattern_top_alarm, o).group(0)).split("\n")
-            temp_dict = dict()
+    run_all = 0
+    padding = ""
 
-            for i in range(len(alarm_to_parse)):
-                if re.match(r"^\+", alarm_to_parse[i]):
-                    temp_dict[alarm_to_parse[i]] = alarm_to_parse[i + 1]
-                    i += 1
+    if param == AlarmEnum.ALL:
+        run_all = 1
+        padding = "\t"
 
-            for key, value in temp_dict.items():
-                # key example: +2m19s468ms running, 0 wakeups, 708 alarms: 1000:android
-                # value example: *alarm*:com.android.server.action.NETWORK_STATS_POLL
-                temp = key.split(',')
-                running_time = temp[0].split(" ")[0]
-                nb_woke_up = temp[1].strip().split(" ")[0]
-                nb_alarms = temp[2].strip().split(" ")[0]
-                uid = temp[2].strip().split(":")[1].strip()
-                package_name = temp[2].strip().split(":")[2].strip()
+    if param == AlarmEnum.TOP or run_all == 1:
+        print_top_alarms(o, padding)
 
-                action = value.split(":")[1]
+    if param == AlarmEnum.PENDING or run_all == 1:
+        if api_version > 28:
+            print_history_alarms(o, padding)
+        else:
+            print_error("Your Android version does not support " +
+                        "listing pending alarm")
 
-                print("%sPackage name: %s" % (padding, package_name))
-                print("%s   Action: %s" % (padding * 2, action))
-                print("%s   Running time: %s" % (padding * 2, running_time))
-                print("%s   Number of device woke up: %s" % (padding * 2, nb_woke_up))
-                print("%s   Number of alarms: %s" % (padding * 2, nb_alarms))
-                print("%s   User ID: %s" % (padding * 2, uid))
+    if param == AlarmEnum.HISTORY or run_all == 1:
+        if api_version > 28:
+            print_history_alarms(o, padding)
+        else:
+            print_error("Your Android version does not support " +
+                        "listing history alarm")
 
-        if param == AlarmEnum.PENDING or run_all == 1:
-            print("Pending Alarms:")
-            pattern_pending_alarm = \
-                re.compile(r'(?<=Pending alarm batches:)'
-                           r'.*?(?=Pending user blocked background alarms)',
-                           re.DOTALL)
 
-            alarm_to_parse = re.sub(r' +', ' ',
-                                    re.search(pattern_pending_alarm, o).
-                                    group(0)).split("\n")[1:-1]
-            for line in alarm_to_parse:
-                line = line.strip()
-                if line.startswith("Batch"):
-                    pattern_batch_info = re.compile(r'(?<=Batch\{).*?(?=\}:)',
-                                                re.DOTALL)
-                    info = re.search(pattern_batch_info, line).group(0).split(" ")
 
-                    print("%sID: %s" % (padding, info[0]))
-                    print("%s   Number of alarms: %s" % (padding * 2, info[1].split("=")[1]))
-                    print_verbose("%s   Start: %s" % (padding * 2,info[2].split("=")[1]))
-                    print_verbose("%s   End: %s" % (padding * 2, info[3].split("=")[1]))
 
-                    if "flgs" in line:
-                        # TO-DO: translate the flags
-                        print_verbose("%s   flag: %s" % (padding * 2, info[4].split("=")[1]))
 
-                if line.startswith("RTC") or line.startswith("RTC_WAKEUP") or \
-                        line.startswith("ELAPSED") or line.startswith("ELAPSED_WAKEUP"):
 
-                    pattern_between_brackets = re.compile(r'(?<=\{).*?(?=\})',
-                                                       re.DOTALL)
-                    info = re.search(pattern_between_brackets, line).group(0).split(" ")
-                    print("%s   Alarm #%s:" % (padding * 2, line.split("#")[1].split(":")[0]))
-                    print_verbose("%s      Type: %s" % (padding * 2,line.split("#")[0]))
-                    print_verbose("%s      ID: %s" % (padding * 2, info[0]))
-                    print_verbose("%s      Type: %s" % (padding * 2, info[2]))
-                    print_verbose("%s      When: %s" % (padding * 2, info[4]))
-                    print("%s      Package: %s" % (padding * 2, info[5]))
-
-        if param == AlarmEnum.HISTORY or run_all == 1:
-            print("App Alarm history")
-            pattern_pending_alarm = \
-                re.compile(r'(?<=App Alarm history:)'
-                           r'.*?(?=Past-due non-wakeup alarms)',
-                           re.DOTALL)
-            alarm_to_parse = re.sub(r' +', ' ',
-                                    re.search(pattern_pending_alarm, o).
-                                    group(0)).split("\n")[1:-1]
-
-            for line in alarm_to_parse:
-                package_name = line[0:line.find(",")]
-                user_id = line[line.find(",") + 1:].split(":")[0]  # +1 to escape ',' before user id
-                history = line[line.find(",") + 1:].split(":")[1]
-                print("%sPackage name: %s" % (padding,package_name))
-                print("%s   User ID: %s" % (padding * 2,user_id))
-                print("%s   history: %s" % (padding * 2,history))
