@@ -1710,6 +1710,8 @@ def print_pending_alarms(output_dump_alarm, padding):
 def alarm_manager(param):
     cmd = "dumpsys alarm"
     api_version = get_device_android_api_version()
+    err_msg_api = "Your Android version (API 28 and bellow) does not support " \
+                    "listing pending alarm"
 
     c, o, e = execute_adb_shell_command2(cmd)
 
@@ -1737,15 +1739,13 @@ def alarm_manager(param):
         if api_version > 28:
             print_pending_alarms(o, padding)
         else:
-            print_error("Your Android version (API 28 and bellow) does not support " +
-                        "listing pending alarm")
+            print_error(err_msg_api)
 
     if param == AlarmEnum.HISTORY or run_all == 1:
         if api_version > 28:
             print_history_alarms(o, padding)
         else:
-            print_error("Your Android version (API 28 and bellow) does not support " +
-                        "listing history alarm")
+            print_error(err_msg_api)
 
 
 
