@@ -1746,9 +1746,3 @@ def alarm_manager(param):
             print_history_alarms(o, padding)
         else:
             print_error(err_msg_api)
-
-
-
-
-
-
