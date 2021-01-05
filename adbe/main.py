@@ -49,7 +49,7 @@ Usage:
     adbe [options] dont-keep-activities (on | off)
     adbe [options] animations (on | off)
     adbe [options] show-taps (on | off)
-    adbe [options] stay-awake-while-charging (on | off) 
+    adbe [options] stay-awake-while-charging (on | off)
     adbe [options] input-text <text>
     adbe [options] press back
     adbe [options] open-url <url>
@@ -80,7 +80,6 @@ Usage:
     adbe [options] install <file_path>
     adbe [options] uninstall <app_name>
     adbe [options] screen (on | off | toggle)
-    adbe [options] alarm (all | top | pending | history)
 
 Options:
     -e, --emulator          directs the command to the only running emulator
