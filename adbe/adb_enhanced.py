@@ -1694,17 +1694,17 @@ def print_pending_alarms(output_dump_alarm, padding):
             # TO-DO: translate the flags
             print_verbose("%sflag: %s" % (padding * 2, info[4].split("=")[1]))
 
-    if line.startswith("RTC") or line.startswith("RTC_WAKEUP") or \
-            line.startswith("ELAPSED") or line.startswith("ELAPSED_WAKEUP"):
-        pattern_between_brackets = re.compile(r'(?<=\{).*?(?=\})',
-                                              re.DOTALL)
-        info = re.search(pattern_between_brackets, line).group(0).split(" ")
-        print("%sAlarm #%s:" % (padding * 2, line.split("#")[1].split(":")[0]))
-        print_verbose("%sType: %s" % (padding * 2, line.split("#")[0]))
-        print_verbose("%sID: %s" % (padding * 2, info[0]))
-        print_verbose("%sType: %s" % (padding * 2, info[2]))
-        print_verbose("%sWhen: %s" % (padding * 2, info[4]))
-        print("%sPackage: %s" % (padding * 2, info[5]))
+        if line.startswith("RTC") or line.startswith("RTC_WAKEUP") or \
+                line.startswith("ELAPSED") or line.startswith("ELAPSED_WAKEUP"):
+            pattern_between_brackets = re.compile(r'(?<=\{).*?(?=\})',
+                                                  re.DOTALL)
+            info = re.search(pattern_between_brackets, line).group(0).split(" ")
+            print("%sAlarm #%s:" % (padding * 2, line.split("#")[1].split(":")[0]))
+            print_verbose("%sType: %s" % (padding * 2, line.split("#")[0]))
+            print_verbose("%sID: %s" % (padding * 2, info[0]))
+            print_verbose("%sType: %s" % (padding * 2, info[2]))
+            print_verbose("%sWhen: %s" % (padding * 2, info[4]))
+            print("%sPackage: %s" % (padding * 2, info[5]))
 
 
 def alarm_manager(param):
@@ -1735,7 +1735,7 @@ def alarm_manager(param):
 
     if param == AlarmEnum.PENDING or run_all == 1:
         if api_version > 28:
-            print_history_alarms(o, padding)
+            print_pending_alarms(o, padding)
         else:
             print_error("Your Android version (API 28 and bellow) does not support " +
                         "listing pending alarm")
