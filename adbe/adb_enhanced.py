@@ -922,14 +922,10 @@ def _get_all_packages(pm_cmd):
     return packages
 
 
-# https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
 def list_all_apps():
-    # The command "pm list packages -e" does not return all installed and
-    # enabled Apps, the alternative is to use "dumpsys package" instead.
-    cmd = 'dumpsys package'
-    grep_cmd = 'grep -Po "Package \[\K[^\]]+"'
-    apps_list = execute_adb_shell_command(cmd, piped_into_cmd=grep_cmd)
-    print(apps_list)
+    cmd = 'pm list packages'
+    packages = _get_all_packages(cmd)
+    print('\n'.join(packages))
 
 
 def list_system_apps():
@@ -1634,8 +1630,8 @@ def print_history_alarms(output_dump_alarm, padding):
         user_id = line[line.find(",") + 1:].split(":")[0]
         history = line[line.find(",") + 1:].split(":")[1]
         print("%sPackage name: %s" % (padding, package_name))
-        print("%s   User ID: %s" % (padding * 2, user_id))
-        print("%s   history: %s" % (padding * 2, history))
+        print("%sUser ID: %s" % (padding * 2, user_id))
+        print("%shistory: %s" % (padding * 2, history))
 
 
 def print_top_alarms(output_dump_alarm, padding):
@@ -1665,11 +1661,11 @@ def print_top_alarms(output_dump_alarm, padding):
         action = value.split(":")[1]
 
         print("%sPackage name: %s" % (padding, package_name))
-        print("%s   Action: %s" % (padding * 2, action))
-        print("%s   Running time: %s" % (padding * 2, running_time))
-        print("%s   Number of device woke up: %s" % (padding * 2, nb_woke_up))
-        print("%s   Number of alarms: %s" % (padding * 2, nb_alarms))
-        print("%s   User ID: %s" % (padding * 2, uid))
+        print("%sAction: %s" % (padding * 2, action))
+        print("%sRunning time: %s" % (padding * 2, running_time))
+        print("%sNumber of device woke up: %s" % (padding * 2, nb_woke_up))
+        print("%sNumber of alarms: %s" % (padding * 2, nb_alarms))
+        print("%sUser ID: %s" % (padding * 2, uid))
 
 
 def print_pending_alarms(output_dump_alarm, padding):
@@ -1679,7 +1675,6 @@ def print_pending_alarms(output_dump_alarm, padding):
                    r'.*?(?=(Pending user blocked background alarms|Past-due non-wakeup alarms))',
                    re.DOTALL)
 
-    print(output_dump_alarm)
     alarm_to_parse = re.sub(r' +', ' ',
                             re.search(pattern_pending_alarm, output_dump_alarm).group(0)).split("\n")[1:-1]
     for line in alarm_to_parse:
@@ -1691,25 +1686,25 @@ def print_pending_alarms(output_dump_alarm, padding):
         info = re.search(pattern_batch_info, line).group(0).split(" ")
 
         print("%sID: %s" % (padding, info[0]))
-        print("%s   Number of alarms: %s" % (padding * 2, info[1].split("=")[1]))
-        print_verbose("%s   Start: %s" % (padding * 2, info[2].split("=")[1]))
-        print_verbose("%s   End: %s" % (padding * 2, info[3].split("=")[1]))
+        print("%sNumber of alarms: %s" % (padding * 2, info[1].split("=")[1]))
+        print_verbose("%sStart: %s" % (padding * 2, info[2].split("=")[1]))
+        print_verbose("%sEnd: %s" % (padding * 2, info[3].split("=")[1]))
 
         if "flgs" in line:
             # TO-DO: translate the flags
-            print_verbose("%s   flag: %s" % (padding * 2, info[4].split("=")[1]))
+            print_verbose("%sflag: %s" % (padding * 2, info[4].split("=")[1]))
 
     if line.startswith("RTC") or line.startswith("RTC_WAKEUP") or \
             line.startswith("ELAPSED") or line.startswith("ELAPSED_WAKEUP"):
         pattern_between_brackets = re.compile(r'(?<=\{).*?(?=\})',
                                               re.DOTALL)
         info = re.search(pattern_between_brackets, line).group(0).split(" ")
-        print("%s   Alarm #%s:" % (padding * 2, line.split("#")[1].split(":")[0]))
-        print_verbose("%s      Type: %s" % (padding * 2, line.split("#")[0]))
-        print_verbose("%s      ID: %s" % (padding * 2, info[0]))
-        print_verbose("%s      Type: %s" % (padding * 2, info[2]))
-        print_verbose("%s      When: %s" % (padding * 2, info[4]))
-        print("%s      Package: %s" % (padding * 2, info[5]))
+        print("%sAlarm #%s:" % (padding * 2, line.split("#")[1].split(":")[0]))
+        print_verbose("%sType: %s" % (padding * 2, line.split("#")[0]))
+        print_verbose("%sID: %s" % (padding * 2, info[0]))
+        print_verbose("%sType: %s" % (padding * 2, info[2]))
+        print_verbose("%sWhen: %s" % (padding * 2, info[4]))
+        print("%sPackage: %s" % (padding * 2, info[5]))
 
 
 def alarm_manager(param):
@@ -1742,14 +1737,14 @@ def alarm_manager(param):
         if api_version > 28:
             print_history_alarms(o, padding)
         else:
-            print_error("Your Android version does not support " +
+            print_error("Your Android version (API 28 and bellow) does not support " +
                         "listing pending alarm")
 
     if param == AlarmEnum.HISTORY or run_all == 1:
         if api_version > 28:
             print_history_alarms(o, padding)
         else:
-            print_error("Your Android version does not support " +
+            print_error("Your Android version (API 28 and bellow) does not support " +
                         "listing history alarm")
 
 

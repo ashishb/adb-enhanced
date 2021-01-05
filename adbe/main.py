@@ -49,7 +49,7 @@ Usage:
     adbe [options] dont-keep-activities (on | off)
     adbe [options] animations (on | off)
     adbe [options] show-taps (on | off)
-    adbe [options] stay-awake-while-charging (on | off) 
+    adbe [options] stay-awake-while-charging (on | off)
     adbe [options] input-text <text>
     adbe [options] press back
     adbe [options] open-url <url>
