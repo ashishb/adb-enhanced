@@ -1642,7 +1642,6 @@ def print_top_alarms(output_dump_alarm, padding):
                             re.search(pattern_top_alarm, output_dump_alarm)
                             .group(0)).split("\n")
     temp_dict = dict()
-
     for i in range(len(alarm_to_parse)):
         if re.match(r"^\+", alarm_to_parse[i]):
             temp_dict[alarm_to_parse[i]] = alarm_to_parse[i + 1]
@@ -1657,9 +1656,7 @@ def print_top_alarms(output_dump_alarm, padding):
         nb_alarms = temp[2].strip().split(" ")[0]
         uid = temp[2].strip().split(":")[1].strip()
         package_name = temp[2].strip().split(":")[2].strip()
-
         action = value.split(":")[1]
-
         print("%sPackage name: %s" % (padding, package_name))
         print("%sAction: %s" % (padding * 2, action))
         print("%sRunning time: %s" % (padding * 2, running_time))
@@ -1674,22 +1671,20 @@ def print_pending_alarms(output_dump_alarm, padding):
         re.compile(r'(?<=Pending alarm batches:)'
                    r'.*?(?=(Pending user blocked background alarms|Past-due non-wakeup alarms))',
                    re.DOTALL)
-
     alarm_to_parse = re.sub(r' +', ' ',
                             re.search(pattern_pending_alarm, output_dump_alarm).group(0)).split("\n")[1:-1]
     for line in alarm_to_parse:
         line = line.strip()
         if not line.startswith("Batch"):
             continue
+
         pattern_batch_info = re.compile(r'(?<=Batch\{).*?(?=\}:)',
                                         re.DOTALL)
         info = re.search(pattern_batch_info, line).group(0).split(" ")
-
         print("%sID: %s" % (padding, info[0]))
         print("%sNumber of alarms: %s" % (padding * 2, info[1].split("=")[1]))
         print_verbose("%sStart: %s" % (padding * 2, info[2].split("=")[1]))
         print_verbose("%sEnd: %s" % (padding * 2, info[3].split("=")[1]))
-
         if "flgs" in line:
             # TO-DO: translate the flags
             print_verbose("%sflag: %s" % (padding * 2, info[4].split("=")[1]))
@@ -1711,10 +1706,9 @@ def alarm_manager(param):
     cmd = "dumpsys alarm"
     api_version = get_device_android_api_version()
     err_msg_api = "Your Android version (API 28 and bellow) does not support " \
-                    "listing pending alarm"
+                  "listing pending alarm"
 
     c, o, e = execute_adb_shell_command2(cmd)
-
     if c != 0:
         print_error_and_exit("Something gone wrong on "
                              "dumping alarms. Error: %s" % e)
@@ -1722,12 +1716,10 @@ def alarm_manager(param):
 
     if not isinstance(param, AlarmEnum):
         print_error("Not supported parameter")
-
         return
 
     run_all = 0
     padding = ""
-
     if param == AlarmEnum.ALL:
         run_all = 1
         padding = "\t"
