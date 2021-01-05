@@ -920,13 +920,16 @@ def _get_all_packages(pm_cmd):
             packages.append(package_name)
     return packages
 
+
+# https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
 def list_all_apps():
-    # The command "pm list packages -e" does not return all installed and enabled Apps, the alternative is to use
-    # "dumpsys package" instead.
     cmd = 'dumpsys package'
-    grep_cmd = 'grep -Po "Package \[\K[^\]]+"'
-    apps_list = execute_adb_shell_command(cmd, piped_into_cmd=grep_cmd)
-    print(apps_list)
+    pattern_packages = re.compile('Package \[(.*?)\]')
+    return_code, result, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Command "%s" failed, something is wrong' % cmd)
+    all_apps = re.findall(pattern_packages, result)
+    return all_apps
 
 
 def list_system_apps():
