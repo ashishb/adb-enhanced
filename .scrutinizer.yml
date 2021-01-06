@@ -1,0 +1,8 @@
+build:
+  nodes:
+    my-tests:
+      tests:
+        override:
+          - python3 -m pip install -r requirements.txt
+          - python3 -m pip install pylint
+          - make lint_python3
