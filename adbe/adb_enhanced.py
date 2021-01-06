@@ -922,10 +922,15 @@ def _get_all_packages(pm_cmd):
     return packages
 
 
+# https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
 def list_all_apps():
-    cmd = 'pm list packages'
-    packages = _get_all_packages(cmd)
-    print('\n'.join(packages))
+    cmd = 'dumpsys package'
+    pattern_packages = re.compile('Package \[(.*?)\]')
+    return_code, result, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Command "%s" failed, something is wrong' % cmd)
+    all_apps = re.findall(pattern_packages, result)
+    return all_apps
 
 
 def list_system_apps():
