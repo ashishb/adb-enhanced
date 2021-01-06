@@ -1627,11 +1627,14 @@ def print_history_alarms(output_dump_alarm, padding):
     for line in alarm_to_parse:
         package_name = line[0:line.find(",")]
         # +1 to escape ',' before user id
-        user_id = line[line.find(",") + 1:].split(":")[0]
-        history = line[line.find(",") + 1:].split(":")[1]
+        fields = line[line.find(",") + 1:].split(":")
+        user_id = fields[0]
         print("%sPackage name: %s" % (padding, package_name))
         print("%sUser ID: %s" % (padding * 2, user_id))
-        print("%shistory: %s" % (padding * 2, history))
+        # History might be missing for new alarms
+        if len(fields) >= 2:
+            history = fields[1]
+            print("%shistory: %s" % (padding * 2, history))
 
 
 def print_top_alarms(output_dump_alarm, padding):
