@@ -1641,13 +1641,13 @@ def print_top_alarms(output_dump_alarm, padding):
     print("Top Alarms:")
     pattern_top_alarm = re.compile(r'(?<=Top Alarms:\n).*?(?=Alarm Stats:)',
                                    re.DOTALL)
-    alarm_to_parse = re.sub(r' +', ' ',
-                            re.search(pattern_top_alarm, output_dump_alarm)
-                            .group(0)).split("\n")
-    temp_dict = dict()
-    for i in range(len(alarm_to_parse)):
-        if re.match(r"^\+", alarm_to_parse[i]):
-            temp_dict[alarm_to_parse[i]] = alarm_to_parse[i + 1]
+    alarm_to_parse = re.sub(
+        r' +', ' ',
+        re.search(pattern_top_alarm, output_dump_alarm).group(0)).split("\n")
+    temp_dict = {}
+    for i, alarm_i in enumerate(alarm_to_parse):
+        if re.match(r"^\+", alarm_i):
+            temp_dict[alarm_i] = alarm_to_parse[i + 1]
             i += 1
 
     for key, value in temp_dict.items():
@@ -1671,11 +1671,13 @@ def print_top_alarms(output_dump_alarm, padding):
 def print_pending_alarms(output_dump_alarm, padding):
     print("Pending Alarms:")
     pattern_pending_alarm = \
-        re.compile(r'(?<=Pending alarm batches:)'
-                   r'.*?(?=(Pending user blocked background alarms|Past-due non-wakeup alarms))',
-                   re.DOTALL)
-    alarm_to_parse = re.sub(r' +', ' ',
-                            re.search(pattern_pending_alarm, output_dump_alarm).group(0)).split("\n")[1:-1]
+        re.compile(
+            r'(?<=Pending alarm batches:)'
+            r'.*?(?=(Pending user blocked background alarms|Past-due non-wakeup alarms))',
+            re.DOTALL)
+    alarm_to_parse = re.sub(
+        r' +', ' ',
+        re.search(pattern_pending_alarm, output_dump_alarm).group(0)).split("\n")[1:-1]
     for line in alarm_to_parse:
         line = line.strip()
         if not line.startswith("Batch"):
@@ -1715,7 +1717,7 @@ def alarm_manager(param):
     if c != 0:
         print_error_and_exit("Something gone wrong on "
                              "dumping alarms. Error: %s" % e)
-        return o
+        return
 
     if not isinstance(param, AlarmEnum):
         print_error("Not supported parameter")
