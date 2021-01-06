@@ -186,7 +186,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe [options] dont-keep-activities (on | off)
     adbe [options] animations (on | off)
     adbe [options] show-taps (on | off)
-    adbe [options] stay-awake-while-charging (on | off)
+    adbe [options] stay-awake-while-charging (on | off) 
     adbe [options] input-text <text>
     adbe [options] press back
     adbe [options] open-url <url>
@@ -217,6 +217,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
     adbe [options] install <file_path>
     adbe [options] uninstall <app_name>
     adbe [options] screen (on | off | toggle)
+    adbe [options] alarm (all | top | pending | history)
 
 ### Options
 

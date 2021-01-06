@@ -9,6 +9,7 @@ import docopt
 
 # This is required only for Python 2
 # pylint: disable=import-error
+
 try:
     # First try local import for development
     from adbe import adb_enhanced
@@ -48,7 +49,7 @@ Usage:
     adbe [options] dont-keep-activities (on | off)
     adbe [options] animations (on | off)
     adbe [options] show-taps (on | off)
-    adbe [options] stay-awake-while-charging (on | off) 
+    adbe [options] stay-awake-while-charging (on | off)
     adbe [options] input-text <text>
     adbe [options] press back
     adbe [options] open-url <url>
@@ -79,6 +80,7 @@ Usage:
     adbe [options] install <file_path>
     adbe [options] uninstall <app_name>
     adbe [options] screen (on | off | toggle)
+    adbe [options] alarm (all | top | pending | history)
 
 Options:
     -e, --emulator          directs the command to the only running emulator
@@ -340,6 +342,17 @@ def main():
         adb_enhanced.perform_install(file_path)
     elif args['uninstall']:
         adb_enhanced.perform_uninstall(args['<app_name>'])
+
+    # alarm
+    elif args['alarm'] and args['all']:
+        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.ALL)
+    elif args['alarm'] and args['history']:
+        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.HISTORY)
+    elif args['alarm'] and args['pending']:
+        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.PENDING)
+    elif args['alarm'] and args['top']:
+        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.TOP)
+
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 
