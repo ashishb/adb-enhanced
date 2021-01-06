@@ -9,12 +9,14 @@ import docopt
 
 # This is required only for Python 2
 # pylint: disable=import-error
+
 try:
     # First try local import for development
-    from .adbe import adb_enhanced
-    from .adbe import adb_helper
-    from .adbe.output_helper import print_error_and_exit, print_message, set_verbose
-except ImportError:
+    from adbe import adb_enhanced
+    from adbe import adb_helper
+    from adbe.output_helper import print_error_and_exit, print_message, set_verbose
+# Python 3.6 onwards, this throws ModuleNotFoundError
+except (ImportError, ModuleNotFoundError):
     # This works when the code is executed as a part of the module
     import adb_enhanced
     import adb_helper
@@ -47,13 +49,14 @@ Usage:
     adbe [options] dont-keep-activities (on | off)
     adbe [options] animations (on | off)
     adbe [options] show-taps (on | off)
-    adbe [options] stay-awake-while-charging (on | off) 
+    adbe [options] stay-awake-while-charging (on | off)
     adbe [options] input-text <text>
     adbe [options] press back
     adbe [options] open-url <url>
     adbe [options] permission-groups list all
     adbe [options] permissions list (all | dangerous)
     adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe [options] notifications list
     adbe [options] apps list (all | system | third-party | debug | backup-enabled)
     adbe [options] standby-bucket get <app_name>
     adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
@@ -79,6 +82,7 @@ Usage:
     adbe [options] enable wireless debugging
     adbe [options] disable wireless debugging
     adbe [options] screen (on | off | toggle)
+    adbe [options] alarm (all | top | pending | history)
 
 Options:
     -e, --emulator          directs the command to the only running emulator
@@ -253,6 +257,9 @@ def main():
         adb_enhanced.grant_or_revoke_runtime_permissions(
             app_name, args['grant'], permissions)
 
+    elif args['notifications'] and args['list']:
+        adb_enhanced.print_notifications()
+
     # apps list
     elif args['apps'] and args['list'] and args['all']:
         adb_enhanced.list_all_apps()
@@ -345,6 +352,16 @@ def main():
     elif args['disable']:
         if args['wireless'] and args['debugging']:
             adb_enhanced.disable_wireless_debug()
+
+    # alarm
+    elif args['alarm'] and args['all']:
+        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.ALL)
+    elif args['alarm'] and args['history']:
+        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.HISTORY)
+    elif args['alarm'] and args['pending']:
+        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.PENDING)
+    elif args['alarm'] and args['top']:
+        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.TOP)
 
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))

@@ -37,7 +37,6 @@ setup(name='adb-enhanced',
       install_requires=[
           # -*- Extra requirements: -*-
           'docopt',
-          'future',
           'psutil',
       ],
       entry_points={

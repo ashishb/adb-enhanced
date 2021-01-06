@@ -10,6 +10,7 @@ import time
 import os
 import random
 from urllib.parse import urlparse
+from enum import Enum
 import psutil
 
 # asyncio was introduced in version 3.5
@@ -128,11 +129,11 @@ def handle_overdraw(value):
     version = get_device_android_api_version()
 
     if version < 19:
-        if value is 'on':
+        if value == 'on':
             cmd = 'setprop debug.hwui.show_overdraw true'
-        elif value is 'off':
+        elif value == 'off':
             cmd = 'setprop debug.hwui.show_overdraw false'
-        elif value is 'deut':
+        elif value == 'deut':
             print_error_and_exit(
                 'deut mode is available only on API 19 and above, your Android API version is %d' % version)
             return
@@ -140,11 +141,11 @@ def handle_overdraw(value):
             print_error_and_exit('Unexpected value for overdraw %s' % value)
             return
     else:
-        if value is 'on':
+        if value == 'on':
             cmd = 'setprop debug.hwui.overdraw show'
-        elif value is 'off':
+        elif value == 'off':
             cmd = 'setprop debug.hwui.overdraw false'
-        elif value is 'deut':
+        elif value == 'deut':
             cmd = 'setprop debug.hwui.overdraw show_deuteranomaly'
         else:
             print_error_and_exit('Unexpected value for overdraw %s' % value)
@@ -160,17 +161,17 @@ def handle_rotate(direction):
     disable_acceleration = 'put system accelerometer_rotation 0'
     execute_adb_shell_settings_command(disable_acceleration)
 
-    if direction is 'portrait':
+    if direction == 'portrait':
         new_direction = 0
-    elif direction is 'landscape':
+    elif direction == 'landscape':
         new_direction = 1
-    elif direction is 'left':
+    elif direction == 'left':
         current_direction = get_current_rotation_direction()
         print_verbose("Current direction: %s" % current_direction)
         if current_direction is None:
             return
         new_direction = (current_direction + 1) % 4
-    elif direction is 'right':
+    elif direction == 'right':
         current_direction = get_current_rotation_direction()
         print_verbose("Current direction: %s" % current_direction)
         if current_direction is None:
@@ -441,18 +442,16 @@ def _get_top_activity_data():
         print_error_and_exit('Device returned no response, is it still connected?')
     for line in output.split('\n'):
         line = line.strip()
-        if line.startswith('mFocusedApp'):
-            regex_result = re.search(r'ActivityRecord{.* (\S+)/(\S+)', line)
-            if regex_result is None:
-                print_error('Unable to parse activity name from:')
-                print_error(line)
-                return None, None
-            app_name, activity_name = regex_result.group(1), regex_result.group(2)
-            # If activity name is a short hand then complete it.
-            if activity_name.startswith('.'):
-                activity_name = '%s%s' %(app_name, activity_name)
-            return app_name, activity_name
+        regex_result = re.search(r'ActivityRecord{.* (\S+)/(\S+)', line)
+        if regex_result is None:
+            continue
+        app_name, activity_name = regex_result.group(1), regex_result.group(2)
+        # If activity name is a short hand then complete it.
+        if activity_name.startswith('.'):
+            activity_name = '%s%s' %(app_name, activity_name)
+        return app_name, activity_name
 
+    print_error('Unable to extract activity name')
     return None, None
 
 
@@ -932,10 +931,24 @@ def _get_all_packages(pm_cmd):
     return packages
 
 
+# "dumpsys package" is more accurate than "pm list packages" but that means the results of
+# list_all_apps are now different from list_system_apps, list_non_system_apps, and
+# list_debug_apps
+# For now, we can live with this discrepancy but in the longer run we want to fix those
+# other functions as well
+# https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
 def list_all_apps():
-    cmd = 'pm list packages'
-    packages = _get_all_packages(cmd)
-    print('\n'.join(packages))
+    # https://developer.android.com/studio/command-line/dumpsys
+    cmd = 'dumpsys package'
+    pattern_packages = re.compile('Package \\[(.*?)\\]')
+    return_code, result, _ = execute_adb_shell_command2(cmd)
+    if return_code != 0:
+        print_error_and_exit('Command "%s" failed, something is wrong' % cmd)
+        return
+    all_apps = re.findall(pattern_packages, result)
+    # Get the unique results
+    all_apps = sorted(list(dict.fromkeys(all_apps)))
+    print_message('\n'.join(all_apps))
 
 
 def list_system_apps():
@@ -1615,3 +1628,183 @@ def switch_screen(switch_type):
                                  "screen control operation. Error: %s" % e)
 
     return o
+
+
+def print_notifications():
+    # Noredact is neeed on >= Android 6.0 to see title and text
+    code, output, err = execute_adb_shell_command2("dumpsys notification --noredact")
+    if code != 0:
+        print_error_and_exit("Something gone wrong on "
+                             "fetching notification info. Error: %s" % err)
+    notification_records = re.findall(r"\s*NotificationRecord\(.*", output, re.MULTILINE)
+    for i, notification_record in enumerate(notification_records):
+        output_for_this_notification = output.split(notification_record)[1]
+        if i + 1 < len(notification_records):
+            output_for_this_notification = output_for_this_notification.split(notification_records[i+1])[0]
+        notification_package = re.findall(r"pkg=(\S*)", notification_record)[0]
+        titles = re.findall("android.title=(.*)", output_for_this_notification)
+        if len(titles) > 0:
+            notification_title = titles[0]
+        else:
+            notification_title = None
+        texts = re.findall("android.text=(.*)", output_for_this_notification)
+        if len(texts) > 0:
+            notification_text = texts[0]
+        else:
+            notification_text = None
+        notification_actions = []
+        action_strings = re.findall(r"actions=\{(.*?)\n\}", output_for_this_notification, re.MULTILINE | re.DOTALL)
+        if len(action_strings) > 0:
+            if i+1 >= len(notification_records) or \
+                    output_for_this_notification.find(action_strings[0]) > output_for_this_notification.find(notification_records[i+1]):
+                for actions in action_strings[0].split('\n'):
+                    notification_actions += re.findall(r"\".*?\"", actions)
+
+        print_message('Package: %s' % notification_package)
+        if notification_title:
+            print_message('Title: %s' % notification_title)
+        if notification_text and notification_text != 'null':
+            print_message('Text: %s' % notification_text)
+        for action in notification_actions:
+            print_message('Action: %s' % action)
+        print_message('')
+
+
+# Alarm Enum
+class AlarmEnum(Enum):
+    TOP = 't'
+    PENDING = 'p'
+    HISTORY = 'h'
+    ALL = 'a'
+
+
+def print_history_alarms(output_dump_alarm, padding):
+    print("App Alarm history")
+
+    pattern_pending_alarm = \
+        re.compile(r'(?<=App Alarm history:)'
+                   r'.*?(?=Past-due non-wakeup alarms)',
+                   re.DOTALL)
+    alarm_to_parse = re.sub(r' +', ' ',
+                            re.search(pattern_pending_alarm, output_dump_alarm).
+                            group(0)).split("\n")[1:-1]
+
+    for line in alarm_to_parse:
+        package_name = line[0:line.find(",")]
+        # +1 to escape ',' before user id
+        fields = line[line.find(",") + 1:].split(":")
+        user_id = fields[0]
+        print("%sPackage name: %s" % (padding, package_name))
+        print("%sUser ID: %s" % (padding * 2, user_id))
+        # History might be missing for new alarms
+        if len(fields) >= 2:
+            history = fields[1]
+            print("%shistory: %s" % (padding * 2, history))
+
+
+def print_top_alarms(output_dump_alarm, padding):
+    print("Top Alarms:")
+    pattern_top_alarm = re.compile(r'(?<=Top Alarms:\n).*?(?=Alarm Stats:)',
+                                   re.DOTALL)
+    alarm_to_parse = re.sub(
+        r' +', ' ',
+        re.search(pattern_top_alarm, output_dump_alarm).group(0)).split("\n")
+    temp_dict = {}
+    for i, alarm_i in enumerate(alarm_to_parse):
+        if re.match(r"^\+", alarm_i):
+            temp_dict[alarm_i] = alarm_to_parse[i + 1]
+            i += 1
+
+    for key, value in temp_dict.items():
+        # key example: +2m19s468ms running, 0 wakeups, 708 alarms: 1000:android
+        # value example: *alarm*:com.android.server.action.NETWORK_STATS_POLL
+        temp = key.split(',')
+        running_time = temp[0].split(" ")[0]
+        nb_woke_up = temp[1].strip().split(" ")[0]
+        nb_alarms = temp[2].strip().split(" ")[0]
+        uid = temp[2].strip().split(":")[1].strip()
+        package_name = temp[2].strip().split(":")[2].strip()
+        action = value.split(":")[1]
+        print("%sPackage name: %s" % (padding, package_name))
+        print("%sAction: %s" % (padding * 2, action))
+        print("%sRunning time: %s" % (padding * 2, running_time))
+        print("%sNumber of device woke up: %s" % (padding * 2, nb_woke_up))
+        print("%sNumber of alarms: %s" % (padding * 2, nb_alarms))
+        print("%sUser ID: %s" % (padding * 2, uid))
+
+
+def print_pending_alarms(output_dump_alarm, padding):
+    print("Pending Alarms:")
+    pattern_pending_alarm = \
+        re.compile(
+            r'(?<=Pending alarm batches:)'
+            r'.*?(?=(Pending user blocked background alarms|Past-due non-wakeup alarms))',
+            re.DOTALL)
+    alarm_to_parse = re.sub(
+        r' +', ' ',
+        re.search(pattern_pending_alarm, output_dump_alarm).group(0)).split("\n")[1:-1]
+    for line in alarm_to_parse:
+        line = line.strip()
+        if not line.startswith("Batch"):
+            continue
+
+        pattern_batch_info = re.compile(r'(?<=Batch\{).*?(?=\}:)',
+                                        re.DOTALL)
+        info = re.search(pattern_batch_info, line).group(0).split(" ")
+        print("%sID: %s" % (padding, info[0]))
+        print("%sNumber of alarms: %s" % (padding * 2, info[1].split("=")[1]))
+        print_verbose("%sStart: %s" % (padding * 2, info[2].split("=")[1]))
+        print_verbose("%sEnd: %s" % (padding * 2, info[3].split("=")[1]))
+        if "flgs" in line:
+            # TO-DO: translate the flags
+            print_verbose("%sflag: %s" % (padding * 2, info[4].split("=")[1]))
+
+        if line.startswith("RTC") or line.startswith("RTC_WAKEUP") or \
+                line.startswith("ELAPSED") or line.startswith("ELAPSED_WAKEUP"):
+            pattern_between_brackets = re.compile(r'(?<=\{).*?(?=\})',
+                                                  re.DOTALL)
+            info = re.search(pattern_between_brackets, line).group(0).split(" ")
+            print("%sAlarm #%s:" % (padding * 2, line.split("#")[1].split(":")[0]))
+            print_verbose("%sType: %s" % (padding * 2, line.split("#")[0]))
+            print_verbose("%sID: %s" % (padding * 2, info[0]))
+            print_verbose("%sType: %s" % (padding * 2, info[2]))
+            print_verbose("%sWhen: %s" % (padding * 2, info[4]))
+            print("%sPackage: %s" % (padding * 2, info[5]))
+
+
+def alarm_manager(param):
+    cmd = "dumpsys alarm"
+    api_version = get_device_android_api_version()
+    err_msg_api = "Your Android version (API 28 and bellow) does not support " \
+                  "listing pending alarm"
+
+    c, o, e = execute_adb_shell_command2(cmd)
+    if c != 0:
+        print_error_and_exit("Something gone wrong on "
+                             "dumping alarms. Error: %s" % e)
+        return
+
+    if not isinstance(param, AlarmEnum):
+        print_error("Not supported parameter")
+        return
+
+    run_all = 0
+    padding = ""
+    if param == AlarmEnum.ALL:
+        run_all = 1
+        padding = "\t"
+
+    if param == AlarmEnum.TOP or run_all == 1:
+        print_top_alarms(o, padding)
+
+    if param == AlarmEnum.PENDING or run_all == 1:
+        if api_version > 28:
+            print_pending_alarms(o, padding)
+        else:
+            print_error(err_msg_api)
+
+    if param == AlarmEnum.HISTORY or run_all == 1:
+        if api_version > 28:
+            print_history_alarms(o, padding)
+        else:
+            print_error(err_msg_api)

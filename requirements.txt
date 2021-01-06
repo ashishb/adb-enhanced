@@ -1,4 +1,3 @@
 docopt
-future
 psutil
 pytest

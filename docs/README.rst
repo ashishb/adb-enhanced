@@ -3,8 +3,8 @@ ADB Enhanced |Downloads| |PyPI version|
 
 |LintPython2| |LintPython3| |InstallAdbeTest|
 
-|AdbeUnitTestsPython2.7| |AdbeUnitTestsPython3|
-|AdbeInstallTestsPython3| |AdbeUnitTestsPython3Scheduled|
+|AdbeUnitTestsPython3| |AdbeInstallTestsPython3|
+|AdbeUnitTestsPython3Scheduled|
 
 .. figure:: docs/logo.png
    :alt: Logo
@@ -14,7 +14,7 @@ ADB Enhanced |Downloads| |PyPI version|
 ADB-Enhanced is a Swiss-army knife for Android testing and development.
 A command-line interface to trigger various scenarios like screen
 rotation, battery saver mode, data saver mode, doze mode, permission
-grant/revocation.
+grant/revocation. Its a wrapper around ``adb`` and not a replacement.
 
 Release announcement
 --------------------
@@ -33,7 +33,7 @@ Note
 1. ``sudo pip install adb-enhanced`` for python2 based install works as
    well but, I would recommend moving to python3 since I will deprecate
    python2 support anytime after Dec 31, 2018.
-2. If you don't have sudo access or you are installing without sudo then
+2. If you don’t have sudo access or you are installing without sudo then
    ``adbe`` might not be configured correctly in the path.
 3. To setup bash/z-sh auto-completion, execute
    ``sudo pip3 install infi.docopt-completion && docopt-completion $(which adbe)``
@@ -47,19 +47,19 @@ Device configuration
 
 -  Turn doze mode on
 
-``adbe doze on``
+   ``adbe doze on``
 
 -  Turn mobile-data off
 
-``adbe mobile-data off``
+   ``adbe mobile-data off``
 
 -  Turn on battery saver
 
-``adbe battery saver on``
+   ``adbe battery saver on``
 
--  Don't keep activities in the background
+-  Don’t keep activities in the background
 
-``adbe dont-keep-activities on``
+   ``adbe dont-keep-activities on``
 
 -  Take a screenshot ``adbe screenshot ~/Downloads/screenshot1.png``
 
@@ -74,33 +74,33 @@ Permissions
 
 -  Grant storage-related runtime permissions
 
-``adbe permissions grant com.example storage``
+   ``adbe permissions grant com.example storage``
 
 -  Revoke storage-related runtime permissions
 
-``adbe permissions revoke com.example storage``
+   ``adbe permissions revoke com.example storage``
 
 Interacting with app
 ~~~~~~~~~~~~~~~~~~~~
 
 -  Start an app
 
-``adbe start com.example``
+   ``adbe start com.example``
 
 -  Kill an app
 
-``adbe force-stop com.example``
+   ``adbe force-stop com.example``
 
 -  Clear app data - equivalent of uninstall and reinstall
 
-``adbe clear-data com.example``
+   ``adbe clear-data com.example``
 
--  ls/cat/rm any file without worrying about adding "run-as" or "su
-   root"
+-  ls/cat/rm any file without worrying about adding “run-as” or “su
+   root”
 
-``adbe ls /data/data/com.example/databases`` # Works as long as
-com.example is a debuggable package or shell has the root permission or
-directory has been made publicly accessible
+   ``adbe ls /data/data/com.example/databases`` # Works as long as
+   com.example is a debuggable package or shell has the root permission
+   or directory has been made publicly accessible
 
 Device info
 ~~~~~~~~~~~
@@ -108,15 +108,24 @@ Device info
 -  Detailed device info including model name, Android API version etc,
    device serial
 
-\`\`\` $ adbe devices Unlock Device "dcc54112" and give USB debugging
-access to this PC/Laptop by unlocking and reconnecting the device. More
-info about this device: "unauthorized usb:339869696X transport\_id:17"
+   ::
 
-Serial ID: dcc54111 Manufacturer: OnePlus Model: ONEPLUS A5000 (OnePlus
-5T) Release: 8.1.0 SDK version: 27 CPU: arm64-v8a
+      $ adbe devices
+      Unlock Device "dcc54112" and give USB debugging access to this PC/Laptop by unlocking and reconnecting the device. More info about this device: "unauthorized usb:339869696X transport_id:17"
 
-Serial ID: emulator-5554 Manufacturer: unknown Model: Android SDK built
-for x86 Release: 4.4.2 SDK version: 19 CPU: x86 \`\`\`
+      Serial ID: dcc54111
+      Manufacturer: OnePlus
+      Model: ONEPLUS A5000 (OnePlus 5T)
+      Release: 8.1.0
+      SDK version: 27
+      CPU: arm64-v8a
+
+      Serial ID: emulator-5554
+      Manufacturer: unknown
+      Model: Android SDK built for x86
+      Release: 4.4.2
+      SDK version: 19
+      CPU: x86
 
 App info
 ~~~~~~~~
@@ -125,123 +134,136 @@ App info
    permissions (requested, granted, denied), installer package name,
    etc.
 
-\`\`\` $ adbe app info com.google.android.youtube App name:
-com.google.android.youtube Version: 12.17.41 Version Code: 121741370 Is
-debuggable: False Min SDK version: 21 Target SDK version: 26
+   ::
 
-Permissions:
+      $ adbe app info com.google.android.youtube
+      App name: com.google.android.youtube
+      Version: 12.17.41
+      Version Code: 121741370
+      Is debuggable: False
+      Min SDK version: 21
+      Target SDK version: 26
 
-Install time granted permissions:
-com.google.android.c2dm.permission.RECEIVE
-android.permission.USE\_CREDENTIALS
-com.google.android.providers.gsf.permission.READ\_GSERVICES
-com.google.android.youtube.permission.C2D\_MESSAGE
-android.permission.MANAGE\_ACCOUNTS
-android.permission.SYSTEM\_ALERT\_WINDOW android.permission.NFC
-android.permission.CHANGE\_NETWORK\_STATE
-android.permission.RECEIVE\_BOOT\_COMPLETED
-com.google.android.gms.permission.AD\_ID\_NOTIFICATION
-android.permission.INTERNET android.permission.GET\_PACKAGE\_SIZE
-android.permission.ACCESS\_NETWORK\_STATE android.permission.VIBRATE
-android.permission.ACCESS\_WIFI\_STATE android.permission.WAKE\_LOCK
+      Permissions:
 
-Runtime Permissions not granted and not yet requested:
-android.permission.WRITE\_EXTERNAL\_STORAGE
-android.permission.MANAGE\_DOCUMENTS android.permission.GET\_ACCOUNTS
-android.permission.CAMERA android.permission.RECORD\_AUDIO
-android.permission.READ\_CONTACTS
-android.permission.ACCESS\_FINE\_LOCATION
-android.permission.ACCESS\_COARSE\_LOCATION
-android.permission.READ\_PHONE\_STATE android.permission.SEND\_SMS
-android.permission.RECEIVE\_SMS
-com.sec.android.provider.badge.permission.READ
-com.sec.android.provider.badge.permission.WRITE
-com.htc.launcher.permission.READ\_SETTINGS
-com.htc.launcher.permission.UPDATE\_SHORTCUT
-com.sonyericsson.home.permission.BROADCAST\_BADGE
-com.sonymobile.home.permission.PROVIDER\_INSERT\_BADGE
-android.permission.READ\_EXTERNAL\_STORAGE
+      Install time granted permissions:
+      com.google.android.c2dm.permission.RECEIVE
+      android.permission.USE_CREDENTIALS
+      com.google.android.providers.gsf.permission.READ_GSERVICES
+      com.google.android.youtube.permission.C2D_MESSAGE
+      android.permission.MANAGE_ACCOUNTS
+      android.permission.SYSTEM_ALERT_WINDOW
+      android.permission.NFC
+      android.permission.CHANGE_NETWORK_STATE
+      android.permission.RECEIVE_BOOT_COMPLETED
+      com.google.android.gms.permission.AD_ID_NOTIFICATION
+      android.permission.INTERNET
+      android.permission.GET_PACKAGE_SIZE
+      android.permission.ACCESS_NETWORK_STATE
+      android.permission.VIBRATE
+      android.permission.ACCESS_WIFI_STATE
+      android.permission.WAKE_LOCK
 
-Installer package name: None \`\`\`
+      Runtime Permissions not granted and not yet requested:
+      android.permission.WRITE_EXTERNAL_STORAGE
+      android.permission.MANAGE_DOCUMENTS
+      android.permission.GET_ACCOUNTS
+      android.permission.CAMERA
+      android.permission.RECORD_AUDIO
+      android.permission.READ_CONTACTS
+      android.permission.ACCESS_FINE_LOCATION
+      android.permission.ACCESS_COARSE_LOCATION
+      android.permission.READ_PHONE_STATE
+      android.permission.SEND_SMS
+      android.permission.RECEIVE_SMS
+      com.sec.android.provider.badge.permission.READ
+      com.sec.android.provider.badge.permission.WRITE
+      com.htc.launcher.permission.READ_SETTINGS
+      com.htc.launcher.permission.UPDATE_SHORTCUT
+      com.sonyericsson.home.permission.BROADCAST_BADGE
+      com.sonymobile.home.permission.PROVIDER_INSERT_BADGE
+      android.permission.READ_EXTERNAL_STORAGE
+
+      Installer package name: None
 
 -  App backup to a tar file unlike the Android-specific .ab format
 
-``$ adbe app backup com.google.android.youtube backup.tar``
+   ::
+
+      $ adbe app backup com.google.android.youtube backup.tar
 
 Usage
 ~~~~~
 
 ::
 
-    adbe [options] rotate (landscape | portrait | left | right)
-    adbe [options] gfx (on | off | lines)
-    adbe [options] overdraw (on | off | deut)
-    adbe [options] layout (on | off)
-    adbe [options] airplane (on | off)
-    adbe [options] battery level <percentage>
-    adbe [options] battery saver (on | off)
-    adbe [options] battery reset
-    adbe [options] doze (on | off)
-    adbe [options] jank <app_name>
-    adbe [options] devices
-    adbe [options] top-activity
-    adbe [options] dump-ui <xml_file>
-    adbe [options] mobile-data (on | off)
-    adbe [options] mobile-data saver (on | off)
-    adbe [options] rtl (on | off)
-    adbe [options] screenshot <filename.png>
-    adbe [options] screenrecord <filename.mp4>
-    adbe [options] dont-keep-activities (on | off)
-    adbe [options] animations (on | off)
-    adbe [options] show-taps (on | off)
-    adbe [options] stay-awake-while-charging (on | off)
-    adbe [options] input-text <text>
-    adbe [options] press back
-    adbe [options] open-url <url>
-    adbe [options] permission-groups list all
-    adbe [options] permissions list (all | dangerous)
-    adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-    adbe [options] apps list (all | system | third-party | debug | backup-enabled)
-    adbe [options] standby-bucket get <app_name>
-    adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
-    adbe [options] restrict-background (true | false) <app_name>
-    adbe [options] ls [-a] [-l] [-R|-r] <file_path>
-    adbe [options] rm [-f] [-R|-r] <file_path>
-    adbe [options] mv [-f] <src_path> <dest_path>
-    adbe [options] pull [-a] <file_path_on_android>
-    adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
-    adbe [options] push <file_path_on_machine> <file_path_on_android>
-    adbe [options] cat <file_path>
-    adbe [options] start <app_name>
-    adbe [options] stop <app_name>
-    adbe [options] restart <app_name>
-    adbe [options] force-stop <app_name>
-    adbe [options] clear-data <app_name>
-    adbe [options] app info <app_name>
-    adbe [options] app path <app_name>
-    adbe [options] app signature <app_name>
-    adbe [options] app backup <app_name> [<backup_tar_file_path>]
-    adbe [options] install <file_path>
-    adbe [options] uninstall <app_name>
-    adbe [options] enable wireless debugging
-    adbe [options] disable wireless debugging
-    adbe [options] screen (on | off | toggle)
+   adbe [options] rotate (landscape | portrait | left | right)
+   adbe [options] gfx (on | off | lines)
+   adbe [options] overdraw (on | off | deut)
+   adbe [options] layout (on | off)
+   adbe [options] airplane (on | off)
+   adbe [options] battery level <percentage>
+   adbe [options] battery saver (on | off)
+   adbe [options] battery reset
+   adbe [options] doze (on | off)
+   adbe [options] jank <app_name>
+   adbe [options] devices
+   adbe [options] top-activity
+   adbe [options] dump-ui <xml_file>
+   adbe [options] mobile-data (on | off)
+   adbe [options] mobile-data saver (on | off)
+   adbe [options] wifi (on | off)
+   adbe [options] rtl (on | off)
+   adbe [options] screenshot <filename.png>
+   adbe [options] screenrecord <filename.mp4>
+   adbe [options] dont-keep-activities (on | off)
+   adbe [options] animations (on | off)
+   adbe [options] show-taps (on | off)
+   adbe [options] stay-awake-while-charging (on | off)
+   adbe [options] input-text <text>
+   adbe [options] press back
+   adbe [options] open-url <url>
+   adbe [options] permission-groups list all
+   adbe [options] permissions list (all | dangerous)
+   adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+   adbe [options] apps list (all | system | third-party | debug | backup-enabled)
+   adbe [options] standby-bucket get <app_name>
+   adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
+   adbe [options] restrict-background (true | false) <app_name>
+   adbe [options] ls [-a] [-l] [-R|-r] <file_path>
+   adbe [options] rm [-f] [-R|-r] <file_path>
+   adbe [options] mv [-f] <src_path> <dest_path>
+   adbe [options] pull [-a] <file_path_on_android>
+   adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
+   adbe [options] push <file_path_on_machine> <file_path_on_android>
+   adbe [options] cat <file_path>
+   adbe [options] start <app_name>
+   adbe [options] stop <app_name>
+   adbe [options] restart <app_name>
+   adbe [options] force-stop <app_name>
+   adbe [options] clear-data <app_name>
+   adbe [options] app info <app_name>
+   adbe [options] app path <app_name>
+   adbe [options] app signature <app_name>
+   adbe [options] app backup <app_name> [<backup_tar_file_path>]
+   adbe [options] install <file_path>
+   adbe [options] uninstall <app_name>
+   adbe [options] screen (on | off | toggle)
 
 Options
 ~~~~~~~
 
 ::
 
-    -e, --emulator          directs the command to the only running emulator
-    -d, --device            directs the command to the only connected "USB" device
-    -s, --serial SERIAL     directs the command to the device or emulator with the given serial number or qualifier.
-                            Overrides ANDROID_SERIAL environment variable.
-    -l                      For long list format, only valid for "ls" command
-    -R                      For recursive directory listing, only valid for "ls" and "rm" command
-    -r                      For delete file, only valid for "ls" and "rm" command
-    -f                      For forced deletion of a file, only valid for "rm" command
-    -v, --verbose           Verbose mode
-    --no-python2-warn       Don't warn about Python 2 deprecation
+   -e, --emulator          directs the command to the only running emulator
+   -d, --device            directs the command to the only connected "USB" device
+   -s, --serial SERIAL     directs the command to the device or emulator with the given serial number or qualifier.
+                           Overrides ANDROID_SERIAL environment variable.
+   -l                      For long list format, only valid for "ls" command
+   -R                      For recursive directory listing, only valid for "ls" and "rm" command
+   -r                      For delete file, only valid for "ls" and "rm" command
+   -f                      For forced deletion of a file, only valid for "rm" command
+   -v, --verbose           Verbose mode
 
 Python3 migration timeline
 --------------------------
@@ -253,15 +275,16 @@ Python3 migration timeline
    recommended.
 -  Dec 31, 2018 - Python2 will not be officially supported after Dec 31,
    2018.
+-  May 7, 2020 - Python2 no longer works with the current master branch
 
 Testing
 -------
 
 ::
 
-    make lint
-    make test_python2
-    make test_python3
+   make lint
+   make test_python2
+   make test_python3
 
 Release a new build
 -------------------
@@ -287,8 +310,6 @@ Note: The inspiration of this project came from
 .. |LintPython2| image:: https://github.com/ashishb/adb-enhanced/workflows/LintPython2/badge.svg
 .. |LintPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg
 .. |InstallAdbeTest| image:: https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg
-.. |AdbeUnitTestsPython2.7| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython2.7/badge.svg
 .. |AdbeUnitTestsPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg
 .. |AdbeInstallTestsPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg
 .. |AdbeUnitTestsPython3Scheduled| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3Scheduled/badge.svg
-

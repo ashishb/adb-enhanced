@@ -1,4 +1,4 @@
-lint: lint_python3
+lint: lint_python3 lint_markdown
 
 test: test_python3
 
@@ -8,6 +8,10 @@ documentation:
 clean:
 		rm -rf build/ dist/  # Cleanup build dir
 
+setup:
+	brew install pandoc sphinx-doc
+	brew link --force sphinx-doc
+	python3 -m pip install -r requirements.txt
 
 build: clean
 	# Upgrade setup tools
@@ -23,6 +27,9 @@ release_debug: documentation
 
 release_production: documentation
 	./release.py production release
+
+lint_markdown:
+	mdl -r ~MD013,~MD029,~MD033 README.md
 
 lint_python3:
 # E0602 is due to undefined variable unicode which is defined only for Python 2
