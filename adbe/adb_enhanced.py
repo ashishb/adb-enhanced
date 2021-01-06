@@ -922,15 +922,24 @@ def _get_all_packages(pm_cmd):
     return packages
 
 
+# "dumpsys package" is more accurate than "pm list packages" but that means the results of
+# list_all_apps are now different from list_system_apps, list_non_system_apps, and
+# list_debug_apps
+# For now, we can live with this discrepancy but in the longer run we want to fix those
+# other functions as well
 # https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
 def list_all_apps():
+    # https://developer.android.com/studio/command-line/dumpsys
     cmd = 'dumpsys package'
-    pattern_packages = re.compile('Package \[(.*?)\]')
+    pattern_packages = re.compile('Package \\[(.*?)\\]')
     return_code, result, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
         print_error_and_exit('Command "%s" failed, something is wrong' % cmd)
+        return
     all_apps = re.findall(pattern_packages, result)
-    return all_apps
+    # Get the unique results
+    all_apps = sorted(list(dict.fromkeys(all_apps)))
+    print_message('\n'.join(all_apps))
 
 
 def list_system_apps():
