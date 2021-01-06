@@ -398,6 +398,11 @@ def test_version():
     _assert_success('--version')
 
 
+def test_wireless():
+    _assert_success('enable wireless debugging')
+    _assert_success('disable wireless debugging')
+
+
 def test_screen_toggle():
     _assert_success('screen toggle')
 
@@ -490,6 +495,7 @@ def main():
     test_press_back()
     test_open_url()
     test_version()
+    test_wireless()
     test_screen_toggle()
     test_notifications()
     # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.

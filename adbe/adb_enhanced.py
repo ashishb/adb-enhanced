@@ -28,17 +28,26 @@ try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
     from adbe.adb_helper import (get_adb_shell_property, execute_adb_command2,
-            execute_adb_shell_command, execute_adb_shell_command2,
-            execute_file_related_adb_shell_command, get_package,
-            root_required_to_access_file, get_device_android_api_version, toggle_screen)
-    from adbe.output_helper import print_message, print_error, print_error_and_exit, print_verbose
+                                 execute_adb_shell_command, execute_adb_shell_command2,
+                                 execute_file_related_adb_shell_command, get_package,
+                                 root_required_to_access_file,
+                                 get_device_android_api_version, set_adb_prefix,
+                                 get_adb_prefix, toggle_screen)
+    from adbe.output_helper import (print_message, print_error, print_error_and_exit,
+                                    print_verbose)
 except ImportError:
     # This works when the code is executed directly.
+    # noinspection PyUnresolvedReferences
     from adb_helper import (get_adb_shell_property, execute_adb_command2,
-            execute_adb_shell_command, execute_adb_shell_command2,
-            execute_file_related_adb_shell_command, get_package,
-            root_required_to_access_file, get_device_android_api_version, toggle_screen)
-    from output_helper import print_message, print_error, print_error_and_exit, print_verbose
+                            execute_adb_shell_command, execute_adb_shell_command2,
+                            execute_file_related_adb_shell_command, get_package,
+                            root_required_to_access_file,
+                            get_device_android_api_version, set_adb_prefix,
+                            get_adb_prefix, toggle_screen)
+
+    # noinspection PyUnresolvedReferences
+    from output_helper import (print_message, print_error, print_error_and_exit,
+                               print_verbose)
 
 
 _KEYCODE_BACK = 4
@@ -1550,6 +1559,48 @@ def _error_if_min_version_less_than(min_acceptable_version, device_serial=None):
 def _is_emulator():
     qemu = get_adb_shell_property('ro.kernel.qemu')
     return qemu is not None and qemu.strip() == '1'
+
+
+def enable_wireless_debug():
+    code, result, stderr = execute_adb_shell_command2("ip address")
+    if code != 0:
+        print_error_and_exit('Failed to switch device to wireless debug mode, stderr: '
+                             '%s' % stderr)
+
+    matching = re.match(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$",
+                        result)
+    if matching is None:
+        print_error_and_exit('Failed to switch device to wireless debug mode')
+
+    ip = re.findall(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$",
+                    result, re.MULTILINE)[0]
+
+    code, _, stderr = execute_adb_command2("tcpip 5555")
+    if code != 0:
+        print_error_and_exit('Failed to switch device %s to wireless debug mode, '
+                             'stderr: %s' % (ip, stderr))
+
+    return execute_adb_command2("connect %s" % ip)
+
+
+def disable_wireless_debug():
+    # run only for wireless device
+    old_prefix = get_adb_prefix()
+    set_adb_prefix("%s %s" % (old_prefix, "-e"))
+
+    code, result, stderr = execute_adb_command2("usb")
+    if code != 0:
+        print_error_and_exit("Can't disable wireless debug mode. Error: %s" % stderr)
+
+    # rollback to previous options
+    set_adb_prefix(old_prefix)
+
+    code, result, stderr = execute_adb_command2("disconnect")
+    if code != 0:
+        print_error_and_exit(
+            "Can't disconnect from offline devices. Error: %s" % stderr)
+
+    return result
 
 
 def switch_screen(switch_type):

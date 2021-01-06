@@ -65,6 +65,10 @@ Device configuration
 
 -  Take a video ``adbe screenrecord video.mp4 # Press ^C when finished``
 
+-  Turn Wireless Debug mode on
+
+``adbe enable wireless debugging``
+
 Permissions
 ~~~~~~~~~~~
 

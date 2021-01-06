@@ -79,6 +79,8 @@ Usage:
     adbe [options] app backup <app_name> [<backup_tar_file_path>]
     adbe [options] install <file_path>
     adbe [options] uninstall <app_name>
+    adbe [options] enable wireless debugging
+    adbe [options] disable wireless debugging
     adbe [options] screen (on | off | toggle)
     adbe [options] alarm (all | top | pending | history)
 
@@ -342,6 +344,14 @@ def main():
         adb_enhanced.perform_install(file_path)
     elif args['uninstall']:
         adb_enhanced.perform_uninstall(args['<app_name>'])
+
+    elif args['enable']:
+        if args['wireless'] and args['debugging']:
+            adb_enhanced.enable_wireless_debug()
+
+    elif args['disable']:
+        if args['wireless'] and args['debugging']:
+            adb_enhanced.disable_wireless_debug()
 
     # alarm
     elif args['alarm'] and args['all']:
