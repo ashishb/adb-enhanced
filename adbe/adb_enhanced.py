@@ -10,8 +10,8 @@ import time
 import os
 import random
 from urllib.parse import urlparse
-import psutil
 from enum import Enum
+import psutil
 
 # asyncio was introduced in version 3.5
 if sys.version_info >= (3, 5):
@@ -1627,24 +1627,27 @@ def print_history_alarms(output_dump_alarm, padding):
     for line in alarm_to_parse:
         package_name = line[0:line.find(",")]
         # +1 to escape ',' before user id
-        user_id = line[line.find(",") + 1:].split(":")[0]
-        history = line[line.find(",") + 1:].split(":")[1]
+        fields = line[line.find(",") + 1:].split(":")
+        user_id = fields[0]
         print("%sPackage name: %s" % (padding, package_name))
         print("%sUser ID: %s" % (padding * 2, user_id))
-        print("%shistory: %s" % (padding * 2, history))
+        # History might be missing for new alarms
+        if len(fields) >= 2:
+            history = fields[1]
+            print("%shistory: %s" % (padding * 2, history))
 
 
 def print_top_alarms(output_dump_alarm, padding):
     print("Top Alarms:")
     pattern_top_alarm = re.compile(r'(?<=Top Alarms:\n).*?(?=Alarm Stats:)',
                                    re.DOTALL)
-    alarm_to_parse = re.sub(r' +', ' ',
-                            re.search(pattern_top_alarm, output_dump_alarm)
-                            .group(0)).split("\n")
-    temp_dict = dict()
-    for i in range(len(alarm_to_parse)):
-        if re.match(r"^\+", alarm_to_parse[i]):
-            temp_dict[alarm_to_parse[i]] = alarm_to_parse[i + 1]
+    alarm_to_parse = re.sub(
+        r' +', ' ',
+        re.search(pattern_top_alarm, output_dump_alarm).group(0)).split("\n")
+    temp_dict = {}
+    for i, alarm_i in enumerate(alarm_to_parse):
+        if re.match(r"^\+", alarm_i):
+            temp_dict[alarm_i] = alarm_to_parse[i + 1]
             i += 1
 
     for key, value in temp_dict.items():
@@ -1668,11 +1671,13 @@ def print_top_alarms(output_dump_alarm, padding):
 def print_pending_alarms(output_dump_alarm, padding):
     print("Pending Alarms:")
     pattern_pending_alarm = \
-        re.compile(r'(?<=Pending alarm batches:)'
-                   r'.*?(?=(Pending user blocked background alarms|Past-due non-wakeup alarms))',
-                   re.DOTALL)
-    alarm_to_parse = re.sub(r' +', ' ',
-                            re.search(pattern_pending_alarm, output_dump_alarm).group(0)).split("\n")[1:-1]
+        re.compile(
+            r'(?<=Pending alarm batches:)'
+            r'.*?(?=(Pending user blocked background alarms|Past-due non-wakeup alarms))',
+            re.DOTALL)
+    alarm_to_parse = re.sub(
+        r' +', ' ',
+        re.search(pattern_pending_alarm, output_dump_alarm).group(0)).split("\n")[1:-1]
     for line in alarm_to_parse:
         line = line.strip()
         if not line.startswith("Batch"):
@@ -1712,7 +1717,7 @@ def alarm_manager(param):
     if c != 0:
         print_error_and_exit("Something gone wrong on "
                              "dumping alarms. Error: %s" % e)
-        return o
+        return
 
     if not isinstance(param, AlarmEnum):
         print_error("Not supported parameter")

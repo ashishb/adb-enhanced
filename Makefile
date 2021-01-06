@@ -1,4 +1,4 @@
-lint: lint_python3
+lint: lint_python3 lint_markdown
 
 test: test_python3
 
@@ -27,6 +27,9 @@ release_debug: documentation
 
 release_production: documentation
 	./release.py production release
+
+lint_markdown:
+	mdl -r ~MD013,~MD029,~MD033 README.md
 
 lint_python3:
 # E0602 is due to undefined variable unicode which is defined only for Python 2
