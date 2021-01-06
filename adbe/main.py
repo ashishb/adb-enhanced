@@ -79,7 +79,6 @@ Usage:
     adbe [options] app backup <app_name> [<backup_tar_file_path>]
     adbe [options] install <file_path>
     adbe [options] uninstall <app_name>
-    adbe [options] (enable | disable) wireless debugging
     adbe [options] screen (on | off | toggle)
     adbe [options] alarm (all | top | pending | history)
 
@@ -99,6 +98,7 @@ Options:
 """
 List of things which this tool will do in the future
 
+* adbe [options] (enable | disable) wireless debugging - disabled since it is not working
 * adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
 * adbe app-standby $app_name
 * adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
