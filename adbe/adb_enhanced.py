@@ -10,8 +10,8 @@ import time
 import os
 import random
 from urllib.parse import urlparse
-import psutil
 from enum import Enum
+import psutil
 
 # asyncio was introduced in version 3.5
 if sys.version_info >= (3, 5):

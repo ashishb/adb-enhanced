@@ -4,7 +4,6 @@
 
 ![AdbeUnitTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg) ![AdbeInstallTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg) ![AdbeUnitTestsPython3Scheduled](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3Scheduled/badge.svg)
 
-
 ![Logo](docs/logo.png)
 
 ADB-Enhanced is a Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation. Its a wrapper around `adb` and not a replacement.
@@ -164,72 +163,76 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 ### Usage
 
-    adbe [options] rotate (landscape | portrait | left | right)
-    adbe [options] gfx (on | off | lines)
-    adbe [options] overdraw (on | off | deut)
-    adbe [options] layout (on | off)
-    adbe [options] airplane (on | off)
-    adbe [options] battery level <percentage>
-    adbe [options] battery saver (on | off)
-    adbe [options] battery reset
-    adbe [options] doze (on | off)
-    adbe [options] jank <app_name>
-    adbe [options] devices
-    adbe [options] top-activity
-    adbe [options] dump-ui <xml_file>
-    adbe [options] mobile-data (on | off)
-    adbe [options] mobile-data saver (on | off)
-    adbe [options] wifi (on | off)
-    adbe [options] rtl (on | off)
-    adbe [options] screenshot <filename.png>
-    adbe [options] screenrecord <filename.mp4>
-    adbe [options] dont-keep-activities (on | off)
-    adbe [options] animations (on | off)
-    adbe [options] show-taps (on | off)
-    adbe [options] stay-awake-while-charging (on | off) 
-    adbe [options] input-text <text>
-    adbe [options] press back
-    adbe [options] open-url <url>
-    adbe [options] permission-groups list all
-    adbe [options] permissions list (all | dangerous)
-    adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-    adbe [options] notifications list
-    adbe [options] apps list (all | system | third-party | debug | backup-enabled)
-    adbe [options] standby-bucket get <app_name>
-    adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
-    adbe [options] restrict-background (true | false) <app_name>
-    adbe [options] ls [-a] [-l] [-R|-r] <file_path>
-    adbe [options] rm [-f] [-R|-r] <file_path>
-    adbe [options] mv [-f] <src_path> <dest_path>
-    adbe [options] pull [-a] <file_path_on_android>
-    adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
-    adbe [options] push <file_path_on_machine> <file_path_on_android>
-    adbe [options] cat <file_path>
-    adbe [options] start <app_name>
-    adbe [options] stop <app_name>
-    adbe [options] restart <app_name>
-    adbe [options] force-stop <app_name>
-    adbe [options] clear-data <app_name>
-    adbe [options] app info <app_name>
-    adbe [options] app path <app_name>
-    adbe [options] app signature <app_name>
-    adbe [options] app backup <app_name> [<backup_tar_file_path>]
-    adbe [options] install <file_path>
-    adbe [options] uninstall <app_name>
-    adbe [options] screen (on | off | toggle)
-    adbe [options] alarm (all | top | pending | history)
+```bash
+adbe [options] rotate (landscape | portrait | left | right)
+adbe [options] gfx (on | off | lines)
+adbe [options] overdraw (on | off | deut)
+adbe [options] layout (on | off)
+adbe [options] airplane (on | off)
+adbe [options] battery level <percentage>
+adbe [options] battery saver (on | off)
+adbe [options] battery reset
+adbe [options] doze (on | off)
+adbe [options] jank <app_name>
+adbe [options] devices
+adbe [options] top-activity
+adbe [options] dump-ui <xml_file>
+adbe [options] mobile-data (on | off)
+adbe [options] mobile-data saver (on | off)
+adbe [options] wifi (on | off)
+adbe [options] rtl (on | off)
+adbe [options] screenshot <filename.png>
+adbe [options] screenrecord <filename.mp4>
+adbe [options] dont-keep-activities (on | off)
+adbe [options] animations (on | off)
+adbe [options] show-taps (on | off)
+adbe [options] stay-awake-while-charging (on | off)
+adbe [options] input-text <text>
+adbe [options] press back
+adbe [options] open-url <url>
+adbe [options] permission-groups list all
+adbe [options] permissions list (all | dangerous)
+adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+adbe [options] notifications list
+adbe [options] apps list (all | system | third-party | debug | backup-enabled)
+adbe [options] standby-bucket get <app_name>
+adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
+adbe [options] restrict-background (true | false) <app_name>
+adbe [options] ls [-a] [-l] [-R|-r] <file_path>
+adbe [options] rm [-f] [-R|-r] <file_path>
+adbe [options] mv [-f] <src_path> <dest_path>
+adbe [options] pull [-a] <file_path_on_android>
+adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
+adbe [options] push <file_path_on_machine> <file_path_on_android>
+adbe [options] cat <file_path>
+adbe [options] start <app_name>
+adbe [options] stop <app_name>
+adbe [options] restart <app_name>
+adbe [options] force-stop <app_name>
+adbe [options] clear-data <app_name>
+adbe [options] app info <app_name>
+adbe [options] app path <app_name>
+adbe [options] app signature <app_name>
+adbe [options] app backup <app_name> [<backup_tar_file_path>]
+adbe [options] install <file_path>
+adbe [options] uninstall <app_name>
+adbe [options] screen (on | off | toggle)
+adbe [options] alarm (all | top | pending | history)
+```
 
 ### Options
 
-    -e, --emulator          directs the command to the only running emulator
-    -d, --device            directs the command to the only connected "USB" device
-    -s, --serial SERIAL     directs the command to the device or emulator with the given serial number or qualifier.
-                            Overrides ANDROID_SERIAL environment variable.
-    -l                      For long list format, only valid for "ls" command
-    -R                      For recursive directory listing, only valid for "ls" and "rm" command
-    -r                      For delete file, only valid for "ls" and "rm" command
-    -f                      For forced deletion of a file, only valid for "rm" command
-    -v, --verbose           Verbose mode
+```bash
+-e, --emulator          directs the command to the only running emulator
+-d, --device            directs the command to the only connected "USB" device
+-s, --serial SERIAL     directs the command to the device or emulator with the given serial number or qualifier.
+                        Overrides ANDROID_SERIAL environment variable.
+-l                      For long list format, only valid for "ls" command
+-R                      For recursive directory listing, only valid for "ls" and "rm" command
+-r                      For delete file, only valid for "ls" and "rm" command
+-f                      For forced deletion of a file, only valid for "rm" command
+-v, --verbose           Verbose mode
+```
 
 ## Python3 migration timeline
 
