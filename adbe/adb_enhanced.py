@@ -1496,7 +1496,7 @@ def perform_install(file_path):
 @ensure_package_exists
 def perform_uninstall(app_name):
     print_verbose('Uninstalling %s' % app_name)
-    return_code, _, stderr = execute_adb_command2('uninstall %s' % app_name)
+    return_code, _, stderr = execute_adb_command2('pm uninstall --user 0 %s' % app_name)
     if return_code != 0:
         print_error('Failed to uninstall %s, stderr: %s' % (app_name, stderr))
 
