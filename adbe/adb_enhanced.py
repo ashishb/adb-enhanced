@@ -1575,6 +1575,7 @@ def enable_wireless_debug():
 
     ip = matching[0]
 
+
     code, _, stderr = execute_adb_command2("tcpip 5555")
     if code != 0:
         print_error_and_exit('Failed to switch device %s to wireless debug mode, '

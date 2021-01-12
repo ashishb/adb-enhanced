@@ -100,6 +100,7 @@ Options:
 """
 List of things which this tool will do in the future
 
+* adbe [options] (enable | disable) wireless debugging - disabled since it is not working
 * adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
 * adbe app-standby $app_name
 * adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
