@@ -1570,7 +1570,7 @@ def enable_wireless_debug():
     # Check, that phone connected to wlan
     matching = re.findall(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$",
                     result, re.MULTILINE)
-    if matching is None:
+    if matching is None or not matching:
         print_error_and_exit('Failed to switch device to wireless debug mode')
 
     ip = matching[0]
