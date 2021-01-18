@@ -302,6 +302,9 @@ def _install_debug_apk():
 
 
 def test_file_move2():
+    if _get_device_sdk_version() >= 29:
+        pytest.skip('This test fails on API 29 and later as apps cannot move files from /data/ anymore, see https://github.com/ashishb/adb-enhanced/pull/141/checks?check_run_id=1723908892')
+
     _install_debug_apk()
     tmp_file1 = '/data/local/tmp/development.xml'
     tmp_file2_location = '/data/data/%s' % _DEBUG_APP
@@ -320,8 +323,8 @@ def test_file_move2():
 
 def test_file_move3():
     _install_debug_apk()
-    tmp_file1 = '/data/local/tmp/development.xml'
-    tmp_file2 = '/data/data/%s/development.xml' % _DEBUG_APP
+    tmp_file1 = '/data/local/tmp/development2.xml'
+    tmp_file2 = '/data/local/tmp/development.xml'
     ps = subprocess.Popen('adb shell touch %s' % tmp_file1,
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = ps.communicate()
