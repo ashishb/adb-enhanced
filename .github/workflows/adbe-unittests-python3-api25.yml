@@ -1,4 +1,4 @@
-name: AdbeUnitTestsPython3Scheduled
+name: AdbeUnitTestsPython3-Api25
 
 on:
   schedule:
@@ -9,7 +9,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        api-level: [21, 22, 23, 24, 25, 26, 27, 28]
+        api-level: [25]
         target: [default]  # Other option: google_apis
     steps:
       - name: checkout
