@@ -1,8 +1,6 @@
 name: AdbeUnitTestsPython3-Api22
 
-on:
-  schedule:
-    - cron: '0 0 * * 0'  # Sunday midnight UTC
+on: [push]
 
 jobs:
   test:
