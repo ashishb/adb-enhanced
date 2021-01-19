@@ -5,6 +5,7 @@ on: [push]
 jobs:
   test:
     runs-on: macos-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         api-level: [21, 26]
