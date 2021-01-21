@@ -1493,10 +1493,13 @@ def perform_install(file_path):
         print_error('Failed to install %s, stderr: %s' % (file_path, stderr))
 
 
-@ensure_package_exists
-def perform_uninstall(app_name):
+@ensure_package_exists2
+def perform_uninstall(app_name, first_user):
     print_verbose('Uninstalling %s' % app_name)
-    return_code, _, stderr = execute_adb_command2('uninstall %s' % app_name)
+    cmd = ""
+    if first_user:
+        cmd = "--user 0"
+    return_code, _, stderr = execute_adb_shell_command2('pm uninstall %s %s' % (cmd, app_name))
     if return_code != 0:
         print_error('Failed to uninstall %s, stderr: %s' % (app_name, stderr))
 

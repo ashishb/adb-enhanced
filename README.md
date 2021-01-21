@@ -229,7 +229,7 @@ adbe [options] app path <app_name>
 adbe [options] app signature <app_name>
 adbe [options] app backup <app_name> [<backup_tar_file_path>]
 adbe [options] install <file_path>
-adbe [options] uninstall <app_name>
+adbe [options] uninstall [--first-user] <app_name>
 adbe [options] enable wireless debugging
 adbe [options] disable wireless debugging
 adbe [options] screen (on | off | toggle)
