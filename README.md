@@ -4,7 +4,7 @@
 
 ![AdbeUnitTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg) ![AdbeInstallTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg)
 
-![AdbeUnitTestsPython3-Api21](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api21/badge.svg) 
+![AdbeUnitTestsPython3-Api21](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api21/badge.svg)
 ![AdbeUnitTestsPython3-Api22](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api22/badge.svg)
 ![AdbeUnitTestsPython3-Api23](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api23/badge.svg)
 ![AdbeUnitTestsPython3-Api24](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api24/badge.svg)
@@ -14,7 +14,6 @@
 ![AdbeUnitTestsPython3-Api28](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api28/badge.svg)
 ![AdbeUnitTestsPython3-Api29](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api29/badge.svg)
 
- 
 ![Logo](docs/logo.png)
 
 ADB-Enhanced is a Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation. Its a wrapper around `adb` and not a replacement.
