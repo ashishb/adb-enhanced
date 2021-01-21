@@ -1498,6 +1498,10 @@ def perform_uninstall(app_name, first_user):
     print_verbose('Uninstalling %s' % app_name)
     cmd = ""
     if first_user:
+        # For system apps, that cannot uninstalled,
+        # this command uninstalls them for user 0 without doing a system uninstall
+        # since that would fail.
+        # https://www.xda-developers.com/uninstall-carrier-oem-bloatware-without-root-access/
         cmd = "--user 0"
     return_code, _, stderr = execute_adb_shell_command2('pm uninstall %s %s' % (cmd, app_name))
     if return_code != 0:
