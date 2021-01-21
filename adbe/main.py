@@ -78,7 +78,7 @@ Usage:
     adbe [options] app signature <app_name>
     adbe [options] app backup <app_name> [<backup_tar_file_path>]
     adbe [options] install <file_path>
-    adbe [options] uninstall [-0] <app_name>
+    adbe [options] uninstall [--first-user] <app_name>
     adbe [options] screen (on | off | toggle)
     adbe [options] alarm (all | top | pending | history)
 
@@ -342,7 +342,7 @@ def main():
         file_path = args['<file_path>']
         adb_enhanced.perform_install(file_path)
     elif args['uninstall']:
-        adb_enhanced.perform_uninstall(args['<app_name>'], args['-0'])
+        adb_enhanced.perform_uninstall(args['<app_name>'], args['--first-user'])
 
     elif args['enable']:
         if args['wireless'] and args['debugging']:
