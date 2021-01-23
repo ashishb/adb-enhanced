@@ -1508,7 +1508,7 @@ def perform_uninstall(app_name, first_user):
         return
 
     if not cmd:
-        print("Uninstall failed, retry with first user")
+        print_message("Uninstall failed, trying to uninstall for user 0...")
         cmd = "--user 0"
         return_code, _, stderr = execute_adb_shell_command2('pm uninstall %s %s' % (cmd, app_name))
 
