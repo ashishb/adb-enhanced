@@ -1504,6 +1504,14 @@ def perform_uninstall(app_name, first_user):
         # https://www.xda-developers.com/uninstall-carrier-oem-bloatware-without-root-access/
         cmd = "--user 0"
     return_code, _, stderr = execute_adb_shell_command2('pm uninstall %s %s' % (cmd, app_name))
+    if return_code == 0:
+        return
+
+    if not cmd:
+        print_message("Uninstall failed, trying to uninstall for user 0...")
+        cmd = "--user 0"
+        return_code, _, stderr = execute_adb_shell_command2('pm uninstall %s %s' % (cmd, app_name))
+
     if return_code != 0:
         print_error('Failed to uninstall %s, stderr: %s' % (app_name, stderr))
 
