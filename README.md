@@ -1,8 +1,9 @@
 # ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
 
-![LintPython2](https://github.com/ashishb/adb-enhanced/workflows/LintPython2/badge.svg) ![LintPython3](https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg) ![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg)
+![LintPython2](https://github.com/ashishb/adb-enhanced/workflows/LintPython2/badge.svg) ![LintPython3](https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg)
 
-![AdbeUnitTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg) ![AdbeInstallTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg)
+![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg)
+![AdbeInstallTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg) ![AdbeUnitTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg)
 
 ![AdbeUnitTestsPython3-Api21](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api21/badge.svg)
 ![AdbeUnitTestsPython3-Api22](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api22/badge.svg)
@@ -13,6 +14,7 @@
 ![AdbeUnitTestsPython3-Api27](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api27/badge.svg)
 ![AdbeUnitTestsPython3-Api28](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api28/badge.svg)
 ![AdbeUnitTestsPython3-Api29](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api29/badge.svg)
+![AdbeUnitTestsPython3OldApis](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3OldApis/badge.svg)
 
 ![Logo](docs/logo.png)
 
