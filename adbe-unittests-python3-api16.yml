@@ -1,11 +1,12 @@
-name: AdbeUnitTestsPython3OldApis
+name: AdbeUnitTestsPython3-Api16
 
 on: [push]
 
 jobs:
   test:
     runs-on: macos-latest
-    timeout-minutes: 15
+    # This test is slower compared to the other tests
+    timeout-minutes: 20
     strategy:
       matrix:
         # https://github.com/ashishb/adb-enhanced/pull/100/checks?check_run_id=492546108
