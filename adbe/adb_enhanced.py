@@ -711,7 +711,10 @@ def get_show_taps_state():
         print_error('Failed to get current state of "show user taps" setting')
         return _USER_PRINT_VALUE_UNKNOWN
 
-    if int(stdout.strip()) == 1:
+    stdout = stdout.strip()
+    if stdout == 'null':
+        return _USER_PRINT_VALUE_OFF
+    if int(stdout) == 1:
         return _USER_PRINT_VALUE_ON
     return _USER_PRINT_VALUE_OFF
 
