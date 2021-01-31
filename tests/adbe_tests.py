@@ -153,7 +153,13 @@ def test_permissions_grant_revoke():
     # Only test with permissions which our test app com.android.phone has
     # or it fails
     # https://github.com/ashishb/adb-enhanced/pull/117/checks?check_run_id=655009375
-    permissions_groups = ['contacts', 'location', 'microphone', 'phone', 'sms']
+    permissions_groups = ['location', 'phone']
+    if _get_device_sdk_version() < 29:
+        # This permissions group seems to have been removed in API 29 and beyond.
+        # https://github.com/ashishb/adb-enhanced/runs/1799363523?check_suite_focus=true
+        permissions_groups.append('contacts')
+        permissions_groups.append('microphone')
+        permissions_groups.append('sms')
 
     for permission_group in permissions_groups:
         if _get_device_sdk_version() >= _RUNTIME_PERMISSIONS_SUPPORTED:

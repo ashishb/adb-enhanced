@@ -1826,3 +1826,13 @@ def alarm_manager(param):
             print_history_alarms(o, padding)
         else:
             print_error(err_msg_api)
+
+
+# This permissions group seems to have been removed in API 29 and beyond.
+# https://github.com/ashishb/adb-enhanced/runs/1799363523?check_suite_focus=true
+def is_permission_group_unavailable_after_api_29(permission_group):
+    return permission_group in [
+        'android.permission-group.CONTACTS',
+        'android.permission-group.MICROPHONE',
+        'android.permission-group.SMS',
+    ]

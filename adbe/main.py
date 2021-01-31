@@ -250,8 +250,15 @@ def main():
     elif args['permissions']:
         app_name = args['<app_name>']
         permission_group = adb_enhanced.get_permission_group(args)
+
         permissions = adb_enhanced.get_permissions_in_permission_group(permission_group)
-        if not permissions:
+        if not permissions and \
+                adb_enhanced.is_permission_group_unavailable_after_api_29(permission_group) and \
+                adb_enhanced.get_device_android_api_version() >= 29:
+            print_error_and_exit('Android has made contacts group empty on API 29 and beyond, '
+                                 'your device version is %d' %
+                                 adb_enhanced.get_device_android_api_version())
+        elif not permissions:
             print_error_and_exit('No permissions found in permissions group: %s' % permission_group)
         adb_enhanced.grant_or_revoke_runtime_permissions(
             app_name, args['grant'], permissions)
