@@ -383,7 +383,8 @@ def handle_list_devices():
             len(device_infos) == 1 and len(device_infos[0]) == 0):
         print_error_and_exit('No attached Android device found')
     elif len(device_infos) == 1:
-        _print_device_info()
+        device_serial = device_infos[0].split(" ")[0]
+        _print_device_info(device_serial)
     else:
         for device_info in device_infos:
             if not device_info:
