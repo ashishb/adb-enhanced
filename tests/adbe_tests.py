@@ -410,6 +410,10 @@ def test_version():
 
 
 def test_wireless():
+    # https://docs.github.com/en/actions/reference/environment-variables#default-environment-variables
+    if os.environ.get('CI') == 'true':
+        # https://github.com/ashishb/adb-enhanced/runs/1804885847?check_suite_focus=true
+        pytest.skip('Emulator is not connected via wireless and thus, this test fails, so, skipping it')
     _assert_success('enable wireless debugging')
     # I hate this but without it disable fails due to race
     time.sleep(1)
