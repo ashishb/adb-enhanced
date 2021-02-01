@@ -371,34 +371,48 @@ def _is_app_running(app_name):
 
 
 def handle_list_devices():
+    device_serials = _get_device_serials()
+
+    if not device_serials:
+        print_error_and_exit('No attached Android device found')
+
+    for device_serial in device_serials:
+        _print_device_info(device_serial)
+
+
+def _get_device_serials() -> [str]:
     cmd = 'devices -l'
     return_code, stdout, stderr = execute_adb_command2(cmd)
     if return_code != 0:
         print_error_and_exit('Failed to execute command %s, error: %s ' % (cmd, stderr))
 
+    device_serials = []
     # Skip the first line, it says "List of devices attached"
     device_infos = stdout.split('\n')[1:]
 
     if len(device_infos) == 0 or (
             len(device_infos) == 1 and len(device_infos[0]) == 0):
-        print_error_and_exit('No attached Android device found')
-    elif len(device_infos) == 1:
+        return []
+
+    if len(device_infos) == 1:
         device_serial = device_infos[0].split(" ")[0]
-        _print_device_info(device_serial)
-    else:
-        for device_info in device_infos:
-            if not device_info:
-                continue
-            device_serial = device_info.split()[0]
-            if 'unauthorized' in device_info:
-                device_info = ' '.join(device_info.split()[1:])
-                print_error(
-                    ('Unlock Device "%s" and give USB debugging access to ' +
-                     'this PC/Laptop by unlocking and reconnecting ' +
-                     'the device. More info about this device: "%s"\n') % (
-                         device_serial, device_info))
-            else:
-                _print_device_info(device_serial)
+        device_serials.append(device_serial)
+        return device_serials
+
+    for device_info in device_infos:
+        if not device_info:
+            continue
+        device_serial = device_info.split()[0]
+        if 'unauthorized' in device_info:
+            device_info = ' '.join(device_info.split()[1:])
+            print_error(
+                ('Unlock Device "%s" and give USB debugging access to ' +
+                 'this PC/Laptop by unlocking and reconnecting ' +
+                 'the device. More info about this device: "%s"\n') % (
+                     device_serial, device_info))
+        else:
+            device_serials.append(device_serial)
+    return device_serials
 
 
 def _print_device_info(device_serial=None):
@@ -1586,40 +1600,57 @@ def enable_wireless_debug():
         print_error_and_exit('Failed to switch device to wireless debug mode, stderr: '
                              '%s' % stderr)
 
-    matching = re.match(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$",
-                        result)
-    if matching is None:
+    # Check, that phone connected to wlan
+    matching = re.findall(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$",
+            result, re.MULTILINE)
+    if matching is None or not matching:
         print_error_and_exit('Failed to switch device to wireless debug mode')
 
-    ip = re.findall(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$",
-                    result, re.MULTILINE)[0]
+    ip = matching[0]
 
     code, _, stderr = execute_adb_command2("tcpip 5555")
     if code != 0:
         print_error_and_exit('Failed to switch device %s to wireless debug mode, '
                              'stderr: %s' % (ip, stderr))
 
-    return execute_adb_command2("connect %s" % ip)
+    code, _, stderr = execute_adb_command2("connect %s" % ip)
+    if code != 0:
+        print_error_and_exit('Cannot enable wireless debugging. Error: %s' % stderr)
+        return False
+    print_message('Connected via IP now you can disconnect the cable\nIP: %s' % ip)
+    return True
 
 
 def disable_wireless_debug():
-    # run only for wireless device
-    old_prefix = get_adb_prefix()
-    set_adb_prefix("%s %s" % (old_prefix, "-e"))
+    device_serials = _get_device_serials()
 
-    code, result, stderr = execute_adb_command2("usb")
-    if code != 0:
-        print_error_and_exit("Can't disable wireless debug mode. Error: %s" % stderr)
+    if not device_serials:
+        print_error_and_exit('No connected device found')
+        return
 
-    # rollback to previous options
-    set_adb_prefix(old_prefix)
+    ip_list = []
+    for device_serial in device_serials:
+        ips = re.findall(r"([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}:[\d]{1,5})", device_serial, 0)
+        if not ips:
+            print_verbose('Not a IP connect device, serial: %s' % device_serial)
+            continue
+        if len(ips) > 1:
+            print_error('Malformed device IP: %s' % device_serial)
+        print_verbose('Found an IP connected ADB session: %s' % ips[0])
+        ip_list.append(ips[0])
 
-    code, result, stderr = execute_adb_command2("disconnect")
-    if code != 0:
-        print_error_and_exit(
-            "Can't disconnect from offline devices. Error: %s" % stderr)
+    result = True
 
-    return result
+    for ip in ip_list:
+        code, stdout, stderr = execute_adb_command2('disconnect %s' % ip)
+        if code != 0:
+            print_error('Failed to disconnect %s: %s' % (ip, stderr))
+            result = False
+        else:
+            print_message('Disconnected %s' % ip)
+
+    if not result:
+        print_error_and_exit('')
 
 
 def switch_screen(switch_type):

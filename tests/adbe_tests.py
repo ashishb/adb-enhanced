@@ -3,6 +3,7 @@ import re
 import subprocess
 import sys
 import os
+import time
 import pytest
 
 _SETTINGS_CMD_VERSION = 19
@@ -408,9 +409,10 @@ def test_version():
     _assert_success('--version')
 
 
-@pytest.mark.skip("This is broken as of now")
 def test_wireless():
     _assert_success('enable wireless debugging')
+    # I hate this but without it disable fails due to race
+    time.sleep(1)
     _assert_success('disable wireless debugging')
 
 
