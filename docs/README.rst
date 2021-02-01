@@ -1,10 +1,15 @@
 ADB Enhanced |Downloads| |PyPI version|
 =======================================
 
-|LintPython2| |LintPython3| |InstallAdbeTest|
+|LintPython2| |LintPython3|
 
-|AdbeUnitTestsPython3| |AdbeInstallTestsPython3|
-|AdbeUnitTestsPython3Scheduled|
+|InstallAdbeTest| |AdbeInstallTestsPython3| |AdbeUnitTestsPython3|
+
+|AdbeUnitTestsPython3-Api16| |AdbeUnitTestsPython3-Api21|
+|AdbeUnitTestsPython3-Api22| |AdbeUnitTestsPython3-Api23|
+|AdbeUnitTestsPython3-Api24| |AdbeUnitTestsPython3-Api25|
+|AdbeUnitTestsPython3-Api26| |AdbeUnitTestsPython3-Api27|
+|AdbeUnitTestsPython3-Api28| |AdbeUnitTestsPython3-Api29|
 
 .. figure:: docs/logo.png
    :alt: Logo
@@ -65,9 +70,7 @@ Device configuration
 
 -  Take a video ``adbe screenrecord video.mp4 # Press ^C when finished``
 
--  Turn Wireless Debug mode on
-
-``adbe enable wireless debugging``
+-  Turn Wireless Debug mode on ``adbe enable wireless debugging``
 
 Permissions
 ~~~~~~~~~~~
@@ -195,7 +198,7 @@ App info
 Usage
 ~~~~~
 
-::
+.. code:: bash
 
    adbe [options] rotate (landscape | portrait | left | right)
    adbe [options] gfx (on | off | lines)
@@ -226,6 +229,7 @@ Usage
    adbe [options] permission-groups list all
    adbe [options] permissions list (all | dangerous)
    adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+   adbe [options] notifications list
    adbe [options] apps list (all | system | third-party | debug | backup-enabled)
    adbe [options] standby-bucket get <app_name>
    adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
@@ -247,13 +251,16 @@ Usage
    adbe [options] app signature <app_name>
    adbe [options] app backup <app_name> [<backup_tar_file_path>]
    adbe [options] install <file_path>
-   adbe [options] uninstall <app_name>
+   adbe [options] uninstall [--first-user] <app_name>
+   adbe [options] enable wireless debugging
+   adbe [options] disable wireless debugging
    adbe [options] screen (on | off | toggle)
+   adbe [options] alarm (all | top | pending | history)
 
 Options
 ~~~~~~~
 
-::
+.. code:: bash
 
    -e, --emulator          directs the command to the only running emulator
    -d, --device            directs the command to the only connected "USB" device
@@ -310,6 +317,15 @@ Note: The inspiration of this project came from
 .. |LintPython2| image:: https://github.com/ashishb/adb-enhanced/workflows/LintPython2/badge.svg
 .. |LintPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg
 .. |InstallAdbeTest| image:: https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg
-.. |AdbeUnitTestsPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg
 .. |AdbeInstallTestsPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg
-.. |AdbeUnitTestsPython3Scheduled| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3Scheduled/badge.svg
+.. |AdbeUnitTestsPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg
+.. |AdbeUnitTestsPython3-Api16| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api16/badge.svg
+.. |AdbeUnitTestsPython3-Api21| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api21/badge.svg
+.. |AdbeUnitTestsPython3-Api22| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api22/badge.svg
+.. |AdbeUnitTestsPython3-Api23| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api23/badge.svg
+.. |AdbeUnitTestsPython3-Api24| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api24/badge.svg
+.. |AdbeUnitTestsPython3-Api25| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api25/badge.svg
+.. |AdbeUnitTestsPython3-Api26| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api26/badge.svg
+.. |AdbeUnitTestsPython3-Api27| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api27/badge.svg
+.. |AdbeUnitTestsPython3-Api28| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api28/badge.svg
+.. |AdbeUnitTestsPython3-Api29| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api29/badge.svg
