@@ -1834,5 +1834,6 @@ def is_permission_group_unavailable_after_api_29(permission_group):
     return permission_group in [
         'android.permission-group.CONTACTS',
         'android.permission-group.MICROPHONE',
+        'android.permission-group.LOCATION',
         'android.permission-group.SMS',
     ]
