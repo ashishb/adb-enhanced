@@ -31,8 +31,7 @@ try:
                                  execute_adb_shell_command, execute_adb_shell_command2,
                                  execute_file_related_adb_shell_command, get_package,
                                  root_required_to_access_file,
-                                 get_device_android_api_version, set_adb_prefix,
-                                 get_adb_prefix, toggle_screen)
+                                 get_device_android_api_version, toggle_screen)
     from adbe.output_helper import (print_message, print_error, print_error_and_exit,
                                     print_verbose)
 except ImportError:
@@ -42,8 +41,7 @@ except ImportError:
                             execute_adb_shell_command, execute_adb_shell_command2,
                             execute_file_related_adb_shell_command, get_package,
                             root_required_to_access_file,
-                            get_device_android_api_version, set_adb_prefix,
-                            get_adb_prefix, toggle_screen)
+                            get_device_android_api_version, toggle_screen)
 
     # noinspection PyUnresolvedReferences
     from output_helper import (print_message, print_error, print_error_and_exit,
@@ -1642,7 +1640,7 @@ def disable_wireless_debug():
     result = True
 
     for ip in ip_list:
-        code, stdout, stderr = execute_adb_command2('disconnect %s' % ip)
+        code, _, stderr = execute_adb_command2('disconnect %s' % ip)
         if code != 0:
             print_error('Failed to disconnect %s: %s' % (ip, stderr))
             result = False
