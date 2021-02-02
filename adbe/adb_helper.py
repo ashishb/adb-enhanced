@@ -210,7 +210,8 @@ def toggle_screen():
 
 
 def set_device_id(device_id):
-    """Make :param device_id: as main device to use
+    """
+    Make :param device_id: as main device to use
     Primary use-case: scripting
     Command line equivalent: "-s :param device_id:"
     """
