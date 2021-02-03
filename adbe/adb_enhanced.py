@@ -954,22 +954,29 @@ def _get_all_packages(pm_cmd):
 # other functions as well
 # https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
 def get_list_all_apps():
+    """
+    Returns:
+          - all_apps: list of all installed packages names
+          - err_msg: error message if an error occurred
+          - err: command execution error if an error occurred
+    """
     # https://developer.android.com/studio/command-line/dumpsys
     cmd = 'dumpsys package'
     pattern_packages = re.compile('Package \\[(.*?)\\]')
     return_code, result, err = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        return None, cmd, err
+        err_msg = 'Command "%s" failed, something is wrong' % cmd
+        return None, err_msg, err
     all_apps = re.findall(pattern_packages, result)
     # Get the unique results
     all_apps = sorted(list(dict.fromkeys(all_apps)))
-    return all_apps, cmd, None
+    return all_apps, None, None
 
 
 def print_list_all_apps():
-    all_apps, cmd, err = get_list_all_apps()
+    all_apps, err_msg, err = get_list_all_apps()
     if err:
-        print_error_and_exit('Command "%s" failed, something is wrong' % cmd)
+        print_error_and_exit(err_msg)
         return
     print_message('\n'.join(all_apps))
 
