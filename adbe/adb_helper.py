@@ -209,9 +209,9 @@ def toggle_screen():
     return execute_adb_shell_command2("input keyevent KEYCODE_POWER")
 
 
-
 def set_device_id(device_id):
-    """Make :param device_id: as main device to use
+    """
+    Make :param device_id: as main device to use
     Primary use-case: scripting
     Command line equivalent: "-s :param device_id:"
     """
