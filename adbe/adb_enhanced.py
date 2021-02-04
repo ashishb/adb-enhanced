@@ -992,9 +992,27 @@ def print_list_all_apps():
     print_message('\n'.join(all_apps))
 
 
-def list_system_apps():
+def get_list_system_apps():
+    """This function return a list of installed system applications
+    :returns: system_apps_packages
+        WHERE
+        list[str] system_apps_packages is a strings list of installed system packages
+    :Example:
+    >>> import adbe.adb_enhanced as adb_e
+    >>> import adbe.adb_helper as adb_h
+    >>> adb_h.set_device_id("DEVICE_ID")
+    >>> list_sys_apps = adb_e.get_list_system_apps()
+    """
     cmd = 'pm list packages -s'
-    packages = _get_all_packages(cmd)
+    system_apps_packages = _get_all_packages(cmd)
+    return system_apps_packages
+
+
+def list_system_apps():
+    """This function print list of installed system packages
+    :returns: None
+    """
+    packages = get_list_system_apps()
     print('\n'.join(packages))
 
 
