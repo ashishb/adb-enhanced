@@ -207,22 +207,3 @@ def _check_for_device_not_found_error(stderr_data):
 
 def toggle_screen():
     return execute_adb_shell_command2("input keyevent KEYCODE_POWER")
-
-
-
-def set_device_id(device_id):
-    """Make :param device_id: as main device to use
-    Primary use-case: scripting
-    Command line equivalent: "-s :param device_id:"
-    """
-    old_adb_prefix = get_adb_prefix()
-    if '-s' in old_adb_prefix:
-        old_device = old_adb_prefix.split('-s ')[1]
-        if ' ' in old_device:
-            # Case: device ID is not the last argument
-            old_device = old_adb_prefix.split('-s')[1].split(' ')[0]
-        print_verbose('Switching from  %s to  %s' % (old_device, device_id))
-        old_adb_prefix.replace(old_device, device_id)
-
-    print_verbose('Setting device ID to %s' % device_id)
-    set_adb_prefix("%s -s %s" % (old_adb_prefix, device_id))
