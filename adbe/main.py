@@ -270,7 +270,7 @@ def main():
 
     # apps list
     elif args['apps'] and args['list'] and args['all']:
-        adb_enhanced.print_list_all_apps()
+        adb_enhanced.list_all_apps()
     elif args['apps'] and args['list'] and args['system']:
         adb_enhanced.list_system_apps()
     elif args['apps'] and args['list'] and args['third-party']:
