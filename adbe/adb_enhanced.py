@@ -974,7 +974,7 @@ def list_system_apps():
 
 
 def get_list_non_system_apps():
-    """This function return a list of installed third party applications.
+    """Return a list of installed third party applications.
     :returns: third_party_pkgs
         WHERE
         list[str] third_party_pkgs is a strings list of installed third party packages
@@ -990,7 +990,7 @@ def get_list_non_system_apps():
 
 
 def print_list_non_system_apps():
-    """This function print list of installed third party packages.
+    """Print list of installed third party packages.
     :returns: None
     """
     packages = get_list_non_system_apps()
