@@ -270,7 +270,10 @@ def main():
 
     # apps list
     elif args['apps'] and args['list'] and args['all']:
-        adb_enhanced.print_list_all_apps()
+        all_packages, err_msg, err = adb_enhanced.get_list_all_apps()
+        if err_msg:
+            print_error_and_exit(err_msg)
+        print_message('\n'.join(all_packages))
     elif args['apps'] and args['list'] and args['system']:
         adb_enhanced.list_system_apps()
     elif args['apps'] and args['list'] and args['third-party']:
