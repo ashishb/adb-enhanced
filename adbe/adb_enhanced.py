@@ -989,14 +989,6 @@ def get_list_non_system_apps():
     return third_party_pkgs
 
 
-def print_list_non_system_apps():
-    """Print list of installed third party packages.
-    :returns: None
-    """
-    packages = get_list_non_system_apps()
-    print('\n'.join(packages))
-
-
 def list_debug_apps():
     cmd = 'pm list packages'
     packages = _get_all_packages(cmd)
