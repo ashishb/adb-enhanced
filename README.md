@@ -174,6 +174,8 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
   ```
   $ adbe app backup com.google.android.youtube backup.tar
+  you might have to confirm the backup manually on your device's screen, enter "00" as password...
+  Successfully backed up data of app com.google.android.youtube to backup.tar
   ```
 
 ### Usage
