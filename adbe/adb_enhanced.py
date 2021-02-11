@@ -50,6 +50,7 @@ except ImportError:
 
 _KEYCODE_BACK = 4
 _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
+_MIN_API_FOR_DARK_MODE = 29
 
 # Value to be return as 'on' to the user
 _USER_PRINT_VALUE_ON = 'on'
@@ -59,6 +60,8 @@ _USER_PRINT_VALUE_PARTIALLY_ON = 'partially on'
 _USER_PRINT_VALUE_OFF = 'off'
 # Value to be return as 'unknown' to the user
 _USER_PRINT_VALUE_UNKNOWN = 'unknown'
+# Value to be return as 'auto' to the user
+_USER_PRINT_VALUE_AUTO = 'auto'
 
 SCREEN_ON = 1
 SCREEN_OFF = 2
@@ -1694,6 +1697,43 @@ def switch_screen(switch_type):
                                  "screen control operation. Error: %s" % e)
 
     return o
+
+
+def get_dark_mode() -> str:
+    _error_if_min_version_less_than(_MIN_API_FOR_DARK_MODE)
+    return_code, stdout, stderr = execute_adb_shell_settings_command2('get secure ui_night_mode')
+    if return_code != 0:
+        print_error('Failed to get current UI mode: %s' % stderr)
+        return _USER_PRINT_VALUE_UNKNOWN
+    if stdout == 'null':
+        return _USER_PRINT_VALUE_UNKNOWN
+    val = int(stdout)
+    if val == 2:
+        return _USER_PRINT_VALUE_ON
+    elif val == 1:
+        return _USER_PRINT_VALUE_OFF
+    elif val == 0:
+        return _USER_PRINT_VALUE_AUTO
+    else:
+        return 'Unknown: %d' % val
+
+
+# This code worked for emulator on API 29.
+# It didn't work for unrooted device on API 30.
+# I am not sure if the problem is rooting or API version
+def set_dark_mode(force: bool) -> None:
+    """
+    :param force: if true, force dark mode, if false don't
+    """
+    _error_if_min_version_less_than(_MIN_API_FOR_DARK_MODE)
+
+    if force:
+        execute_adb_shell_command2('service call uimode 4 i32 2')
+        # There are reports of the following command, it didn't work for me
+        # even on a rooted device when ran as a super-user
+        # execute_adb_shell_command2('setprop persist.hwui.force_dark true')
+    else:
+        execute_adb_shell_command2('service call uimode 4 i32 1')
 
 
 def print_notifications():

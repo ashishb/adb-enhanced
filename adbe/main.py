@@ -7,9 +7,6 @@ import time
 import docopt
 
 
-# This is required only for Python 2
-# pylint: disable=import-error
-
 try:
     # First try local import for development
     from adbe import adb_enhanced
@@ -35,6 +32,7 @@ Usage:
     adbe [options] battery level <percentage>
     adbe [options] battery saver (on | off)
     adbe [options] battery reset
+    adbe [options] dark mode (on | off)
     adbe [options] doze (on | off)
     adbe [options] jank <app_name>
     adbe [options] devices
@@ -339,6 +337,13 @@ def main():
         if not backup_tar_file_path:
             backup_tar_file_path = '%s_backup.tar' % app_name
         adb_enhanced.perform_app_backup(app_name, backup_tar_file_path)
+
+    # dark mode
+    elif args['dark'] and args['mode']:
+        if args['on']:
+            adb_enhanced.set_dark_mode(True)
+        elif args['off']:
+            adb_enhanced.set_dark_mode(False)
 
     elif args['screen'] and args['on']:
         adb_enhanced.switch_screen(adb_enhanced.SCREEN_ON)
