@@ -69,37 +69,14 @@ SCREEN_OFF = 2
 SCREEN_TOGGLE = 3
 
 
-def _ensure_package_exists(package_name):
-    """
-    Don't call this directly. Instead consider decorating your method with
-    @ensure_package_exists or @ensure_package_exists2
-    :return: True if package_name package is installed on the device
-    """
-    if not _package_exists(package_name):
-        print_error_and_exit("Package %s does not exist" % package_name)
-
-
 # A decorator to ensure package exists
+# Note: This decorator assumes that the decorated func gets package_name as
+# the first parameter
 def ensure_package_exists(func):
-    def func_wrapper(package_name):
-        _ensure_package_exists(package_name)
-        return func(package_name)
-    return func_wrapper
-
-
-# A decorator to ensure package exists with one more argument
-def ensure_package_exists2(func):
-    def func_wrapper(package_name, arg2):
-        _ensure_package_exists(package_name)
-        return func(package_name, arg2)
-    return func_wrapper
-
-
-# A decorator to ensure package exists with two more arguments
-def ensure_package_exists3(func):
-    def func_wrapper(package_name, arg2, arg3):
-        _ensure_package_exists(package_name)
-        return func(package_name, arg2, arg3)
+    def func_wrapper(package_name, *args, **kwargs):
+        if not _package_exists(package_name):
+            print_error_and_exit("Package %s does not exist" % package_name)
+        return func(package_name, *args, **kwargs)
     return func_wrapper
 
 
@@ -288,6 +265,7 @@ def handle_battery_saver(turn_on):
     return_code, _, _ = execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
         print_error_and_exit('Failed to modify battery saver mode')
+
 
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
@@ -956,7 +934,7 @@ def get_permissions_in_permission_group(permission_group):
     return None
 
 
-@ensure_package_exists3
+@ensure_package_exists
 def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions):
     _error_if_min_version_less_than(23)
     if action_grant:
@@ -1145,7 +1123,7 @@ def get_standby_bucket(package_name):
     print(_APP_STANDBY_BUCKETS.get(int(result), _USER_PRINT_VALUE_UNKNOWN))
 
 
-@ensure_package_exists2
+@ensure_package_exists
 def set_standby_bucket(package_name, mode):
     _error_if_min_version_less_than(28)
     cmd = 'am set-standby-bucket %s %s' % (package_name, mode)
@@ -1168,7 +1146,7 @@ def calculate_standby_mode(args):
 
 
 # Source: https://developer.android.com/preview/features/power
-@ensure_package_exists2
+@ensure_package_exists
 def apply_or_remove_background_restriction(package_name, set_restriction):
     _error_if_min_version_less_than(28)
     appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (
@@ -1496,7 +1474,7 @@ def print_app_signature(app_name):
 
 
 # Uses abe.jar taken from https://sourceforge.net/projects/adbextractor/
-@ensure_package_exists2
+@ensure_package_exists
 def perform_app_backup(app_name, backup_tar_file):
     # TODO: Add a check to ensure that the screen is unlocked
     password = '00'
@@ -1559,7 +1537,7 @@ def perform_install(file_path):
         print_error('Failed to install %s, stderr: %s' % (file_path, stderr))
 
 
-@ensure_package_exists2
+@ensure_package_exists
 def perform_uninstall(app_name, first_user):
     print_verbose('Uninstalling %s' % app_name)
     cmd = ""
@@ -1958,6 +1936,7 @@ def is_permission_group_unavailable_after_api_29(permission_group):
 
 def print_state_change_info(state_name, old_state, new_state):
     if old_state != new_state:
-        print_message('"%s" state changed from "%s" -> "%s"' % (state_name, old_state, new_state))
+        print_message('"%s" state changed from "%s" -> "%s"' % (
+            state_name, old_state, new_state))
     else:
         print_message('"%s" state unchanged (%s)' % (state_name, old_state))
