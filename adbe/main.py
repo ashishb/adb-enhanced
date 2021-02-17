@@ -274,8 +274,7 @@ def main():
     elif args['apps'] and args['list'] and args['system']:
         adb_enhanced.list_system_apps()
     elif args['apps'] and args['list'] and args['third-party']:
-        packages = adb_enhanced.get_list_non_system_apps()
-        print_message('\n'.join(packages))
+        adb_enhanced.print_list_non_system_apps()
     elif args['apps'] and args['list'] and args['debug']:
         adb_enhanced.list_debug_apps()
     elif args['apps'] and args['list'] and args['backup-enabled']:
