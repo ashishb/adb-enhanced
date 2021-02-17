@@ -980,6 +980,18 @@ def get_list_all_apps():
     return all_apps, None, None
 
 
+def print_list_all_apps():
+    """This function print list of all installed packages or error message if an error
+    occurred
+    :returns: None
+    """
+    all_apps, err_msg, err = get_list_all_apps()
+    if err:
+        print_error_and_exit(err_msg)
+        return
+    print_message('\n'.join(all_apps))
+
+
 def list_system_apps():
     cmd = 'pm list packages -s'
     packages = _get_all_packages(cmd)
