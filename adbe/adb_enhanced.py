@@ -1044,7 +1044,7 @@ def _is_debug_package(app_name):
     app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
     if app_info_dump is None or app_info_dump.strip() == '0':
         return app_name, False
-    elif app_info_dump.strip() == '1' or app_info_dump.strip() == '2':
+    elif app_info_dump.strip() in ('1', '2'):
         return app_name, True
     else:
         print_error_and_exit('Unexpected output for %s | %s = %s' % (pm_cmd, grep_cmd, app_info_dump))
@@ -1091,7 +1091,7 @@ def _is_allow_backup_package(app_name):
     app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
     if app_info_dump is None or app_info_dump.strip() == '0':
         return app_name, False
-    elif app_info_dump.strip() == '1' or app_info_dump.strip() == '2':
+    elif app_info_dump.strip() in ('1', '2'):
         return app_name, True
     else:
         print_error_and_exit('Unexpected output for %s | %s = %s' % (pm_cmd, grep_cmd, app_info_dump))
