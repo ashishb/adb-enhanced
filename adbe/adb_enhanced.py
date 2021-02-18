@@ -963,17 +963,42 @@ def _get_all_packages(pm_cmd):
 # For now, we can live with this discrepancy but in the longer run we want to fix those
 # other functions as well
 # https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
-def list_all_apps():
+def get_list_all_apps():
+    """This function return a list of installed applications, error message and command
+    execution error
+    :returns: tuple(all_apps, err_msg, error)
+        WHERE
+        list[str] all_apps is a string list of all installed packages
+        str err_msg is the error message to display
+        str error is the command execution error message
+    :Example:
+    >>> import adbe.adb_enhanced as adb_e
+    >>> import adbe.adb_helper as adb_h
+    >>> adb_h.set_device_id("emulator-5554")
+    >>> list_apps, err_msg, err = adb_e.get_list_all_apps()
+    """
     # https://developer.android.com/studio/command-line/dumpsys
     cmd = 'dumpsys package'
     pattern_packages = re.compile('Package \\[(.*?)\\]')
-    return_code, result, _ = execute_adb_shell_command2(cmd)
+    return_code, result, err = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Command "%s" failed, something is wrong' % cmd)
-        return
+        err_msg = 'Command "%s" failed, something is wrong' % cmd
+        return None, err_msg, err
     all_apps = re.findall(pattern_packages, result)
     # Get the unique results
     all_apps = sorted(list(dict.fromkeys(all_apps)))
+    return all_apps, None, None
+
+
+def print_list_all_apps():
+    """This function print list of all installed packages or error message if an error
+    occurred
+    :returns: None
+    """
+    all_apps, err_msg, err = get_list_all_apps()
+    if err:
+        print_error_and_exit(err_msg)
+        return
     print_message('\n'.join(all_apps))
 
 
