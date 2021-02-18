@@ -44,7 +44,14 @@ def execute_adb_shell_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False
                                 ignore_stderr=ignore_stderr, device_serial=device_serial)
 
 
-def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
+def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None) -> [int, str, str]:
+    """
+    :param adb_cmd: command to run inside the adb shell (so, don't prefix it with "adb")
+    :param piped_into_cmd: command to pipe the output of this command into
+    :param ignore_stderr: if true, errors in stderr stream will be ignored while piping commands
+    :param device_serial: device serial to send this command to (in case of multiple devices)
+    :return: (return_code, stdout, stderr)
+    """
     adb_prefix = _adb_prefix
     if device_serial:
         adb_prefix = '%s -s %s' % (adb_prefix, device_serial)
