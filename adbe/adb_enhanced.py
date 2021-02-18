@@ -9,6 +9,7 @@ import threading
 import time
 import os
 import random
+from functools import wraps, partial
 from urllib.parse import urlparse
 from enum import Enum
 import psutil
@@ -50,6 +51,7 @@ except ImportError:
 
 _KEYCODE_BACK = 4
 _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
+_MIN_API_FOR_DARK_MODE = 29
 
 # Value to be return as 'on' to the user
 _USER_PRINT_VALUE_ON = 'on'
@@ -59,46 +61,22 @@ _USER_PRINT_VALUE_PARTIALLY_ON = 'partially on'
 _USER_PRINT_VALUE_OFF = 'off'
 # Value to be return as 'unknown' to the user
 _USER_PRINT_VALUE_UNKNOWN = 'unknown'
+# Value to be return as 'auto' to the user
+_USER_PRINT_VALUE_AUTO = 'auto'
 
 SCREEN_ON = 1
 SCREEN_OFF = 2
 SCREEN_TOGGLE = 3
 
 
-def _ensure_package_exists(package_name):
-    """
-    Don't call this directly. Instead consider decorating your method with
-    @ensure_package_exists or @ensure_package_exists2
-    :return: True if package_name package is installed on the device
-    """
-    if not _package_exists(package_name):
-        print_error_and_exit("Package %s does not exist" % package_name)
-
-
 # A decorator to ensure package exists
+# Note: This decorator assumes that the decorated func gets package_name as
+# the first parameter
 def ensure_package_exists(func):
-    def func_wrapper(package_name):
-        _ensure_package_exists(package_name)
-        return func(package_name)
-
-    return func_wrapper
-
-
-# A decorator to ensure package exists with one more argument
-def ensure_package_exists2(func):
-    def func_wrapper(package_name, arg2):
-        _ensure_package_exists(package_name)
-        return func(package_name, arg2)
-
-    return func_wrapper
-
-
-# A decorator to ensure package exists with two more arguments
-def ensure_package_exists3(func):
-    def func_wrapper(package_name, arg2, arg3):
-        _ensure_package_exists(package_name)
-        return func(package_name, arg2, arg3)
-
+    def func_wrapper(package_name, *args, **kwargs):
+        if not _package_exists(package_name):
+            print_error_and_exit("Package %s does not exist" % package_name)
+        return func(package_name, *args, **kwargs)
     return func_wrapper
 
 
@@ -106,6 +84,24 @@ def _package_exists(package_name):
     cmd = 'pm path %s' % package_name
     return_code, response, _ = execute_adb_shell_command2(cmd)
     return return_code == 0 and response is not None and len(response.strip()) != 0
+
+
+def print_state_change_decorator(fun, title, get_state_func):
+    # magic sauce to lift the name and doc of the function
+    @wraps(fun)
+    def ret_fun(*args, **kwargs):
+        # Get state before execution
+        current_state = get_state_func()
+        # Call the function
+        returned_value = fun(*args, **kwargs)
+        # Get state after execution
+        # sleep before getting the new value or we might get a stale value in some cases
+        # like mobile-data on/off
+        time.sleep(1)
+        new_state = get_state_func()
+        print_state_change_info(title, current_state, new_state)
+        return returned_value
+    return ret_fun
 
 
 # Source:
@@ -250,6 +246,7 @@ def get_battery_saver_state():
 
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
+@partial(print_state_change_decorator, title="Battery saver", get_state_func=get_battery_saver_state)
 def handle_battery_saver(turn_on):
     _error_if_min_version_less_than(19)
     if turn_on:
@@ -542,6 +539,7 @@ def get_wifi_state():
     return _USER_PRINT_VALUE_OFF
 
 
+@partial(print_state_change_decorator, title="Wi-Fi", get_state_func=get_wifi_state)
 def set_wifi(turn_on):
     if turn_on:
         cmd = 'svc wifi enable'
@@ -554,6 +552,7 @@ def set_wifi(turn_on):
 
 # Source:
 # https://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later
+@partial(print_state_change_decorator, title="Mobile data", get_state_func=get_mobile_data_state)
 def handle_mobile_data(turn_on):
     if turn_on:
         cmd = 'svc data enable'
@@ -658,6 +657,7 @@ def get_mobile_data_saver_state():
 
 
 # https://developer.android.com/training/basics/network-ops/data-saver.html
+@partial(print_state_change_decorator, title="Mobile data saver", get_state_func=get_mobile_data_saver_state)
 def handle_mobile_data_saver(turn_on):
     if turn_on:
         cmd = 'cmd netpolicy set restrict-background true'
@@ -688,6 +688,9 @@ def get_dont_keep_activities_in_background_state():
 # adb shell settings put global always_finish_activities true might not work on all Android versions.
 # It was in system (not global before ICS)
 # adb shell service call activity 43 i32 1 followed by that
+@partial(print_state_change_decorator,
+         title="Don\'t keep activities",
+         get_state_func=get_dont_keep_activities_in_background_state)
 def handle_dont_keep_activities_in_background(turn_on):
     # Till Api 25, the value was True/False, above API 25, 1/0 work. Source: manual testing
     use_true_false_as_value = get_device_android_api_version() <= 25
@@ -735,6 +738,7 @@ def get_show_taps_state():
     return _USER_PRINT_VALUE_OFF
 
 
+@partial(print_state_change_decorator, title="Show user taps", get_state_func=get_show_taps_state)
 def toggle_show_taps(turn_on):
     if turn_on:
         value = 1
@@ -761,6 +765,9 @@ def get_stay_awake_while_charging_state():
 
 
 # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#STAY_ON_WHILE_PLUGGED_IN
+@partial(print_state_change_decorator,
+         title="Stay awake while charging",
+         get_state_func=get_stay_awake_while_charging_state)
 def stay_awake_while_charging(turn_on):
     if turn_on:
         # 1 for USB charging, 2 for AC charging, 4 for wireless charging. Or them together to get 7.
@@ -927,7 +934,7 @@ def get_permissions_in_permission_group(permission_group):
     return None
 
 
-@ensure_package_exists3
+@ensure_package_exists
 def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions):
     _error_if_min_version_less_than(23)
     if action_grant:
@@ -951,7 +958,7 @@ def _get_all_packages(pm_cmd):
 
 
 # "dumpsys package" is more accurate than "pm list packages" but that means the results of
-# print_list_all_apps are now different from list_system_apps, list_non_system_apps, and
+# list_all_apps are now different from list_system_apps, print_list_non_system_apps, and
 # list_debug_apps
 # For now, we can live with this discrepancy but in the longer run we want to fix those
 # other functions as well
@@ -995,16 +1002,50 @@ def print_list_all_apps():
     print_message('\n'.join(all_apps))
 
 
-def list_system_apps():
+def get_list_system_apps():
+    """This function return a list of installed system applications
+    :returns: system_apps_packages
+        WHERE
+        list[str] system_apps_packages is a strings list of installed system packages
+    :Example:
+    >>> import adbe.adb_enhanced as adb_e
+    >>> import adbe.adb_helper as adb_h
+    >>> adb_h.set_device_id("DEVICE_ID")
+    >>> list_sys_apps = adb_e.get_list_system_apps()
+    """
     cmd = 'pm list packages -s'
-    packages = _get_all_packages(cmd)
+    system_apps_packages = _get_all_packages(cmd)
+    return system_apps_packages
+
+
+def list_system_apps():
+    """This function print list of installed system packages
+    :returns: None
+    """
+    packages = get_list_system_apps()
     print('\n'.join(packages))
 
 
-def list_non_system_apps():
+def get_list_non_system_apps():
+    """Return a list of installed third party applications.
+    :returns: third_party_pkgs
+        WHERE
+        list[str] third_party_pkgs is a strings list of installed third party packages
+    :Example:
+    >>> import adbe.adb_enhanced as adb_e
+    >>> import adbe.adb_helper as adb_h
+    >>> adb_h.set_device_id("DEVICE_ID")
+    >>> list_sys_apps = adb_e.get_list_non_system_apps()
+    """
     cmd = 'pm list packages -3'
-    packages = _get_all_packages(cmd)
-    print('\n'.join(packages))
+    return _get_all_packages(cmd)
+
+
+def print_list_non_system_apps():
+    """Print list of installed third party packages.
+    :returns: None
+    """
+    print('\n'.join(get_list_non_system_apps()))
 
 
 def list_debug_apps():
@@ -1123,7 +1164,7 @@ def get_standby_bucket(package_name):
     print(_APP_STANDBY_BUCKETS.get(int(result), _USER_PRINT_VALUE_UNKNOWN))
 
 
-@ensure_package_exists2
+@ensure_package_exists
 def set_standby_bucket(package_name, mode):
     _error_if_min_version_less_than(28)
     cmd = 'am set-standby-bucket %s %s' % (package_name, mode)
@@ -1146,7 +1187,7 @@ def calculate_standby_mode(args):
 
 
 # Source: https://developer.android.com/preview/features/power
-@ensure_package_exists2
+@ensure_package_exists
 def apply_or_remove_background_restriction(package_name, set_restriction):
     _error_if_min_version_less_than(28)
     appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (
@@ -1474,7 +1515,7 @@ def print_app_signature(app_name):
 
 
 # Uses abe.jar taken from https://sourceforge.net/projects/adbextractor/
-@ensure_package_exists2
+@ensure_package_exists
 def perform_app_backup(app_name, backup_tar_file):
     # TODO: Add a check to ensure that the screen is unlocked
     password = '00'
@@ -1538,7 +1579,7 @@ def perform_install(file_path):
         print_error('Failed to install %s, stderr: %s' % (file_path, stderr))
 
 
-@ensure_package_exists2
+@ensure_package_exists
 def perform_uninstall(app_name, first_user):
     print_verbose('Uninstalling %s' % app_name)
     cmd = ""
@@ -1705,6 +1746,43 @@ def switch_screen(switch_type):
                                  "screen control operation. Error: %s" % e)
 
     return o
+
+
+def get_dark_mode() -> str:
+    _error_if_min_version_less_than(_MIN_API_FOR_DARK_MODE)
+    return_code, stdout, stderr = execute_adb_shell_settings_command2('get secure ui_night_mode')
+    if return_code != 0:
+        print_error('Failed to get current UI mode: %s' % stderr)
+        return _USER_PRINT_VALUE_UNKNOWN
+    if stdout == 'null':
+        return _USER_PRINT_VALUE_UNKNOWN
+    val = int(stdout)
+    if val == 2:
+        return _USER_PRINT_VALUE_ON
+    elif val == 1:
+        return _USER_PRINT_VALUE_OFF
+    elif val == 0:
+        return _USER_PRINT_VALUE_AUTO
+    else:
+        return 'Unknown: %d' % val
+
+
+# This code worked for emulator on API 29.
+# It didn't work for unrooted device on API 30.
+# I am not sure if the problem is rooting or API version
+def set_dark_mode(force: bool) -> None:
+    """
+    :param force: if true, force dark mode, if false don't
+    """
+    _error_if_min_version_less_than(_MIN_API_FOR_DARK_MODE)
+
+    if force:
+        execute_adb_shell_command2('service call uimode 4 i32 2')
+        # There are reports of the following command, it didn't work for me
+        # even on a rooted device when ran as a super-user
+        # execute_adb_shell_command2('setprop persist.hwui.force_dark true')
+    else:
+        execute_adb_shell_command2('service call uimode 4 i32 1')
 
 
 def print_notifications():
@@ -1897,3 +1975,11 @@ def is_permission_group_unavailable_after_api_29(permission_group):
         'android.permission-group.LOCATION',
         'android.permission-group.SMS',
     ]
+
+
+def print_state_change_info(state_name, old_state, new_state):
+    if old_state != new_state:
+        print_message('"%s" state changed from "%s" -> "%s"' % (
+            state_name, old_state, new_state))
+    else:
+        print_message('"%s" state unchanged (%s)' % (state_name, old_state))
