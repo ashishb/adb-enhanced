@@ -958,7 +958,7 @@ def _get_all_packages(pm_cmd):
 
 
 # "dumpsys package" is more accurate than "pm list packages" but that means the results of
-# list_all_apps are now different from list_system_apps, list_non_system_apps, and
+# list_all_apps are now different from list_system_apps, print_list_non_system_apps, and
 # list_debug_apps
 # For now, we can live with this discrepancy but in the longer run we want to fix those
 # other functions as well
@@ -1001,10 +1001,26 @@ def list_system_apps():
     print('\n'.join(packages))
 
 
-def list_non_system_apps():
+def get_list_non_system_apps():
+    """Return a list of installed third party applications.
+    :returns: third_party_pkgs
+        WHERE
+        list[str] third_party_pkgs is a strings list of installed third party packages
+    :Example:
+    >>> import adbe.adb_enhanced as adb_e
+    >>> import adbe.adb_helper as adb_h
+    >>> adb_h.set_device_id("DEVICE_ID")
+    >>> list_sys_apps = adb_e.get_list_non_system_apps()
+    """
     cmd = 'pm list packages -3'
-    packages = _get_all_packages(cmd)
-    print('\n'.join(packages))
+    return _get_all_packages(cmd)
+
+
+def print_list_non_system_apps():
+    """Print list of installed third party packages.
+    :returns: None
+    """
+    print('\n'.join(get_list_non_system_apps()))
 
 
 def list_debug_apps():
