@@ -155,7 +155,7 @@ def main():
 
     elif args['layout']:
         adb_enhanced.handle_layout(args['on'])
-    elif args['airplane']: # This command does not always work
+    elif args['airplane']:  # This command does not always work
         adb_enhanced.handle_airplane(args['on'])
 
     # battery
@@ -192,7 +192,7 @@ def main():
     elif args['wifi']:
         adb_enhanced.set_wifi(args['on'])
 
-    elif args['rtl']: # This is not working as expected
+    elif args['rtl']:  # This is not working as expected
         adb_enhanced.force_rtl(args['on'])
     elif args['screenshot']:
         adb_enhanced.dump_screenshot(args['<filename.png>'])
