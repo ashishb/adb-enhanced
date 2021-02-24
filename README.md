@@ -1,8 +1,6 @@
 # ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
 
-![LintPython2](https://github.com/ashishb/adb-enhanced/workflows/LintPython2/badge.svg) ![LintPython3](https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg)
-
-![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg)
+![LintPython3](https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg) ![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg)
 ![AdbeInstallTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg) ![AdbeUnitTestsPython3](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg)
 
 ![AdbeUnitTestsPython3-Api16](https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api16/badge.svg)
@@ -265,8 +263,7 @@ adbe [options] alarm (all | top | pending | history)
 
 ```
 make lint
-make test_python2
-make test_python3
+make test
 ```
 
 ## Release a new build
