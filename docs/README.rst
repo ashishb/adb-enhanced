@@ -1,9 +1,8 @@
 ADB Enhanced |Downloads| |PyPI version|
 =======================================
 
-|LintPython2| |LintPython3|
-
-|InstallAdbeTest| |AdbeInstallTestsPython3| |AdbeUnitTestsPython3|
+|LintPython3| |InstallAdbeTest| |AdbeInstallTestsPython3|
+|AdbeUnitTestsPython3|
 
 |AdbeUnitTestsPython3-Api16| |AdbeUnitTestsPython3-Api21|
 |AdbeUnitTestsPython3-Api22| |AdbeUnitTestsPython3-Api23|
@@ -194,6 +193,8 @@ App info
    ::
 
       $ adbe app backup com.google.android.youtube backup.tar
+      you might have to confirm the backup manually on your device's screen, enter "00" as password...
+      Successfully backed up data of app com.google.android.youtube to backup.tar
 
 Usage
 ~~~~~
@@ -290,8 +291,7 @@ Testing
 ::
 
    make lint
-   make test_python2
-   make test_python3
+   make test
 
 Release a new build
 -------------------
@@ -314,7 +314,6 @@ Note: The inspiration of this project came from
    :target: http://pepy.tech/project/adb-enhanced
 .. |PyPI version| image:: https://badge.fury.io/py/adb-enhanced.svg
    :target: https://badge.fury.io/py/adb-enhanced
-.. |LintPython2| image:: https://github.com/ashishb/adb-enhanced/workflows/LintPython2/badge.svg
 .. |LintPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg
 .. |InstallAdbeTest| image:: https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg
 .. |AdbeInstallTestsPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg
