@@ -1,4 +1,4 @@
-name: AdbeUnitTestsPython3-Api28
+name: UnitTests-Api28
 
 on:
   schedule:

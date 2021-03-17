@@ -1,4 +1,4 @@
-name: InstallAdbeTest
+name: InstallTests
 
 on: [push]
 

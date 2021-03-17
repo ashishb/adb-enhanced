@@ -1,4 +1,4 @@
-name: AdbeUnitTestsPython3-Api16
+name: UnitTests-Api16
 
 on: [push]
 

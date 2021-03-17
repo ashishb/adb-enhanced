@@ -1,4 +1,4 @@
-name: AdbeInstallTestsPython3
+name: InstallFullTests-Api21
 
 on: [push]
 
