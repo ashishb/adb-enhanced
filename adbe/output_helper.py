@@ -3,34 +3,34 @@ import sys
 __VERBOSE_MODE = False
 
 
-def set_verbose(enabled):
+def set_verbose(enabled: bool):
     global __VERBOSE_MODE
     __VERBOSE_MODE = enabled
 
 
-def print_message(message):
+def print_message(message: str):
     print(message)
 
 
-def print_error_and_exit(error_string):
+def print_error_and_exit(error_string: str):
     print_error(error_string)
     sys.exit(1)
 
 
-def print_error(error_string):
+def print_error(error_string: str):
     if _is_interactive_terminal():
         error_string = '%s%s%s' % (BashColors.FAIL, error_string, BashColors.ENDC)
     print(error_string)
 
 
-def print_verbose(message):
+def print_verbose(message: str):
     if __VERBOSE_MODE:
         if _is_interactive_terminal():
             message = '%s%s%s' % (BashColors.WARNING, message, BashColors.ENDC)
         print(message)
 
 
-def _is_interactive_terminal():
+def _is_interactive_terminal() -> bool:
     return sys.stdout.isatty()
 
 

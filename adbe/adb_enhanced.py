@@ -9,11 +9,14 @@ import threading
 import time
 import os
 import random
+import typing
 from functools import wraps, partial
 from urllib.parse import urlparse
 from enum import Enum
 import psutil
 
+# In the future, drop support below Python 3.6 and remove this code
+# https://devguide.python.org/devcycle/
 # asyncio was introduced in version 3.5
 if sys.version_info >= (3, 5):
     try:
@@ -64,6 +67,8 @@ _USER_PRINT_VALUE_UNKNOWN = 'unknown'
 # Value to be return as 'auto' to the user
 _USER_PRINT_VALUE_AUTO = 'auto'
 
+_RETURN_MODES = typing.Literal['on', 'off', 'unknown']
+
 SCREEN_ON = 1
 SCREEN_OFF = 2
 SCREEN_TOGGLE = 3
@@ -72,28 +77,30 @@ SCREEN_TOGGLE = 3
 # A decorator to ensure package exists
 # Note: This decorator assumes that the decorated func gets package_name as
 # the first parameter
-def ensure_package_exists(func):
-    def func_wrapper(package_name, *args, **kwargs):
+def ensure_package_exists(func: typing.Callable):
+    # magic sauce to lift the name and doc of the function
+    @wraps(func)
+    def func_wrapper(package_name: str, *args, **kwargs):
         if not _package_exists(package_name):
             print_error_and_exit("Package %s does not exist" % package_name)
         return func(package_name, *args, **kwargs)
     return func_wrapper
 
 
-def _package_exists(package_name):
+def _package_exists(package_name: str):
     cmd = 'pm path %s' % package_name
     return_code, response, _ = execute_adb_shell_command2(cmd)
     return return_code == 0 and response is not None and len(response.strip()) != 0
 
 
-def print_state_change_decorator(fun, title, get_state_func):
+def print_state_change_decorator(func: typing.Callable, title: str, get_state_func: typing.Callable):
     # magic sauce to lift the name and doc of the function
-    @wraps(fun)
-    def ret_fun(*args, **kwargs):
+    @wraps(func)
+    def func_wrapper(*args, **kwargs):
         # Get state before execution
         current_state = get_state_func()
         # Call the function
-        returned_value = fun(*args, **kwargs)
+        returned_value = func(*args, **kwargs)
         # Get state after execution
         # sleep before getting the new value or we might get a stale value in some cases
         # like mobile-data on/off
@@ -101,12 +108,12 @@ def print_state_change_decorator(fun, title, get_state_func):
         new_state = get_state_func()
         print_state_change_info(title, current_state, new_state)
         return returned_value
-    return ret_fun
+    return func_wrapper
 
 
 # Source:
 # https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
-def handle_gfx(value):
+def handle_gfx(value: typing.Literal['on', 'off', 'lines']):
     if value == 'on':
         cmd = 'setprop debug.hwui.profile visual_bars'
     elif value == 'off':
@@ -122,7 +129,7 @@ def handle_gfx(value):
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
 # https://plus.google.com/+AladinQ/posts/dpidzto1b8B
-def handle_overdraw(value):
+def handle_overdraw(value: typing.Literal['on', 'off', 'deut']):
     version = get_device_android_api_version()
 
     if version < 19:
@@ -154,7 +161,7 @@ def handle_overdraw(value):
 # Perform screen rotation. Accepts four direction types - left, right, portrait, and landscape.
 # Source:
 # https://stackoverflow.com/questions/25864385/changing-android-device-orientation-with-adb
-def handle_rotate(direction):
+def handle_rotate(direction: typing.Literal['portrait', 'landscape', 'left', 'right']):
     disable_acceleration = 'put system accelerometer_rotation 0'
     execute_adb_shell_settings_command(disable_acceleration)
 
@@ -182,7 +189,7 @@ def handle_rotate(direction):
     execute_adb_shell_settings_command(cmd)
 
 
-def get_current_rotation_direction():
+def get_current_rotation_direction() -> int:
     cmd = 'get system user_rotation'
     direction = execute_adb_shell_settings_command(cmd)
     print_verbose("Return value is %s" % direction)
@@ -192,9 +199,10 @@ def get_current_rotation_direction():
         return int(direction)
     except ValueError as e:
         print_error("Failed to get direction, error: \"%s\"" % e)
+        return -1
 
 
-def handle_layout(value):
+def handle_layout(value: bool):
     if value:
         cmd = 'setprop debug.layout true'
     else:
@@ -204,7 +212,7 @@ def handle_layout(value):
 
 # Source: https://stackoverflow.com/questions/10506591/turning-airplane-mode-on-via-adb
 # This is incomplete
-def handle_airplane(turn_on):
+def handle_airplane(turn_on: bool):
     if turn_on:
         cmd = 'put global airplane_mode_on 1'
     else:
@@ -223,7 +231,7 @@ def handle_airplane(turn_on):
         print_message('Airplane mode changed successfully')
 
 
-def get_battery_saver_state():
+def get_battery_saver_state() -> str:
     _error_if_min_version_less_than(19)
     cmd = 'get global low_power'
     return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
@@ -247,7 +255,7 @@ def get_battery_saver_state():
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 @partial(print_state_change_decorator, title="Battery saver", get_state_func=get_battery_saver_state)
-def handle_battery_saver(turn_on):
+def handle_battery_saver(turn_on: bool):
     _error_if_min_version_less_than(19)
     if turn_on:
         cmd = 'put global low_power 1'
@@ -269,7 +277,7 @@ def handle_battery_saver(turn_on):
 
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
-def handle_battery_level(level):
+def handle_battery_level(level: int):
     _error_if_min_version_less_than(19)
     if level < 0 or level > 100:
         print_error_and_exit(
@@ -292,7 +300,7 @@ def handle_battery_reset():
 
 
 # https://developer.android.com/training/monitoring-device-state/doze-standby.html
-def handle_doze(turn_on):
+def handle_doze(turn_on: bool):
     _error_if_min_version_less_than(23)
 
     enable_idle_mode_cmd = 'dumpsys deviceidle enable'
@@ -333,7 +341,7 @@ def get_battery_reset_cmd():
 
 
 @ensure_package_exists
-def handle_get_jank(app_name):
+def handle_get_jank(app_name: str):
     running = _is_app_running(app_name)
     if not running:
         # Jank information cannot be fetched unless the app is running
@@ -360,7 +368,7 @@ def handle_get_jank(app_name):
             force_stop(app_name)
 
 
-def _is_app_running(app_name):
+def _is_app_running(app_name: str):
     return_code, result, _ = execute_adb_shell_command2('ps -o NAME')
     if return_code != 0 or not result:
         return False
@@ -378,15 +386,18 @@ def handle_list_devices():
         _print_device_info(device_serial)
 
 
-def _get_device_serials() -> [str]:
+def _get_device_serials() -> typing.List[str]:
     cmd = 'devices -l'
     return_code, stdout, stderr = execute_adb_command2(cmd)
     if return_code != 0:
         print_error_and_exit('Failed to execute command %s, error: %s ' % (cmd, stderr))
 
     device_serials = []
-    # Skip the first line, it says "List of devices attached"
-    device_infos = stdout.split('\n')[1:]
+    if stdout:
+        # Skip the first line, it says "List of devices attached"
+        device_infos = stdout.split('\n')[1:]
+    else:
+        device_infos = []
 
     if len(device_infos) == 0 or (
             len(device_infos) == 1 and len(device_infos[0]) == 0):
@@ -413,7 +424,7 @@ def _get_device_serials() -> [str]:
     return device_serials
 
 
-def _print_device_info(device_serial=None):
+def _print_device_info(device_serial: str =None):
     manufacturer = get_adb_shell_property('ro.product.manufacturer', device_serial=device_serial)
     model = get_adb_shell_property('ro.product.model', device_serial=device_serial)
     # This worked on 4.4.3 API 19 Moto E
@@ -448,7 +459,7 @@ def print_top_activity():
         print_message('Activity name: %s' % activity_name)
 
 
-def _get_top_activity_data():
+def _get_top_activity_data() -> typing.Tuple[typing.Optional[str], typing.Optional[str]]:
     cmd = 'dumpsys window windows'
     return_code, output, _ = execute_adb_shell_command2(cmd)
     if return_code != 0 and not output:
@@ -468,7 +479,7 @@ def _get_top_activity_data():
     return None, None
 
 
-def dump_ui(xml_file):
+def dump_ui(xml_file: str):
     tmp_file = _create_tmp_file('dump-ui', 'xml')
     cmd1 = 'uiautomator dump %s' % tmp_file
     cmd2 = 'pull %s %s' % (tmp_file, xml_file)
@@ -491,7 +502,7 @@ def dump_ui(xml_file):
 
 
 @ensure_package_exists
-def force_stop(app_name):
+def force_stop(app_name: str):
     cmd = 'am force-stop %s' % app_name
     return_code, stdout, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
@@ -501,7 +512,7 @@ def force_stop(app_name):
 
 
 @ensure_package_exists
-def clear_disk_data(app_name):
+def clear_disk_data(app_name: str):
     cmd = 'pm clear %s' % app_name
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
@@ -540,7 +551,7 @@ def get_wifi_state():
 
 
 @partial(print_state_change_decorator, title="Wi-Fi", get_state_func=get_wifi_state)
-def set_wifi(turn_on):
+def set_wifi(turn_on: bool):
     if turn_on:
         cmd = 'svc wifi enable'
     else:
@@ -553,7 +564,7 @@ def set_wifi(turn_on):
 # Source:
 # https://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later
 @partial(print_state_change_decorator, title="Mobile data", get_state_func=get_mobile_data_state)
-def handle_mobile_data(turn_on):
+def handle_mobile_data(turn_on: bool):
     if turn_on:
         cmd = 'svc data enable'
     else:
@@ -563,7 +574,7 @@ def handle_mobile_data(turn_on):
         print_error_and_exit('Failed to change mobile data setting')
 
 
-def force_rtl(turn_on):
+def force_rtl(turn_on: bool):
     _error_if_min_version_less_than(19)
     if turn_on:
         cmd = 'put global debug.force_rtl 1'
@@ -572,7 +583,7 @@ def force_rtl(turn_on):
     execute_adb_shell_settings_command_and_poke_activity_service(cmd)
 
 
-def dump_screenshot(filepath):
+def dump_screenshot(filepath: str):
     screenshot_file_path_on_device = _create_tmp_file('screenshot', 'png')
     dump_cmd = 'screencap -p %s ' % screenshot_file_path_on_device
     return_code, stdout, stderr = execute_adb_shell_command2(dump_cmd)
@@ -585,7 +596,7 @@ def dump_screenshot(filepath):
     execute_adb_shell_command2(del_cmd)
 
 
-def dump_screenrecord(filepath):
+def dump_screenrecord(filepath: str):
     _error_if_min_version_less_than(19)
     api_version = get_device_android_api_version()
 
@@ -658,7 +669,7 @@ def get_mobile_data_saver_state():
 
 # https://developer.android.com/training/basics/network-ops/data-saver.html
 @partial(print_state_change_decorator, title="Mobile data saver", get_state_func=get_mobile_data_saver_state)
-def handle_mobile_data_saver(turn_on):
+def handle_mobile_data_saver(turn_on: str):
     if turn_on:
         cmd = 'cmd netpolicy set restrict-background true'
     else:
@@ -691,7 +702,7 @@ def get_dont_keep_activities_in_background_state():
 @partial(print_state_change_decorator,
          title="Don\'t keep activities",
          get_state_func=get_dont_keep_activities_in_background_state)
-def handle_dont_keep_activities_in_background(turn_on):
+def handle_dont_keep_activities_in_background(turn_on: bool):
     # Till Api 25, the value was True/False, above API 25, 1/0 work. Source: manual testing
     use_true_false_as_value = get_device_android_api_version() <= 25
 
@@ -707,7 +718,7 @@ def handle_dont_keep_activities_in_background(turn_on):
     execute_adb_shell_command_and_poke_activity_service(cmd2)
 
 
-def toggle_animations(turn_on):
+def toggle_animations(turn_on: bool):
     if turn_on:
         value = 1
     else:
@@ -739,7 +750,7 @@ def get_show_taps_state():
 
 
 @partial(print_state_change_decorator, title="Show user taps", get_state_func=get_show_taps_state)
-def toggle_show_taps(turn_on):
+def toggle_show_taps(turn_on: bool):
     if turn_on:
         value = 1
     else:
@@ -750,7 +761,7 @@ def toggle_show_taps(turn_on):
     execute_adb_shell_settings_command(cmd)
 
 
-def get_stay_awake_while_charging_state():
+def get_stay_awake_while_charging_state() -> str:
     cmd = 'get global stay_on_while_plugged_in'
     return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
@@ -768,7 +779,7 @@ def get_stay_awake_while_charging_state():
 @partial(print_state_change_decorator,
          title="Stay awake while charging",
          get_state_func=get_stay_awake_while_charging_state)
-def stay_awake_while_charging(turn_on):
+def stay_awake_while_charging(turn_on: bool):
     if turn_on:
         # 1 for USB charging, 2 for AC charging, 4 for wireless charging. Or them together to get 7.
         value = 7
@@ -779,7 +790,7 @@ def stay_awake_while_charging(turn_on):
     execute_adb_shell_settings_command_and_poke_activity_service(cmd1)
 
 
-def input_text(text):
+def input_text(text: str):
     # Replace whitespaces to %s which gets translated by Android back to whitespaces.
     cmd = 'input text %s' % text.replace(' ', '%s')
     return_code, _, _ = execute_adb_shell_command2(cmd)
@@ -794,7 +805,7 @@ def press_back():
         print_error_and_exit('Failed to press back')
 
 
-def open_url(url):
+def open_url(url: str):
     # Let's not do any URL encoding for now, if required, we will add that in the future.
     parsed_url = urlparse(url=url)
     if not parsed_url.scheme:
@@ -815,7 +826,7 @@ def list_permission_groups():
         print_message(stdout)
 
 
-def list_permissions(dangerous_only_permissions):
+def list_permissions(dangerous_only_permissions: bool):
     # -g is to group permissions by permission groups.
     if dangerous_only_permissions:
         # -d => dangerous only permissions
@@ -830,7 +841,7 @@ def list_permissions(dangerous_only_permissions):
 
 
 # Creates a tmp file on Android device
-def _create_tmp_file(filename_prefix=None, filename_suffix=None):
+def _create_tmp_file(filename_prefix: str =None, filename_suffix: str =None):
     if filename_prefix is None:
         filename_prefix = 'file'
     if filename_suffix is None:
@@ -865,18 +876,18 @@ def _create_tmp_file(filename_prefix=None, filename_suffix=None):
 
 
 # Returns true if the file_path exists on the device, false if it does not exists or is inaccessible.
-def _file_exists(file_path):
+def _file_exists(file_path: str):
     exists_cmd = "\"ls %s 1>/dev/null 2>/dev/null && echo exists\"" % file_path
     stdout = execute_file_related_adb_shell_command(exists_cmd, file_path)
     return stdout is not None and stdout.find('exists') != -1
 
 
-def _is_sqlite_database(file_path):
+def _is_sqlite_database(file_path: str):
     return file_path.endswith('.db')
 
 
 # Returns a fully-qualified permission group name.
-def get_permission_group(args):
+def get_permission_group(args: typing.Dict) -> typing.Optional[str]:
     if args['contacts']:
         return 'android.permission-group.CONTACTS'
     elif args['phone']:
@@ -901,7 +912,7 @@ def get_permission_group(args):
 
 
 # Pass the full-qualified permission group name to this method.
-def get_permissions_in_permission_group(permission_group):
+def get_permissions_in_permission_group(permission_group: str) -> typing.Optional[typing.List]:
     # List permissions by group
     cmd = 'pm list permissions -g'
     return_code, stdout, stderr = execute_adb_shell_command2(cmd)
@@ -935,7 +946,8 @@ def get_permissions_in_permission_group(permission_group):
 
 
 @ensure_package_exists
-def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions):
+def grant_or_revoke_runtime_permissions(
+        package_name: str, action_grant: bool, permissions: typing.List[str]):
     _error_if_min_version_less_than(23)
     if action_grant:
         cmd = 'pm grant %s' % package_name
@@ -945,7 +957,7 @@ def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions)
         execute_adb_shell_command(cmd + ' ' + permission)
 
 
-def _get_all_packages(pm_cmd):
+def _get_all_packages(pm_cmd: str) -> typing.List[str]:
     return_code, result, _ = execute_adb_shell_command2(pm_cmd)
     if return_code != 0:
         print_error_and_exit('Command "%s" failed, something is wrong' % pm_cmd)
@@ -963,7 +975,7 @@ def _get_all_packages(pm_cmd):
 # For now, we can live with this discrepancy but in the longer run we want to fix those
 # other functions as well
 # https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
-def get_list_all_apps():
+def get_list_all_apps() -> typing.Tuple[typing.Optional[typing.List[str]], typing.Optional[str], typing.Optional[int]]:
     """This function return a list of installed applications, error message and command
     execution error
     :returns: tuple(all_apps, err_msg, error)
@@ -1002,7 +1014,7 @@ def print_list_all_apps():
     print_message('\n'.join(all_apps))
 
 
-def get_list_system_apps():
+def get_list_system_apps() -> typing.List[str]:
     """This function return a list of installed system applications
     :returns: system_apps_packages
         WHERE
@@ -1026,7 +1038,7 @@ def list_system_apps():
     print('\n'.join(packages))
 
 
-def get_list_non_system_apps():
+def get_list_non_system_apps() -> typing.List[str]:
     """Return a list of installed third party applications.
     :returns: third_party_pkgs
         WHERE
@@ -1066,7 +1078,7 @@ def list_debug_apps():
         _list_debug_apps_no_async(packages)
 
 
-def _list_debug_apps_no_async(packages):
+def _list_debug_apps_no_async(packages: typing.List[str]):
     debug_packages = []
     count = 0
     num_packages = len(packages)
@@ -1082,7 +1094,7 @@ def _list_debug_apps_no_async(packages):
 _REGEX_DEBUGGABLE = '(pkgFlags|flags).*DEBUGGABLE'
 
 
-def _is_debug_package(app_name):
+def _is_debug_package(app_name: str) -> typing.Tuple[typing.Optional[str], bool]:
     pm_cmd = 'dumpsys package %s' % app_name
     grep_cmd = '(grep -c -E \'%s\' || true)' % _REGEX_DEBUGGABLE
     app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
@@ -1113,7 +1125,7 @@ def list_allow_backup_apps():
         _list_allow_backup_apps_no_async(packages)
 
 
-def _list_allow_backup_apps_no_async(packages):
+def _list_allow_backup_apps_no_async(packages: typing.List[str]):
     debug_packages = []
     count = 0
     num_packages = len(packages)
@@ -1129,7 +1141,7 @@ def _list_allow_backup_apps_no_async(packages):
 _REGEX_BACKUP_ALLOWED = '(pkgFlags|flags).*ALLOW_BACKUP'
 
 
-def _is_allow_backup_package(app_name):
+def _is_allow_backup_package(app_name: str) -> typing.Tuple[typing.Optional[str], bool]:
     pm_cmd = 'dumpsys package %s' % app_name
     grep_cmd = '(grep -c -E \'%s\' || true)' % _REGEX_BACKUP_ALLOWED
     app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
@@ -1153,7 +1165,7 @@ _APP_STANDBY_BUCKETS = {
 
 # Source: https://developer.android.com/preview/features/power#buckets
 @ensure_package_exists
-def get_standby_bucket(package_name):
+def get_standby_bucket(package_name: str):
     _error_if_min_version_less_than(28)
     cmd = 'am get-standby-bucket %s' % package_name
     result = execute_adb_shell_command(cmd)
@@ -1165,7 +1177,7 @@ def get_standby_bucket(package_name):
 
 
 @ensure_package_exists
-def set_standby_bucket(package_name, mode):
+def set_standby_bucket(package_name: str, mode: int):
     _error_if_min_version_less_than(28)
     cmd = 'am set-standby-bucket %s %s' % (package_name, mode)
     result = execute_adb_shell_command(cmd)
@@ -1173,7 +1185,7 @@ def set_standby_bucket(package_name, mode):
         print_error_and_exit(result)
 
 
-def calculate_standby_mode(args):
+def calculate_standby_mode(args: typing.Dict) -> str:
     if args['active']:
         return 'active'
     elif args['working_set']:
@@ -1188,14 +1200,14 @@ def calculate_standby_mode(args):
 
 # Source: https://developer.android.com/preview/features/power
 @ensure_package_exists
-def apply_or_remove_background_restriction(package_name, set_restriction):
+def apply_or_remove_background_restriction(package_name: str, set_restriction: bool):
     _error_if_min_version_less_than(28)
     appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (
         package_name, 'ignore' if set_restriction else 'allow')
     execute_adb_shell_command(appops_cmd)
 
 
-def list_directory(file_path, long_format, recursive, include_hidden_files):
+def list_directory(file_path: str, long_format: bool, recursive: bool, include_hidden_files: bool):
     cmd_prefix = 'ls'
     if long_format:
         cmd_prefix += ' -l'
@@ -1207,7 +1219,7 @@ def list_directory(file_path, long_format, recursive, include_hidden_files):
     print_message(execute_file_related_adb_shell_command(cmd, file_path))
 
 
-def delete_file(file_path, force, recursive):
+def delete_file(file_path: str, force: bool, recursive: bool):
     cmd_prefix = 'rm'
     if force:
         cmd_prefix += ' -f'
@@ -1220,7 +1232,7 @@ def delete_file(file_path, force, recursive):
 # Limitation: This command will only do run-as for the src file so, if a file is being copied from pkg1 to pkg2
 # on a non-rooted device with both pkg1 and pkg2 being debuggable, this will fail. This can be improved by
 # first copying the file to /data/local/tmp but as of now, I don't think that's required.
-def move_file(src_path, dest_path, force):
+def move_file(src_path: str, dest_path: str, force: bool):
     cmd_prefix = 'mv'
     if force:
         cmd_prefix += '-f'
@@ -1242,7 +1254,7 @@ def move_file(src_path, dest_path, force):
 
 # Copies from remote_file_path on Android to local_file_path on the disk
 # local_file_path can be None
-def pull_file(remote_file_path, local_file_path, copy_ancillary=False):
+def pull_file(remote_file_path: str, local_file_path: str, copy_ancillary: bool = False):
     if not _file_exists(remote_file_path):
         print_error_and_exit('File %s does not exist' % remote_file_path)
 
@@ -1292,11 +1304,11 @@ def pull_file(remote_file_path, local_file_path, copy_ancillary=False):
 
 # Limitation: It seems that pushing to a directory on some versions of Android fail silently.
 # It is safer to push to a full path containing the filename.
-def push_file(local_file_path, remote_file_path):
+def push_file(local_file_path: str, remote_file_path: str):
     if not os.path.exists(local_file_path):
         print_error_and_exit('Local file %s does not exist' % local_file_path)
     if os.path.isdir(local_file_path):
-        print_error_and_exit('This tool does not support pushing a directory yet' % local_file_path)
+        print_error_and_exit('This tool does not support pushing a directory yet: %s' % local_file_path)
 
     # First push to tmp file in /data/local/tmp and then move that
     tmp_file = _create_tmp_file()
@@ -1315,7 +1327,7 @@ def push_file(local_file_path, remote_file_path):
     execute_adb_shell_command(rm_cmd)
 
 
-def cat_file(file_path):
+def cat_file(file_path: str):
     cmd_prefix = 'cat'
     cmd = '%s %s' % (cmd_prefix, file_path)
     cat_stdout = execute_file_related_adb_shell_command(cmd, file_path)
@@ -1326,13 +1338,13 @@ def cat_file(file_path):
 
 # Source: https://stackoverflow.com/a/25398877
 @ensure_package_exists
-def launch_app(app_name):
+def launch_app(app_name: str):
     adb_shell_cmd = 'monkey -p %s -c android.intent.category.LAUNCHER 1' % app_name
     execute_adb_shell_command(adb_shell_cmd)
 
 
 @ensure_package_exists
-def stop_app(app_name):
+def stop_app(app_name: str):
     # Below API 21, stop does not kill app in the foreground.
     # Above API 21, it seems it does.
     if get_device_android_api_version() < 21:
@@ -1352,7 +1364,7 @@ def _regex_extract(regex, data):
 # adb shell pm dump <app_name> produces about 1200 lines, mostly useless,
 # compared to this.
 @ensure_package_exists
-def print_app_info(app_name):
+def print_app_info(app_name: str):
     app_info_dump = execute_adb_shell_command('dumpsys package %s' % app_name)
     version_code = _regex_extract('versionCode=(\\d+)?', app_info_dump)
     version_name = _regex_extract('versionName=([\\d.]+)?', app_info_dump)
@@ -1385,7 +1397,7 @@ def print_app_info(app_name):
 
 
 # API < 23 have no runtime permissions
-def _get_permissions_info_below_api_23(app_info_dump):
+def _get_permissions_info_below_api_23(app_info_dump: str):
     install_time_permissions_regex = re.search('grantedPermissions:(.*)', app_info_dump,
                                                re.IGNORECASE | re.DOTALL)
     if install_time_permissions_regex is None:
@@ -1406,7 +1418,7 @@ def _get_permissions_info_below_api_23(app_info_dump):
 
 
 # API 23 and have runtime permissions
-def _get_permissions_info_above_api_23(app_info_dump):
+def _get_permissions_info_above_api_23(app_info_dump: str):
     requested_permissions_regex = \
         re.search('requested permissions:(.*?)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
     if requested_permissions_regex is None:
@@ -1471,7 +1483,7 @@ def _get_permissions_info_above_api_23(app_info_dump):
     return permissions_info_msg
 
 
-def _get_apk_path(app_name):
+def _get_apk_path(app_name: str):
     adb_shell_cmd = 'pm path %s' % app_name
     result = execute_adb_shell_command(adb_shell_cmd)
     apk_path = result.split(':', 2)[1]
@@ -1479,14 +1491,14 @@ def _get_apk_path(app_name):
 
 
 @ensure_package_exists
-def print_app_path(app_name):
+def print_app_path(app_name: str):
     apk_path = _get_apk_path(app_name)
     print_verbose('Path for %s is %s' % (app_name, apk_path))
     print_message(apk_path)
 
 
 @ensure_package_exists
-def print_app_signature(app_name):
+def print_app_signature(app_name: str):
     apk_path = _get_apk_path(app_name)
     # Copy apk to a temp file on the disk
     tmp_apk_file = tempfile.NamedTemporaryFile(prefix=app_name, suffix='.apk')
@@ -1516,7 +1528,7 @@ def print_app_signature(app_name):
 
 # Uses abe.jar taken from https://sourceforge.net/projects/adbextractor/
 @ensure_package_exists
-def perform_app_backup(app_name, backup_tar_file):
+def perform_app_backup(app_name: str, backup_tar_file: str):
     # TODO: Add a check to ensure that the screen is unlocked
     password = '00'
     print_verbose('Performing backup to backup.ab file')
@@ -1571,7 +1583,7 @@ def perform_app_backup(app_name, backup_tar_file):
         ps.communicate()
 
 
-def perform_install(file_path):
+def perform_install(file_path: str):
     print_verbose('Installing %s' % file_path)
     # -r: replace existing application
     return_code, _, stderr = execute_adb_command2('install -r %s' % file_path)
@@ -1580,7 +1592,7 @@ def perform_install(file_path):
 
 
 @ensure_package_exists
-def perform_uninstall(app_name, first_user):
+def perform_uninstall(app_name: str, first_user: str):
     print_verbose('Uninstalling %s' % app_name)
     cmd = ""
     if first_user:
@@ -1602,7 +1614,7 @@ def perform_uninstall(app_name, first_user):
         print_error('Failed to uninstall %s, stderr: %s' % (app_name, stderr))
 
 
-def _get_window_size():
+def _get_window_size() -> typing.Tuple[int, int]:
     adb_cmd = 'shell wm size'
     _, result, _ = execute_adb_command2(adb_cmd)
 
@@ -1616,29 +1628,29 @@ def _get_window_size():
     return int(regex_data.group(1)), int(regex_data.group(2))
 
 
-def _perform_tap(x, y):
+def _perform_tap(x: int, y: int):
     adb_shell_cmd = 'input tap %d %d' % (x, y)
     execute_adb_shell_command2(adb_shell_cmd)
 
 
 # Deprecated
-def execute_adb_shell_settings_command(settings_cmd, device_serial=None):
+def execute_adb_shell_settings_command(settings_cmd: str, device_serial: str = None):
     _error_if_min_version_less_than(19, device_serial=device_serial)
     return execute_adb_shell_command('settings %s' % settings_cmd, device_serial=device_serial)
 
 
-def execute_adb_shell_settings_command2(settings_cmd, device_serial=None):
+def execute_adb_shell_settings_command2(settings_cmd: str, device_serial: str = None):
     _error_if_min_version_less_than(19)
     return execute_adb_shell_command2('settings %s' % settings_cmd, device_serial)
 
 
-def execute_adb_shell_settings_command_and_poke_activity_service(settings_cmd):
+def execute_adb_shell_settings_command_and_poke_activity_service(settings_cmd: str):
     return_value = execute_adb_shell_settings_command(settings_cmd)
     _poke_activity_service()
     return return_value
 
 
-def execute_adb_shell_command_and_poke_activity_service(adb_cmd):
+def execute_adb_shell_command_and_poke_activity_service(adb_cmd: str):
     return_value = execute_adb_shell_command(adb_cmd)
     _poke_activity_service()
     return return_value
@@ -1648,7 +1660,7 @@ def _poke_activity_service():
     return execute_adb_shell_command(get_update_activity_service_cmd())
 
 
-def _error_if_min_version_less_than(min_acceptable_version, device_serial=None):
+def _error_if_min_version_less_than(min_acceptable_version: int, device_serial: str =None):
     api_version = get_device_android_api_version(device_serial)
     if api_version < min_acceptable_version:
         cmd = ' '.join(sys.argv[1:])
@@ -1657,7 +1669,7 @@ def _error_if_min_version_less_than(min_acceptable_version, device_serial=None):
             (cmd, min_acceptable_version, api_version))
 
 
-def _is_emulator():
+def _is_emulator() -> bool:
     qemu = get_adb_shell_property('ro.kernel.qemu')
     return qemu is not None and qemu.strip() == '1'
 
@@ -1721,7 +1733,7 @@ def disable_wireless_debug():
         print_error_and_exit('')
 
 
-def switch_screen(switch_type):
+def switch_screen(switch_type: str):
     if switch_type == SCREEN_TOGGLE:
         c, o, e = toggle_screen()
 

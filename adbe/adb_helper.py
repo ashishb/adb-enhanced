@@ -1,6 +1,8 @@
 import functools
 import subprocess
 
+import typing
+
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
@@ -23,23 +25,26 @@ def get_adb_prefix():
     return _adb_prefix
 
 
-def set_adb_prefix(adb_prefix):
+def set_adb_prefix(adb_prefix: str):
     # pylint: disable=global-statement
     global _adb_prefix
     _adb_prefix = adb_prefix
 
 
-def get_adb_shell_property(property_name, device_serial=None):
+def get_adb_shell_property(property_name: str, device_serial: str = None):
     _, stdout, _ = execute_adb_shell_command2('getprop %s' % property_name, device_serial=device_serial)
     return stdout
 
 
-def execute_adb_shell_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
+def execute_adb_shell_command2(adb_cmd: str, piped_into_cmd: str = None, ignore_stderr: bool = False,
+                               device_serial: str = None):
     return execute_adb_command2('shell %s' % adb_cmd, piped_into_cmd=piped_into_cmd,
                                 ignore_stderr=ignore_stderr, device_serial=device_serial)
 
 
-def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None) -> [int, str, str]:
+def execute_adb_command2(
+        adb_cmd: str, piped_into_cmd: str = None, ignore_stderr: bool = False, device_serial: str = None
+        ) -> typing.Tuple[int, typing.Optional[str], str]:
     """
     :param adb_cmd: command to run inside the adb shell (so, don't prefix it with "adb")
     :param piped_into_cmd: command to pipe the output of this command into
@@ -57,13 +62,14 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
 
     print_verbose("Executing \"%s\"" % final_cmd)
     ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout_data, stderr_data = ps1.communicate()
+    stdout_bytes, stderr_bytes = ps1.communicate()
     return_code = ps1.returncode
     try:
-        stdout_data = stdout_data.decode('utf-8')
+        stdout_data = stdout_bytes.decode('utf-8')
     except UnicodeDecodeError:
         print_error('Unable to decode data as UTF-8, defaulting to printing the binary data')
-    stderr_data = stderr_data.decode('utf-8')
+        stdout_data = '%r' % stdout_bytes
+    stderr_data = stderr_bytes.decode('utf-8')
 
     _check_for_adb_not_found_error(stderr_data)
     _check_for_more_than_one_device_error(stderr_data)
@@ -76,7 +82,7 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
 
     # stdout_data is not None
     if isinstance(stdout_data, bytes):
-        print_verbose("Result is \"%s\"" % stdout_data)
+        print_verbose('Result is \"%s\"' % stdout_data)
         return return_code, stdout_data, stderr_data
     # str for Python 3, this used to be unicode type for python 2
     elif isinstance(stdout_data, str):
@@ -99,14 +105,16 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
         print_error_and_exit('stdout_data is weird type: %s' % type(stdout_data))
 
 
-def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
+def execute_adb_shell_command(adb_cmd: str, piped_into_cmd: str = None, ignore_stderr: bool = False,
+                              device_serial: str = None):
     _, stdout, _ = execute_adb_command2(
         'shell %s' % adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
     return stdout
 
 
-def execute_file_related_adb_shell_command(adb_shell_cmd, file_path, piped_into_cmd=None, ignore_stderr=False,
-                                           device_serial=None):
+def execute_file_related_adb_shell_command(
+        adb_shell_cmd: str, file_path: str, piped_into_cmd: str = None,
+        ignore_stderr: bool = False, device_serial: str = None):
     file_not_found_message = 'No such file or directory'
     is_a_directory_message = 'Is a directory'  # Error when someone tries to delete a dir with "-r"
 
@@ -125,8 +133,8 @@ def execute_file_related_adb_shell_command(adb_shell_cmd, file_path, piped_into_
         print_verbose('Attempt %d/%d: "%s"' % (attempt_count, len(adb_cmds_prefix), adb_cmd_prefix))
         attempt_count += 1
         adb_cmd = '%s %s' % (adb_cmd_prefix, adb_shell_cmd)
-        return_code, stdout, stderr = execute_adb_command2(adb_cmd, piped_into_cmd, ignore_stderr,
-                                                           device_serial=device_serial)
+        return_code, stdout, stderr = execute_adb_command2(
+            adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
 
         if stderr.find(file_not_found_message) >= 0:
             print_error('File not found: %s' % file_path)
@@ -145,7 +153,7 @@ def execute_file_related_adb_shell_command(adb_shell_cmd, file_path, piped_into_
 # Gets the package name given a file path.
 # Eg. if the file is in /data/data/com.foo/.../file1 then package is com.foo
 # Limitation: Does not work with the new multi-user mode on Android.
-def get_package(file_path):
+def get_package(file_path: str) -> typing.Optional[str]:
     if file_path and file_path.startswith('/data/data/'):
         run_as_package = file_path.split('/')[3]
         return run_as_package
@@ -154,14 +162,14 @@ def get_package(file_path):
 
 # adb shell getprop ro.build.version.sdk
 @functools.lru_cache(maxsize=10)
-def get_device_android_api_version(device_serial=None):
+def get_device_android_api_version(device_serial: str = None):
     version_string = get_adb_shell_property('ro.build.version.sdk', device_serial=device_serial)
     if version_string is None:
         print_error_and_exit('Unable to get Android device version, is it still connected?')
     return int(version_string)
 
 
-def root_required_to_access_file(remote_file_path):
+def root_required_to_access_file(remote_file_path: str):
     if not remote_file_path:
         return False
     elif remote_file_path.startswith('/data/local/tmp'):
@@ -171,7 +179,7 @@ def root_required_to_access_file(remote_file_path):
     return True
 
 
-def _check_for_adb_not_found_error(stderr_data):
+def _check_for_adb_not_found_error(stderr_data: str):
     if not stderr_data:
         return
     stderr_data = stderr_data.strip()
@@ -181,7 +189,7 @@ def _check_for_adb_not_found_error(stderr_data):
         print_error_and_exit(message)
 
 
-def _check_for_more_than_one_device_error(stderr_data):
+def _check_for_more_than_one_device_error(stderr_data: str):
     if not stderr_data:
         return
     for line in stderr_data.split('\n'):
@@ -196,7 +204,7 @@ def _check_for_more_than_one_device_error(stderr_data):
             print_error_and_exit(message)
 
 
-def _check_for_device_not_found_error(stderr_data):
+def _check_for_device_not_found_error(stderr_data: str):
     if not stderr_data:
         return
     for line in stderr_data.split('\n'):
@@ -211,7 +219,7 @@ def toggle_screen():
     return execute_adb_shell_command2("input keyevent KEYCODE_POWER")
 
 
-def set_device_id(device_id):
+def set_device_id(device_id: str):
     """
     Make :param device_id: as main device to use
     Primary use-case: scripting
