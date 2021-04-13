@@ -1,6 +1,5 @@
 import functools
 import subprocess
-import sys
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
@@ -18,10 +17,6 @@ _IGNORED_LINES = [
 
 # Below version 24, if an adb shell command fails, then it still has an incorrect exit code of 0.
 _MIN_VERSION_ABOVE_WHICH_ADB_SHELL_RETURNS_CORRECT_EXIT_CODE = 24
-
-# This won't be required once I deprecate Python 2.
-if sys.version_info[0] >= 3:
-    unicode = str
 
 
 def get_adb_prefix():
