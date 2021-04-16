@@ -144,11 +144,23 @@ def execute_file_related_adb_shell_command(adb_shell_cmd, file_path, piped_into_
 
 # Gets the package name given a file path.
 # Eg. if the file is in /data/data/com.foo/.../file1 then package is com.foo
-# Limitation: Does not work with the new multi-user mode on Android.
+# Or if the file is in /data/user/0/com.foo/.../file1 then package is com.foo
 def get_package(file_path):
-    if file_path and file_path.startswith('/data/data/'):
-        run_as_package = file_path.split('/')[3]
-        return run_as_package
+    if not file_path:
+        return None
+
+    if file_path.startswith('/data/data/'):
+        items = file_path.split('/')
+        if len(items) >= 4:
+            run_as_package = items[3]
+            return run_as_package
+
+    # Handles the new multi-user mode
+    if file_path.startswith('/data/user/'):
+        items = file_path.split('/')
+        if len(items) >= 5:
+            run_as_package = items[4]
+            return run_as_package
     return None
 
 
