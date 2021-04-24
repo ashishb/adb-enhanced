@@ -18,6 +18,9 @@
 
 ADB-Enhanced is a Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation. Its a wrapper around `adb` and not a replacement.
 
+<a href="https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK?theme=asciinema&rows=30&autoplay=1"><img src="https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK.png" width="836"/></a>
+
+
 ## Release announcement
 
 See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-knife-for-android-development/)
