@@ -53,6 +53,9 @@ _KEYCODE_BACK = 4
 _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 _MIN_API_FOR_DARK_MODE = 29
 
+_REGEX_BACKUP_ALLOWED = '(pkgFlags|flags).*ALLOW_BACKUP'
+_REGEX_DEBUGGABLE = '(pkgFlags|flags).*DEBUGGABLE'
+
 # Value to be return as 'on' to the user
 _USER_PRINT_VALUE_ON = 'on'
 # Value to be return as 'partially on' to the user
@@ -1079,20 +1082,8 @@ def _list_debug_apps_no_async(packages):
     print('\n'.join(debug_packages))
 
 
-_REGEX_DEBUGGABLE = '(pkgFlags|flags).*DEBUGGABLE'
-
-
 def _is_debug_package(app_name):
-    pm_cmd = 'dumpsys package %s' % app_name
-    grep_cmd = '(grep -c -E \'%s\' || true)' % _REGEX_DEBUGGABLE
-    app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
-    if app_info_dump is None or app_info_dump.strip() == '0':
-        return app_name, False
-    elif app_info_dump.strip() in ('1', '2'):
-        return app_name, True
-    else:
-        print_error_and_exit('Unexpected output for %s | %s = %s' % (pm_cmd, grep_cmd, app_info_dump))
-        return None, False
+    return _package_contains_flag(app_name, _REGEX_DEBUGGABLE)
 
 
 def list_allow_backup_apps():
@@ -1126,19 +1117,23 @@ def _list_allow_backup_apps_no_async(packages):
     print('\n'.join(debug_packages))
 
 
-_REGEX_BACKUP_ALLOWED = '(pkgFlags|flags).*ALLOW_BACKUP'
-
-
 def _is_allow_backup_package(app_name):
+    return _package_contains_flag(app_name, _REGEX_BACKUP_ALLOWED)
+
+
+def _package_contains_flag(app_name, flag_regex):
     pm_cmd = 'dumpsys package %s' % app_name
-    grep_cmd = '(grep -c -E \'%s\' || true)' % _REGEX_BACKUP_ALLOWED
+    grep_cmd = '(grep -c -E \'%s\' || true)' % flag_regex
     app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
     if app_info_dump is None or app_info_dump.strip() == '0':
         return app_name, False
-    elif app_info_dump.strip() in ('1', '2'):
-        return app_name, True
-    else:
-        print_error_and_exit('Unexpected output for %s | %s = %s' % (pm_cmd, grep_cmd, app_info_dump))
+    try:
+        val = int(app_info_dump.strip())
+        if val > 0:
+            return app_name, True
+        return None, False
+    except ValueError:
+        print_error_and_exit('Unexpected output for %s | %s = "%s"' % (pm_cmd, grep_cmd, app_info_dump))
         return None, False
 
 
