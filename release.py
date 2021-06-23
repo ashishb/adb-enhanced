@@ -74,13 +74,13 @@ def _publish_package_to_pypi(testing_release=False):
 
 def _run_cmd_or_fail(cmd):
     print('Executing \"%s\"...' % cmd)
-    process = subprocess.Popen(cmd, shell=True, stdout=None, stderr=None)
-    process.communicate()
-    if process.returncode == 0:
-        print('Successfully executed \"%s\"' % cmd)
-    else:
-        print('Failed to execute \"%s\"' % cmd)
-        sys.exit(1)
+    with subprocess.Popen(cmd, shell=True, stdout=None, stderr=None) as process:
+        process.communicate()
+        if process.returncode == 0:
+            print('Successfully executed \"%s\"' % cmd)
+        else:
+            print('Failed to execute \"%s\"' % cmd)
+            sys.exit(1)
 
 
 def _publish_release(testing_release=False):
