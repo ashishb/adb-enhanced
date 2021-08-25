@@ -1198,7 +1198,7 @@ def list_directory(file_path, long_format, recursive, include_hidden_files):
         cmd_prefix += ' -R'
     if include_hidden_files:
         cmd_prefix += ' -a'
-    cmd = '%s %s' % (cmd_prefix, file_path)
+    cmd = '%s \"%s\"' % (cmd_prefix, file_path)
     print_message(execute_file_related_adb_shell_command(cmd, file_path))
 
 
