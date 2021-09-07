@@ -1,4 +1,4 @@
-name: AdbeUnitTestsPython3
+name: AdbeUnitTests
 
 on: [push]
 

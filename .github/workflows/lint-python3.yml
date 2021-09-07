@@ -1,4 +1,4 @@
-name: LintPython3
+name: Lint
 
 on: [push]
 

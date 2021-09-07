@@ -1,4 +1,4 @@
-name: AdbeInstallTestsPython3
+name: AdbeInstallTests
 
 on: [push]
 
