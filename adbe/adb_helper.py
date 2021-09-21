@@ -56,9 +56,9 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
         final_cmd = '%s | %s' % (final_cmd, piped_into_cmd)
 
     print_verbose("Executing \"%s\"" % final_cmd)
-    ps1 = subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout_data, stderr_data = ps1.communicate()
-    return_code = ps1.returncode
+    with subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
+        stdout_data, stderr_data = ps1.communicate()
+        return_code = ps1.returncode
     try:
         stdout_data = stdout_data.decode('utf-8')
     except UnicodeDecodeError:
