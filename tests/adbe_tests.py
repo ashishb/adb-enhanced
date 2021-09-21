@@ -270,8 +270,8 @@ def test_file_delete():
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
         stdout, stderr = ps.communicate()
         assert ps.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
-        _assert_success('rm %s' % tmp_file)
-        _assert_fail('pull %s' % tmp_file)
+    _assert_success('rm %s' % tmp_file)
+    _assert_fail('pull %s' % tmp_file)
 
 
 def test_file_move1():
@@ -284,7 +284,8 @@ def test_file_move1():
         print('Stdout of \"%s\" is \"%s\"' % (dir_creation_cmd, stdout))
         print('Stderr of \"%s\" is \"%s\"' % (dir_creation_cmd, stderr))
 
-        file_creation_cmd = 'adb shell touch %s' % tmp_file1
+    file_creation_cmd = 'adb shell touch %s' % tmp_file1
+
     with subprocess.Popen(file_creation_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps2:
         stdout, stderr = ps2.communicate()
         assert ps2.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
