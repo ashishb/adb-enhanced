@@ -377,7 +377,7 @@ def get_generic_options_from_args(args):
 def get_version():
     dir_of_this_script = os.path.split(__file__)[0]
     version_file_path = os.path.join(dir_of_this_script, _VERSION_FILE_NAME)
-    with open(version_file_path, 'r') as file_handle:
+    with open(version_file_path, 'r', encoding='UTF-8') as file_handle:
         return file_handle.read().strip()
 
 

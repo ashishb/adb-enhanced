@@ -266,12 +266,12 @@ def test_app_path_cmd():
 
 def test_file_delete():
     tmp_file = '/data/local/tmp/tmp_file'
-    ps = subprocess.Popen('adb shell touch %s' % tmp_file,
-                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = ps.communicate()
-    assert ps.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
-    _assert_success('rm %s' % tmp_file)
-    _assert_fail('pull %s' % tmp_file)
+    with subprocess.Popen('adb shell touch %s' % tmp_file,
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
+        stdout, stderr = ps.communicate()
+        assert ps.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
+        _assert_success('rm %s' % tmp_file)
+        _assert_fail('pull %s' % tmp_file)
 
 
 def test_file_move1():
@@ -279,17 +279,17 @@ def test_file_move1():
     tmp_file2 = '/data/local/tmp/tmp_file2'
 
     dir_creation_cmd = 'adb shell mkdir /data/local/tmp'
-    ps1 = subprocess.Popen(dir_creation_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = ps1.communicate()
-    print('Stdout of \"%s\" is \"%s\"' % (dir_creation_cmd, stdout))
-    print('Stderr of \"%s\" is \"%s\"' % (dir_creation_cmd, stderr))
+    with subprocess.Popen(dir_creation_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
+        stdout, stderr = ps1.communicate()
+        print('Stdout of \"%s\" is \"%s\"' % (dir_creation_cmd, stdout))
+        print('Stderr of \"%s\" is \"%s\"' % (dir_creation_cmd, stderr))
 
-    file_creation_cmd = 'adb shell touch %s' % tmp_file1
-    ps2 = subprocess.Popen(file_creation_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = ps2.communicate()
-    assert ps2.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
-    print('Stdout of \"%s\" is \"%s\"' % (file_creation_cmd, stdout))
-    print('Stderr of \"%s\" is \"%s\"' % (file_creation_cmd, stderr))
+        file_creation_cmd = 'adb shell touch %s' % tmp_file1
+    with subprocess.Popen(file_creation_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps2:
+        stdout, stderr = ps2.communicate()
+        assert ps2.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
+        print('Stdout of \"%s\" is \"%s\"' % (file_creation_cmd, stdout))
+        print('Stderr of \"%s\" is \"%s\"' % (file_creation_cmd, stderr))
 
     _assert_success('mv %s %s' % (tmp_file1, tmp_file2))
     _assert_fail('pull %s' % tmp_file1)
@@ -303,10 +303,10 @@ def test_file_move1():
 
 @run_once
 def _install_debug_apk():
-    ps = subprocess.Popen('adb install -t -r ./tests/net.ashishb.deviceinformationhelper_debug_app.apk',
-                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = ps.communicate()
-    assert ps.returncode == 0, 'Install failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
+    with subprocess.Popen('adb install -t -r ./tests/net.ashishb.deviceinformationhelper_debug_app.apk',
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
+        stdout, stderr = ps.communicate()
+        assert ps.returncode == 0, 'Install failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
 
 
 def test_file_move2():
@@ -316,34 +316,34 @@ def test_file_move2():
     _install_debug_apk()
     tmp_file1 = '/data/local/tmp/development.xml'
     tmp_file2_location = '/data/data/%s' % _DEBUG_APP
-    ps = subprocess.Popen('adb shell touch %s' % tmp_file1,
-                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = ps.communicate()
-    assert ps.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
+    with subprocess.Popen('adb shell touch %s' % tmp_file1,
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
+        stdout, stderr = ps1.communicate()
+        assert ps1.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
     _assert_success('mv %s %s' % (tmp_file1, tmp_file2_location))
     _assert_fail('pull %s' % tmp_file1)
     _assert_success('pull %s/%s' % (tmp_file2_location, 'development.xml'))
     # Cleanup
-    ps = subprocess.Popen('rm ./development.xml', shell=True)
-    ps.communicate()
-    assert ps.returncode == 0, 'Failed to deleted pulled file development.xml'
+    with subprocess.Popen('rm ./development.xml', shell=True) as ps2:
+        ps2.communicate()
+        assert ps2.returncode == 0, 'Failed to deleted pulled file development.xml'
 
 
 def test_file_move3():
     _install_debug_apk()
     tmp_file1 = '/data/local/tmp/development2.xml'
     tmp_file2 = '/data/local/tmp/development.xml'
-    ps = subprocess.Popen('adb shell touch %s' % tmp_file1,
-                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = ps.communicate()
-    assert ps.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
-    _assert_success('mv %s %s' % (tmp_file1, tmp_file2))
-    _assert_fail('pull %s' % tmp_file1)
-    _assert_success('pull %s' % tmp_file2)
+    with subprocess.Popen('adb shell touch %s' % tmp_file1,
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
+        stdout, stderr = ps1.communicate()
+        assert ps1.returncode == 0, 'File creation failed with stdout: "%s" and stderr: "%s"' % (stdout, stderr)
+        _assert_success('mv %s %s' % (tmp_file1, tmp_file2))
+        _assert_fail('pull %s' % tmp_file1)
+        _assert_success('pull %s' % tmp_file2)
     # Cleanup
-    ps = subprocess.Popen('rm ./development.xml', shell=True)
-    ps.communicate()
-    assert ps.returncode == 0, 'Failed to deleted pulled file development.xml'
+    with subprocess.Popen('rm ./development.xml', shell=True) as ps2:
+        ps2.communicate()
+        assert ps2.returncode == 0, 'Failed to deleted pulled file development.xml'
 
 
 def test_list_devices():
@@ -450,12 +450,12 @@ def _execute(sub_cmd):
         dir_of_this_script = os.path.split(__file__)[0]
         adbe_py = os.path.join(dir_of_this_script, '../adbe/main.py')
         cmd = '%s %s' % (_PYTHON_CMD, adbe_py)
-    ps = subprocess.Popen('%s %s' % (cmd, sub_cmd),
-                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout_data, stderr_data = ps.communicate()
-    stdout_data = stdout_data.decode('utf-8').strip()
-    stderr_data = stderr_data.decode('utf-8').strip()
-    exit_code = ps.returncode
+    with subprocess.Popen('%s %s' % (cmd, sub_cmd),
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
+        stdout_data, stderr_data = ps.communicate()
+        stdout_data = stdout_data.decode('utf-8').strip()
+        stderr_data = stderr_data.decode('utf-8').strip()
+        exit_code = ps.returncode
     print('Result is "%s"' % stdout_data)
     if exit_code != 0:
         print('Stderr is "%s"' % stderr_data)
@@ -464,12 +464,12 @@ def _execute(sub_cmd):
 
 def _delete_local_file(local_file_path):
     cmd = 'rm %s' % local_file_path
-    ps = subprocess.Popen(cmd,
-                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout_data, stderr_data = ps.communicate()
-    stdout_data = stdout_data.decode('utf-8').strip()
-    stderr_data = stderr_data.decode('utf-8').strip()
-    exit_code = ps.returncode
+    with subprocess.Popen(cmd,
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
+        stdout_data, stderr_data = ps.communicate()
+        stdout_data = stdout_data.decode('utf-8').strip()
+        stderr_data = stderr_data.decode('utf-8').strip()
+        exit_code = ps.returncode
     assert exit_code == 0, 'Command "%s" failed with stdout: "%s" and stderr: "%s"' % (
         cmd, stdout_data, stderr_data)
 

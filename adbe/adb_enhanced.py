@@ -1291,7 +1291,7 @@ def push_file(local_file_path, remote_file_path):
     if not os.path.exists(local_file_path):
         print_error_and_exit('Local file %s does not exist' % local_file_path)
     if os.path.isdir(local_file_path):
-        print_error_and_exit('This tool does not support pushing a directory yet' % local_file_path)
+        print_error_and_exit('This tool does not support pushing a directory yet: %s' % local_file_path)
 
     # First push to tmp file in /data/local/tmp and then move that
     tmp_file = _create_tmp_file()
@@ -1484,8 +1484,7 @@ def print_app_path(app_name):
 def print_app_signature(app_name):
     apk_path = _get_apk_path(app_name)
     # Copy apk to a temp file on the disk
-    tmp_apk_file = tempfile.NamedTemporaryFile(prefix=app_name, suffix='.apk')
-    with tmp_apk_file:
+    with tempfile.NamedTemporaryFile(prefix=app_name, suffix='.apk') as tmp_apk_file:
         tmp_apk_file_name = tmp_apk_file.name
         adb_cmd = 'pull %s %s' % (apk_path, tmp_apk_file_name)
         return_code, _, stderr = execute_adb_command2(adb_cmd)
@@ -1500,13 +1499,13 @@ def print_app_signature(app_name):
 
         print_signature_cmd = 'java -jar %s verify --print-certs %s' % (apk_signer_jar_path, tmp_apk_file_name)
         print_verbose('Executing command %s' % print_signature_cmd)
-        ps1 = subprocess.Popen(print_signature_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        for line in ps1.stdout:
-            line = line.decode('utf-8').strip()
-            print_message(line)
-        for line in ps1.stderr:
-            line = line.decode('utf-8').strip()
-            print_error(line)
+        with subprocess.Popen(print_signature_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
+            for line in ps1.stdout:
+                line = line.decode('utf-8').strip()
+                print_message(line)
+            for line in ps1.stderr:
+                line = line.decode('utf-8').strip()
+                print_error(line)
 
 
 # Uses abe.jar taken from https://sourceforge.net/projects/adbextractor/
@@ -1554,16 +1553,16 @@ def perform_app_backup(app_name, backup_tar_file):
             print_error_and_exit('Abe.jar is missing, your adb-enhanced installation is corrupted')
         abe_cmd = 'java -jar %s unpack backup.ab %s %s' % (abe_jar_path, backup_tar_file, password)
         print_verbose('Executing command %s' % abe_cmd)
-        ps = subprocess.Popen(abe_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        ps.communicate()
-        if ps.returncode == 0:
-            print_message('Successfully backed up data of app %s to %s' % (app_name, backup_tar_file))
-        else:
-            print_error('Failed to convert backup.ab to tar file. Please ensure that it is not password protected')
+        with subprocess.Popen(abe_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
+            ps.communicate()
+            if ps.returncode == 0:
+                print_message('Successfully backed up data of app %s to %s' % (app_name, backup_tar_file))
+            else:
+                print_error('Failed to convert backup.ab to tar file. Please ensure that it is not password protected')
     finally:
         print_verbose('Deleting backup.ab')
-        ps = subprocess.Popen('rm backup.ab', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        ps.communicate()
+        with subprocess.Popen('rm backup.ab', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps2:
+            ps2.communicate()
 
 
 def perform_install(file_path):
