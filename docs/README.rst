@@ -1,14 +1,14 @@
 ADB Enhanced |Downloads| |PyPI version|
 =======================================
 
-|LintPython3| |InstallAdbeTest| |AdbeInstallTestsPython3|
-|AdbeUnitTestsPython3|
+|Lint| |InstallAdbeTest|
 
-|AdbeUnitTestsPython3-Api16| |AdbeUnitTestsPython3-Api21|
-|AdbeUnitTestsPython3-Api22| |AdbeUnitTestsPython3-Api23|
-|AdbeUnitTestsPython3-Api24| |AdbeUnitTestsPython3-Api25|
-|AdbeUnitTestsPython3-Api26| |AdbeUnitTestsPython3-Api27|
-|AdbeUnitTestsPython3-Api28| |AdbeUnitTestsPython3-Api29|
+|AdbeInstallTests| |AdbeUnitTests|
+
+|AdbeUnitTests-Api16| |AdbeUnitTests-Api21| |AdbeUnitTests-Api22|
+|AdbeUnitTests-Api23| |AdbeUnitTests-Api24| |AdbeUnitTests-Api25|
+|AdbeUnitTests-Api26| |AdbeUnitTests-Api27| |AdbeUnitTests-Api28|
+|AdbeUnitTests-Api29|
 
 .. figure:: docs/logo.png
    :alt: Logo
@@ -314,17 +314,31 @@ Note: The inspiration of this project came from
    :target: http://pepy.tech/project/adb-enhanced
 .. |PyPI version| image:: https://badge.fury.io/py/adb-enhanced.svg
    :target: https://badge.fury.io/py/adb-enhanced
-.. |LintPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/LintPython3/badge.svg
-.. |InstallAdbeTest| image:: https://github.com/ashishb/adb-enhanced/workflows/InstallAdbeTest/badge.svg
-.. |AdbeInstallTestsPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeInstallTestsPython3/badge.svg
-.. |AdbeUnitTestsPython3| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3/badge.svg
-.. |AdbeUnitTestsPython3-Api16| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api16/badge.svg
-.. |AdbeUnitTestsPython3-Api21| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api21/badge.svg
-.. |AdbeUnitTestsPython3-Api22| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api22/badge.svg
-.. |AdbeUnitTestsPython3-Api23| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api23/badge.svg
-.. |AdbeUnitTestsPython3-Api24| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api24/badge.svg
-.. |AdbeUnitTestsPython3-Api25| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api25/badge.svg
-.. |AdbeUnitTestsPython3-Api26| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api26/badge.svg
-.. |AdbeUnitTestsPython3-Api27| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api27/badge.svg
-.. |AdbeUnitTestsPython3-Api28| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api28/badge.svg
-.. |AdbeUnitTestsPython3-Api29| image:: https://github.com/ashishb/adb-enhanced/workflows/AdbeUnitTestsPython3-Api29/badge.svg
+.. |Lint| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/lint.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/lint.yml
+.. |InstallAdbeTest| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml
+.. |AdbeInstallTests| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml
+.. |AdbeUnitTests| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml
+.. |AdbeUnitTests-Api16| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api16.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api16.yml
+.. |AdbeUnitTests-Api21| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api21.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api21.yml
+.. |AdbeUnitTests-Api22| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api22.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api22.yml
+.. |AdbeUnitTests-Api23| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api23.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api23.yml
+.. |AdbeUnitTests-Api24| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api24.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api24.yml
+.. |AdbeUnitTests-Api25| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api25.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api25.yml
+.. |AdbeUnitTests-Api26| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api26.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api26.yml
+.. |AdbeUnitTests-Api27| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api27.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api27.yml
+.. |AdbeUnitTests-Api28| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api28.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api28.yml
+.. |AdbeUnitTests-Api29| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml
