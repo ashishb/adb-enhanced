@@ -1051,22 +1051,39 @@ def print_list_non_system_apps():
     print('\n'.join(get_list_non_system_apps()))
 
 
-def list_debug_apps():
+def get_list_debug_apps():
+    """Return a list of installed debug applications.
+    :returns: debug_packages
+        WHERE
+        list[str] debug_packages is a strings list of debuggable packages
+    :Example:
+    >>> import adbe.adb_enhanced as adb_e
+    >>> import adbe.adb_helper as adb_h
+    >>> adb_h.set_device_id("DEVICE_ID")
+    >>> list_debug_apps = adb_e.get_list_debug_apps()
+    """
     cmd = 'pm list packages'
     packages = _get_all_packages(cmd)
+    debug_packages = []
 
     if _ASYNCIO_AVAILABLE:
         method_to_call = _is_debug_package
         params_list = packages
         result_list = asyncio_helper.execute_in_parallel(method_to_call, params_list)
-        debug_packages = []
+
         for (package_name, debuggable) in result_list:
             if debuggable:
                 debug_packages.append(package_name)
-        print('\n'.join(debug_packages))
     else:
+        debug_packages = _list_debug_apps_no_async(packages)
+    return debug_packages
+
+
+def print_list_debug_apps():
+    if not _ASYNCIO_AVAILABLE:
         print_message('Use python3 for faster execution of this call')
-        _list_debug_apps_no_async(packages)
+
+    print('\n'.join(get_list_debug_apps()))
 
 
 def _list_debug_apps_no_async(packages):
@@ -1079,7 +1096,8 @@ def _list_debug_apps_no_async(packages):
         # No faster way to do this except to check each and every package individually
         if _is_debug_package(package)[1]:
             debug_packages.append(package)
-    print('\n'.join(debug_packages))
+
+    return debug_packages
 
 
 def _is_debug_package(app_name):
