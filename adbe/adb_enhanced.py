@@ -973,7 +973,6 @@ def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions)
     app_info_dump = execute_adb_shell_command('dumpsys package %s' % package_name)
     permissions_formatted_dump = _get_permissions_info_above_api_23(app_info_dump).split('\n')
 
-    action_display_name = ''
     if action_grant:
         base_cmd = 'pm grant %s' % package_name
         action_display_name = 'Granting'
