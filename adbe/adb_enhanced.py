@@ -958,22 +958,38 @@ def get_permissions_in_permission_group(permission_group):
             permissions = list(map(
                 lambda x: x.replace(
                     'permission:', ''), permissions))
+            permissions = list(set(permissions + _get_hardcoded_permissions_for_group(permission_group)))
             print_message(
                 'Permissions in %s group are %s' %
                 (permission_group, permissions))
-            return list(set(permissions + _get_hardcoded_permissions_for_group(permission_group)))
+            return permissions
     return _get_hardcoded_permissions_for_group(permission_group)
 
 
 @ensure_package_exists
 def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions):
     _error_if_min_version_less_than(23)
+
+    app_info_dump = execute_adb_shell_command('dumpsys package %s' % package_name)
+    permissions_formatted_dump = _get_permissions_info_above_api_23(app_info_dump).split('\n')
+
+    action_display_name = ''
     if action_grant:
-        cmd = 'pm grant %s' % package_name
+        base_cmd = 'pm grant %s' % package_name
+        action_display_name = 'Granting'
     else:
-        cmd = 'pm revoke %s' % package_name
+        base_cmd = 'pm revoke %s' % package_name
+        action_display_name = 'Revoking'
+    num_permissions_granted = 0
     for permission in permissions:
-        execute_adb_shell_command(cmd + ' ' + permission)
+        if permission not in permissions_formatted_dump:
+            print_message('Permission %s is not requested by %s, skipping' % (permission, package_name))
+            continue
+        num_permissions_granted += 1
+        print_message('%s %s permission to %s' % (action_display_name, permission, package_name))
+        execute_adb_shell_command(base_cmd + ' ' + permission)
+    if num_permissions_granted == 0:
+        print_error_and_exit('None of these permissions were granted to %s: %s' %(package_name, permissions))
 
 
 def _get_all_packages(pm_cmd):
