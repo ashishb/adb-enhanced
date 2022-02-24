@@ -9,6 +9,7 @@ import threading
 import time
 import os
 import random
+import typing
 from functools import wraps, partial
 from urllib.parse import urlparse
 from enum import Enum
@@ -903,6 +904,33 @@ def get_permission_group(args):
         return None
 
 
+# Android keeps emptying these groups so that granted permissions are denied
+# but the expectation of this tool is to do the right mapping
+def _get_hardcoded_permissions_for_group(permission_group) -> typing.List[str]:
+    if permission_group == 'android.permission-group.CONTACTS':
+        return ['android.permission.READ_CONTACTS', 'android.permission.WRITE_CONTACTS']
+    elif permission_group == 'android.permission-group.PHONE':
+        return ['android.permission.READ_PHONE_STATE', 'android.permission.READ_PHONE_NUMBERS',
+                'android.permission.CALL_PHONE', 'android.permission.ANSWER_PHONE_CALLS']
+    elif permission_group == 'android.permission-group.CALENDAR':
+        return ['android.permission.READ_CALENDAR', 'android.permission.WRITE_CALENDAR']
+    elif permission_group == 'android.permission-group.CAMERA':
+        return ['android.permission.CAMERA']
+    elif permission_group == 'android.permission-group.SENSORS':
+        return ['android.permission.BODY_SENSORS']
+    elif permission_group == 'android.permission-group.LOCATION':
+        return ['android.permission.ACCESS_FINE_LOCATION', 'android.permission.ACCESS_COARSE_LOCATION']
+    elif permission_group == 'android.permission-group.STORAGE':
+        return ['android.permission.READ_EXTERNAL_STORAGE', 'android.permission.WRITE_EXTERNAL_STORAGE']
+    elif permission_group == 'android.permission-group.MICROPHONE':
+        return ['android.permission.RECORD_AUDIO']
+    elif permission_group == 'android.permission-group.SMS':
+        return ['android.permission.READ_SMS', 'android.permission.RECEIVE_SMS', 'android.permission.SEND_SMS']
+    else:
+        print_verbose('Unexpected permission group: %s' % permission_group)
+        return []
+
+
 # Pass the full-qualified permission group name to this method.
 def get_permissions_in_permission_group(permission_group):
     # List permissions by group
@@ -933,8 +961,8 @@ def get_permissions_in_permission_group(permission_group):
             print_message(
                 'Permissions in %s group are %s' %
                 (permission_group, permissions))
-            return permissions
-    return None
+            return list(set(permissions + _get_hardcoded_permissions_for_group(permission_group)))
+    return _get_hardcoded_permissions_for_group(permission_group)
 
 
 @ensure_package_exists
