@@ -26,6 +26,9 @@ jobs:
             touch docs/README.rst
             make build
             sudo python3 -m pip install -e .
+            ls /usr
+            ls /usr/local
+            ls /usr/local/bin
             /usr/local/bin/adbe --version  # Verify adbe is installed
             alias adbe=/usr/local/bin/adbe
             adbe --version  # Verify adbe is installed
