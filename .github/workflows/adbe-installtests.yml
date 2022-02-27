@@ -25,15 +25,12 @@ jobs:
             python3 -m pip install --user -r requirements.txt
             touch docs/README.rst
             make build
-            python3 -m pip install --user -e .
+            python3 -m pip install --user dist/*.whl
             set -v
             # Ref: https://stackoverflow.com/a/62151306/434196
             ls $(python3 -m site --user-base)
             ls $(python3 -m site --user-base)/bin
             ls $(python3 -m site --user-base)/bin/adbe
             $(python3 -m site --user-base)/bin/adbe --version
-            # Ref: https://github.community/t/create-and-use-an-alias-inside-github-action/147616/2
-            shopt -s expand_aliases
-            alias adbe=$(python3 -m site --user-base)/bin/adbe
-            adbe --version  # Verify adbe is installed
-            make test_python3_installation
+            PATH=$PATH:$(python3 -m site --user-base)/bin adbe --version  # Verify adbe is installed
+            PATH=$PATH:$(python3 -m site --user-base)/bin make test_python3_installation
