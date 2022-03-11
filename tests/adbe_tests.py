@@ -13,6 +13,8 @@ _DEUT_ANDROID_VERSION = 19
 _DOZE_MODE_ANDROID_VERSION = 23
 # Runtime permissions were added in API 23
 _RUNTIME_PERMISSIONS_SUPPORTED = 23
+# Dark mode was added in API 29
+_DARK_MODE_ANDROID_VERSION = 29
 
 _PYTHON_CMD = 'python'
 if sys.version_info >= (3, 0):
@@ -103,6 +105,16 @@ def test_battery_sub_cmds():
     check('battery saver on')
     check('battery saver off')
     check('battery reset')
+
+
+def test_dark_mode():
+    if _get_device_sdk_version() >= _DARK_MODE_ANDROID_VERSION:
+        check = _assert_success
+    else:
+        check = _assert_fail
+
+    check('dark mode on')
+    check('dark mode off')
 
 
 def test_doze():
@@ -482,6 +494,7 @@ def main():
     test_layout()
     test_airplane()
     test_battery_sub_cmds()
+    test_dark_mode()
     test_doze()
     test_mobile_data()
     test_rtl()
