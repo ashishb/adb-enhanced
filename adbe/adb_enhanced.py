@@ -1832,12 +1832,13 @@ def set_dark_mode(force: bool) -> None:
     _error_if_min_version_less_than(_MIN_API_FOR_DARK_MODE)
 
     if force:
-        execute_adb_shell_command2('service call uimode 4 i32 2')
+        # Ref: https://twitter.com/petedoyle_/status/1502008461080490006
+        execute_adb_shell_command2('cmd uimode night yes')
         # There are reports of the following command, it didn't work for me
         # even on a rooted device when ran as a super-user
         # execute_adb_shell_command2('setprop persist.hwui.force_dark true')
     else:
-        execute_adb_shell_command2('service call uimode 4 i32 1')
+        execute_adb_shell_command2('cmd uimode night no')
 
 
 def print_notifications():
