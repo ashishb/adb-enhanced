@@ -1842,7 +1842,7 @@ def set_dark_mode(force: bool) -> None:
 
 
 def print_notifications():
-    # Noredact is neeed on >= Android 6.0 to see title and text
+    # Noredact is required on Android >= 6.0 to see title and text
     code, output, err = execute_adb_shell_command2("dumpsys notification --noredact")
     if code != 0:
         print_error_and_exit("Something gone wrong on "
