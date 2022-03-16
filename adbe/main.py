@@ -97,8 +97,6 @@ Options:
 """
 List of things which this tool will do in the future
 
-* adbe [options] (enable | disable) wireless debugging - disabled since it is not working
-* adbe b[ack]g[round-]c[ellular-]d[ata] [on|off] $app_name # This might not be needed at all after mobile-data saver mode
 * adbe app-standby $app_name
 * adbe rtl (on | off)  # adb shell settings put global debug.force_rtl 1 does not seem to work
 * adb shell input keyevent KEYCODE_POWER can do the toggle
@@ -108,6 +106,7 @@ List of things which this tool will do in the future
 * Use -q[uite] for quite mode
 * Add IMEI, IMSI, phone number, and WI-Fi MAC address to devices info command - I think the best way to implement this
   will be via a companion app. And while we are on that, we can implement locale change via the companion app as well.
+* adbe dump media session - adb shell dump media_session
 
 """
 
