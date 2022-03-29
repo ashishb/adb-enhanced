@@ -6,7 +6,7 @@ documentation:
 	pandoc --from=markdown --to=rst --output=docs/README.rst README.md && cd docs && make html
 
 clean:
-		rm -rf build/ dist/  # Cleanup build dir
+	rm -rf build/ dist/  # Cleanup build dir
 
 setup:
 	brew install pandoc sphinx-doc
