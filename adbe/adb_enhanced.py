@@ -1160,12 +1160,20 @@ def _is_debug_package(app_name):
     """Return true if the application have the debug flag set to true else return false
         :returns: None
             WHERE
-            str app_name is a string of the package name 
+            str app_name is a string of the package name
     """
     return _package_contains_flag(app_name, _REGEX_DEBUGGABLE)
 
 
 def list_allow_backup_apps():
+    """Return list of applications that can be backed up (flag backup set to true)
+        :returns: list[str] packages that have backup flag set to true
+        :Example:
+        >>> import adbe.adb_enhanced as adb_e
+        >>> import adbe.adb_helper as adb_h
+        >>> adb_h.set_device_id("DEVICE_ID")
+        >>> adb_e.list_allow_backup_apps()
+    """
     cmd = 'pm list packages'
     packages = _get_all_packages(cmd)
 
@@ -1177,13 +1185,29 @@ def list_allow_backup_apps():
         for (package_name, debuggable) in result_list:
             if debuggable:
                 debug_packages.append(package_name)
-        print('\n'.join(debug_packages))
+        return debug_packages
     else:
         print_message('Use python3 with Async IO package for faster execution of this call')
-        _list_allow_backup_apps_no_async(packages)
+        return _list_allow_backup_apps_no_async(packages)
+
+
+def print_allow_backup_apps():
+    """Print list of applications that can be backed up (flag backup set to true)
+        :returns: None
+        :Example:
+        >>> import adbe.adb_enhanced as adb_e
+        >>> import adbe.adb_helper as adb_h
+        >>> adb_h.set_device_id("DEVICE_ID")
+        >>> adb_e.print_allow_backup_apps()
+    """
+    print('\n'.join(list_allow_backup_apps()))
 
 
 def _list_allow_backup_apps_no_async(packages):
+    """Return list of applications that can be backed up (flag backup set to true) without
+       asynchronous enabled (less faster).
+            :returns: list[str] packages that have backup flag set to true
+    """
     debug_packages = []
     count = 0
     num_packages = len(packages)
@@ -1193,7 +1217,7 @@ def _list_allow_backup_apps_no_async(packages):
         # No faster way to do this except to check each and every package individually
         if _is_allow_backup_package(package)[1]:
             debug_packages.append(package)
-    print('\n'.join(debug_packages))
+    return debug_packages
 
 
 def _is_allow_backup_package(app_name):

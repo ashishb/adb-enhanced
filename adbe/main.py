@@ -246,7 +246,7 @@ def main():
     elif args['apps'] and args['list'] and args['debug']:
         adb_enhanced.print_list_debug_apps()
     elif args['apps'] and args['list'] and args['backup-enabled']:
-        adb_enhanced.list_allow_backup_apps()
+        adb_enhanced.print_allow_backup_apps()
 
     # standby bucket
     elif args['standby-bucket'] and args['get']:
