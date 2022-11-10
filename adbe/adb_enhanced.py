@@ -1123,6 +1123,14 @@ def get_list_debug_apps():
 
 
 def print_list_debug_apps():
+    """Print installed applications that have debug enabled.
+        :returns: None
+        :Example:
+        >>> import adbe.adb_enhanced as adb_e
+        >>> import adbe.adb_helper as adb_h
+        >>> adb_h.set_device_id("DEVICE_ID")
+        >>> list_debug_apps = adb_e.adb_print_list_debug_apps()
+    """
     if not _ASYNCIO_AVAILABLE:
         print_message('Use python3 for faster execution of this call')
 
@@ -1130,6 +1138,11 @@ def print_list_debug_apps():
 
 
 def _list_debug_apps_no_async(packages):
+    """Return a list of applications that have debug enabled without asynchronous enabled (less faster).
+        :returns: None
+            WHERE
+            list[str] packages is a strings list of installed packages names
+    """
     debug_packages = []
     count = 0
     num_packages = len(packages)
@@ -1144,6 +1157,11 @@ def _list_debug_apps_no_async(packages):
 
 
 def _is_debug_package(app_name):
+    """Return true if the application have the debug flag set to true else return false
+        :returns: None
+            WHERE
+            str app_name is a string of the package name 
+    """
     return _package_contains_flag(app_name, _REGEX_DEBUGGABLE)
 
 
