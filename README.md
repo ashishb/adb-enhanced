@@ -238,6 +238,7 @@ adbe [options] enable wireless debugging
 adbe [options] disable wireless debugging
 adbe [options] screen (on | off | toggle)
 adbe [options] alarm (all | top | pending | history)
+adbe [options] location (on | off)
 ```
 
 ### Options

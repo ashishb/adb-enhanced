@@ -80,6 +80,7 @@ Usage:
     adbe [options] disable wireless debugging
     adbe [options] screen (on | off | toggle)
     adbe [options] alarm (all | top | pending | history)
+    adbe [options] location (on | off)
 
 Options:
     -e, --emulator          directs the command to the only running emulator
@@ -345,6 +346,9 @@ def main():
         adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.PENDING)
     elif args['alarm'] and args['top']:
         adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.TOP)
+
+    elif args['location']:
+        adb_enhanced.toggle_location(args['on'])
 
     else:
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
