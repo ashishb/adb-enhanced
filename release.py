@@ -33,7 +33,7 @@ def _get_version():
 
 def _set_version(version):
     if not version or not version.strip():
-        raise Exception('version cannot be empty')
+        raise ValueError('version cannot be empty')
     with open(_VERSION_FILE_PATH, 'w') as file_handle:
         file_handle.write('%s\n' % version)
 

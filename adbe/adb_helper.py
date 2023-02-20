@@ -51,7 +51,7 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
     if device_serial:
         adb_prefix = '%s -s %s' % (adb_prefix, device_serial)
 
-    final_cmd = ('%s %s' % (adb_prefix, adb_cmd))
+    final_cmd = '%s %s' % (adb_prefix, adb_cmd)
     if piped_into_cmd:
         final_cmd = '%s | %s' % (final_cmd, piped_into_cmd)
 

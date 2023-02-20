@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '0 0 * * 0'  # Sunday midnight UTC
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: macos-latest
