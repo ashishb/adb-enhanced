@@ -443,6 +443,11 @@ def test_notifications():
     _assert_success('notifications list')
 
 
+def test_location():
+    _assert_success("location on")
+    _assert_success("location off")
+
+
 def _assert_fail(sub_cmd):
     exit_code, stdout_data, stderr_data = _execute(sub_cmd)
     assert exit_code == 1, 'Command "%s" failed with stdout: "%s" and stderr: "%s"' %(sub_cmd, stdout_data, stderr_data)
@@ -531,6 +536,7 @@ def main():
     test_wireless()
     test_screen_toggle()
     test_notifications()
+    test_location()
     # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
 
 
