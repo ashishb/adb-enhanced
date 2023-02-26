@@ -224,7 +224,7 @@ def handle_airplane(turn_on):
         return_code_data, _, _ = execute_adb_shell_settings_command2("put global adbe_data " + output_data)
         return_code_airplane, _, _ = execute_adb_shell_settings_command2("put global airplane_mode_on 1")
 
-        if return_code_wifi != 0 or return_code_data != 0 or  return_code_airplane != 0 :
+        if return_code_wifi != 0 or return_code_data != 0 or return_code_airplane != 0:
             print_error('Failed to put "Global" settings states. Proceeding anyway ...')
 
         handle_mobile_data(False)
