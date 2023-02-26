@@ -207,24 +207,13 @@ def handle_layout(value):
 
 
 # Source: https://stackoverflow.com/questions/10506591/turning-airplane-mode-on-via-adb
-# This is incomplete
 def handle_airplane(turn_on):
     if turn_on:
-        cmd = 'put global airplane_mode_on 1'
+        handle_mobile_data(False)
+        set_wifi(False)
     else:
-        cmd = 'put global airplane_mode_on 0'
-
-    # At some version, this became a protected intent, so, it might require root to succeed.
-    broadcast_change_cmd = 'am broadcast -a android.intent.action.AIRPLANE_MODE'
-    # This is a protected intent which would require root to run
-    # https://developer.android.com/reference/android/content/Intent.html#ACTION_AIRPLANE_MODE_CHANGED
-    broadcast_change_cmd = 'su root %s' % broadcast_change_cmd
-    execute_adb_shell_settings_command2(cmd)
-    return_code, _, _ = execute_adb_shell_command2(broadcast_change_cmd)
-    if return_code != 0:
-        print_error_and_exit('Failed to change airplane mode')
-    else:
-        print_message('Airplane mode changed successfully')
+        handle_mobile_data(True)
+        set_wifi(True)
 
 
 def get_battery_saver_state():
