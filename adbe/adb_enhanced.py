@@ -208,12 +208,47 @@ def handle_layout(value):
 
 # Source: https://stackoverflow.com/questions/10506591/turning-airplane-mode-on-via-adb
 def handle_airplane(turn_on):
+    return_code_wifi, output_wifi, _ = execute_adb_shell_settings_command2("get global wifi_on")
+    return_code_data, output_data, _ = execute_adb_shell_settings_command2("get global mobile_data")
+
+    if return_code_wifi != 0:
+        print_error('Failed to get wifi state')
+        return _USER_PRINT_VALUE_UNKNOWN
+
+    if return_code_data != 0:
+        print_error('Failed to get mobile-data state')
+        return _USER_PRINT_VALUE_UNKNOWN
+
     if turn_on:
+        return_code_wifi, _, _ = execute_adb_shell_settings_command2("put global adbe_wifi " + output_wifi)
+        return_code_data, _, _ = execute_adb_shell_settings_command2("put global adbe_data " + output_data)
+        return_code_airplane, _, _ = execute_adb_shell_settings_command2("put global airplane_mode_on 1")
+
+        if return_code_wifi != 0 or return_code_data != 0 or  return_code_airplane != 0 :
+            print_error('Failed to put "Global" settings states. Proceeding anyway ...')
+
         handle_mobile_data(False)
         set_wifi(False)
     else:
-        handle_mobile_data(True)
-        set_wifi(True)
+        return_code_wifi, last_wifi_state, _ = execute_adb_shell_settings_command2("get global adbe_wifi")
+        return_code_data, last_data_state, _ = execute_adb_shell_settings_command2("get global adbe_data")
+        return_code_airplane, _, _ = execute_adb_shell_settings_command2("put global airplane_mode_on 0")
+
+        if return_code_wifi != 0 or return_code_data != 0:
+            print_error('Failed to get "Global" settings states. Enabling mobile-data and Wifi ...')
+
+        if return_code_airplane != 0:
+            print_error('Failed to change airplane mode.')
+
+        if last_data_state:
+            handle_mobile_data(last_data_state == '1')
+        else:
+            handle_mobile_data(True)
+
+        if last_wifi_state:
+            set_wifi(last_wifi_state == '1')
+        else:
+            set_wifi(True)
 
 
 def get_battery_saver_state():
