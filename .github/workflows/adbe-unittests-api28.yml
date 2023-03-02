@@ -3,6 +3,10 @@ name: AdbeUnitTests-Api28
 on:
   schedule:
     - cron: '0 0 * * 0'  # Sunday midnight UTC
+  pull_request:
+    branches: [master, main]
+    paths:
+      - '.github/workflows/adbe-unittests-api28.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
