@@ -1,19 +1,35 @@
 name: AdbeUnitTests
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'Makefile'
+      - 'requirements.txt'
+      - 'adbe/*'
+      - 'tests/*'
+      - '.github/workflows/adbe-unittests.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'Makefile'
+      - 'requirements.txt'
+      - 'adbe/*'
+      - 'tests/*'
+      - '.github/workflows/adbe-unittests.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
+  unittestsApi21And26:
     runs-on: macos-latest
     timeout-minutes: 15
     strategy:
       matrix:
         api-level: [21, 26]
-        target: [default] # Other option: google_apis
+        target: [default]  # Other option: google_apis
     steps:
       - name: checkout
         uses: actions/checkout@v3
