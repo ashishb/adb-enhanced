@@ -1,13 +1,21 @@
 name: AdbeUnitTests-Api16
 
-on: [push]
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'Makefile'
+      - 'requirements.txt'
+      - 'adbe/*'
+      - 'tests/*'
+      - '.github/workflows/adbe-unittests-api16.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
+  testOnAndroidApi16:
     runs-on: macos-latest
     # This test is slower compared to the other tests
     timeout-minutes: 20
