@@ -15,6 +15,8 @@ _DOZE_MODE_ANDROID_VERSION = 23
 _RUNTIME_PERMISSIONS_SUPPORTED = 23
 # Dark mode was added in API 29
 _DARK_MODE_ANDROID_VERSION = 29
+# The command to change location does not work below API 29
+_LOCATION_CHANGE_ANDROID_VERSION = 29
 
 _PYTHON_CMD = 'python'
 if sys.version_info >= (3, 0):
@@ -443,6 +445,15 @@ def test_notifications():
     _assert_success('notifications list')
 
 
+def test_location():
+    if _get_device_sdk_version() >= _LOCATION_CHANGE_ANDROID_VERSION:
+        check = _assert_success
+    else:
+        check = _assert_fail
+    check("location on")
+    check("location off")
+
+
 def _assert_fail(sub_cmd):
     exit_code, stdout_data, stderr_data = _execute(sub_cmd)
     assert exit_code == 1, 'Command "%s" failed with stdout: "%s" and stderr: "%s"' %(sub_cmd, stdout_data, stderr_data)
@@ -531,6 +542,7 @@ def main():
     test_wireless()
     test_screen_toggle()
     test_notifications()
+    test_location()
     # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
 
 
