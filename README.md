@@ -1,6 +1,10 @@
 # ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
 
-[![Lint](https://github.com/ashishb/adb-enhanced/actions/workflows/lint.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint.yml) [![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml)
+[![Lint](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yml)
+[![Lint Markdown](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml)
+[![Lint YAML](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml)
+
+[![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml)
 
 [![AdbeInstallTests](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml) [![AdbeUnitTests](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml)
 
