@@ -9,6 +9,14 @@ on:
       - 'setup.cfg'
       - 'adbe/*'
       - '.github/workflows/install-adbe.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'requirements.txt'
+      - 'setup.py'
+      - 'setup.cfg'
+      - 'adbe/*'
+      - '.github/workflows/install-adbe.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

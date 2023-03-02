@@ -11,6 +11,16 @@ on:
       - 'adbe/*'
       - 'tests/*'
       - '.github/workflows/adbe-installtests.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'Makefile'
+      - 'requirements.txt'
+      - 'setup.py'
+      - 'setup.cfg'
+      - 'adbe/*'
+      - 'tests/*'
+      - '.github/workflows/adbe-installtests.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
