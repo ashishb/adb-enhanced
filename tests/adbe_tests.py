@@ -15,6 +15,8 @@ _DOZE_MODE_ANDROID_VERSION = 23
 _RUNTIME_PERMISSIONS_SUPPORTED = 23
 # Dark mode was added in API 29
 _DARK_MODE_ANDROID_VERSION = 29
+# The command to change location does not work below API 29
+_LOCATION_CHANGE_ANDROID_VERSION = 29
 
 _PYTHON_CMD = 'python'
 if sys.version_info >= (3, 0):
@@ -444,8 +446,12 @@ def test_notifications():
 
 
 def test_location():
-    _assert_success("location on")
-    _assert_success("location off")
+    if _get_device_sdk_version() >= _LOCATION_CHANGE_ANDROID_VERSION:
+        check = _assert_success
+    else:
+        check = _assert_fail
+    check("location on")
+    check("location off")
 
 
 def _assert_fail(sub_cmd):
