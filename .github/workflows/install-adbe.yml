@@ -12,7 +12,9 @@ jobs:
     timeout-minutes: 15
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        # A dependency, psutil, fails to install on Python 3.9
+        # https://github.com/ashishb/adb-enhanced/actions/runs/4309805993/jobs/7517607875
+        python-version: [3.7, 3.8, 3.11]
     steps:
       - name: checkout
         uses: actions/checkout@v2
