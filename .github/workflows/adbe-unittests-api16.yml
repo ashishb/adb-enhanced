@@ -27,21 +27,47 @@ jobs:
     runs-on: macos-latest
     # This test is slower compared to the other tests
     timeout-minutes: 20
+
     strategy:
       matrix:
         # https://github.com/ashishb/adb-enhanced/pull/100/checks?check_run_id=492546108
         api-level: [16]  # 15 and 19 don't work
         target: [default] # Other option: google_apis
+
     steps:
       - name: checkout
         uses: actions/checkout@v3
-      - name: run tests
+
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
+
+      - name: AVD cache
+        uses: actions/cache@v3
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ matrix.api-level }}
+
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
+
+      - name: Run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
           target: ${{ matrix.target }}
-          arch: x86
-          profile: Nexus 6
           script: |
             python3 -m pip install --upgrade pip
             python3 -m pip install --user -r requirements.txt
