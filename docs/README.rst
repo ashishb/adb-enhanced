@@ -20,6 +20,8 @@ A command-line interface to trigger various scenarios like screen
 rotation, battery saver mode, data saver mode, doze mode, permission
 grant/revocation. Its a wrapper around ``adb`` and not a replacement.
 
+|asciicast|
+
 Release announcement
 --------------------
 
@@ -257,6 +259,7 @@ Usage
    adbe [options] disable wireless debugging
    adbe [options] screen (on | off | toggle)
    adbe [options] alarm (all | top | pending | history)
+   adbe [options] location (on | off)
 
 Options
 ~~~~~~~
@@ -342,3 +345,5 @@ Note: The inspiration of this project came from
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api28.yml
 .. |AdbeUnitTests-Api29| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml/badge.svg
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml
+.. |asciicast| image:: https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK.png
+   :target: https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK
