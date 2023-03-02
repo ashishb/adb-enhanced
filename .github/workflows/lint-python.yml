@@ -7,6 +7,12 @@ on:
       - 'Makefile'
       - '**/*.py'
       - '.github/workflows/lint-python.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'Makefile'
+      - '**/*.py'
+      - '.github/workflows/lint-python.yml'
 
 
 concurrency:

@@ -9,6 +9,14 @@ on:
       - 'adbe/*'
       - 'tests/*'
       - '.github/workflows/adbe-unittests-api16.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'Makefile'
+      - 'requirements.txt'
+      - 'adbe/*'
+      - 'tests/*'
+      - '.github/workflows/adbe-unittests-api16.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
