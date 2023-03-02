@@ -1,13 +1,21 @@
-name: InstallAdbeTest
+name: Verify that package can be installed on Python
 
-on: [push]
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'requirements.txt'
+      - 'setup.py'
+      - 'setup.cfg'
+      - 'adbe/*'
+      - '.github/workflows/install-adbe.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
+  installAdbe:
     runs-on: macos-latest
     timeout-minutes: 15
     strategy:
