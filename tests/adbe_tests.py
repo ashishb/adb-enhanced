@@ -189,12 +189,19 @@ def test_permissions_grant_revoke():
     _assert_fail('permissions revoke %s %s' % (_TEST_NON_EXISTANT_APP_ID, 'sms'))
 
 
+# Cache the SDK version after first use
+_sdk_version = None
+
 def _get_device_sdk_version():
+    global _sdk_version
+    # Return the cached value, if available
+    if _sdk_version is not None:
+        return _sdk_version
     stdout_data, _ = _assert_success('devices')
     regex_result = re.search('SDK version: ([0-9]+)', stdout_data)
     assert regex_result is not None
-    sdk_version = int(regex_result.group(1))
-    return sdk_version
+    _sdk_version = int(regex_result.group(1))
+    return _sdk_version
 
 
 def test_apps():
