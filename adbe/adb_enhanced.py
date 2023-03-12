@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -208,6 +209,20 @@ def handle_layout(value):
 
 # Source: https://stackoverflow.com/questions/10506591/turning-airplane-mode-on-via-adb
 def handle_airplane(turn_on):
+    state = (1 if turn_on else 0)
+    return_code, su_path, _ = execute_adb_shell_command2("which su")
+    if not return_code and su_path and len(su_path):
+        cmd = 'put global airplane_mode_on %d' % state
+        broadcast_change_cmd = 'am broadcast -a android.intent.action.AIRPLANE_MODE'
+        # This is a protected intent which would require root to run
+        # https://developer.android.com/reference/android/content/Intent.html#ACTION_AIRPLANE_MODE_CHANGED
+        broadcast_change_cmd = 'su root %s' % broadcast_change_cmd
+        execute_adb_shell_settings_command2(cmd)
+        return_code, _, _ = execute_adb_shell_command2(broadcast_change_cmd)
+        if return_code != 0:
+            print_error_and_exit('Failed to change airplane mode')
+        return
+
     return_code_wifi, output_wifi, _ = execute_adb_shell_settings_command2("get global wifi_on")
     return_code_data, output_data, _ = execute_adb_shell_settings_command2("get global mobile_data")
 
@@ -220,8 +235,8 @@ def handle_airplane(turn_on):
         return _USER_PRINT_VALUE_UNKNOWN
 
     if turn_on:
-        return_code_wifi, _, _ = execute_adb_shell_settings_command2("put global adbe_wifi " + output_wifi)
-        return_code_data, _, _ = execute_adb_shell_settings_command2("put global adbe_data " + output_data)
+        return_code_wifi, _, _ = execute_adb_shell_settings_command2("put global adbe_wifi %s" % output_wifi)
+        return_code_data, _, _ = execute_adb_shell_settings_command2("put global adbe_data %s" % output_data)
         return_code_airplane, _, _ = execute_adb_shell_settings_command2("put global airplane_mode_on 1")
 
         if return_code_wifi != 0 or return_code_data != 0 or return_code_airplane != 0:
