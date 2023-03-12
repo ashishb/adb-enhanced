@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import re
-import shutil
 import signal
 import subprocess
 import sys
