@@ -221,7 +221,7 @@ def handle_airplane(turn_on):
         return_code, _, _ = execute_adb_shell_command2(broadcast_change_cmd)
         if return_code != 0:
             print_error_and_exit('Failed to change airplane mode')
-        return
+        return _USER_PRINT_VALUE_UNKNOWN
 
     return_code_wifi, output_wifi, _ = execute_adb_shell_settings_command2("get global wifi_on")
     return_code_data, output_data, _ = execute_adb_shell_settings_command2("get global mobile_data")
