@@ -100,7 +100,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 * Detailed device info including model name, Android API version etc, device serial
 
-  ```
+  ```bash
   $ adbe devices
   Unlock Device "dcc54112" and give USB debugging access to this PC/Laptop by unlocking and reconnecting the device. More info about this device: "unauthorized usb:339869696X transport_id:17"
 
@@ -123,7 +123,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 * Detailed information about app version, target SDK version, permissions (requested, granted, denied), installer package name, etc.
 
-  ```
+  ```bash
   $ adbe app info com.google.android.youtube
   App name: com.google.android.youtube
   Version: 12.17.41
@@ -177,7 +177,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 * App backup to a tar file unlike the Android-specific .ab format
 
-  ```
+  ```bash
   $ adbe app backup com.google.android.youtube backup.tar
   you might have to confirm the backup manually on your device's screen, enter "00" as password...
   Successfully backed up data of app com.google.android.youtube to backup.tar
@@ -269,7 +269,7 @@ adbe [options] location (on | off)
 
 ## Testing
 
-```
+```bash
 make lint
 make test
 ```
@@ -282,7 +282,12 @@ Build a production release via `make release_production`
 
 ## Updating docs for ReadTheDocs
 
-`pandoc --from=markdown --to=rst --output=docs/README.rst README.md && cd docs && make html`
+```bash
+make documentation
+```
+
+Note that this happens automatically during `make release_production`.
+
 You will have to do `brew install pandoc` if you are missing pandoc.
 
 Note: The inspiration of this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
