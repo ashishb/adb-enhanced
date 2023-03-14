@@ -15,6 +15,8 @@ _DOZE_MODE_ANDROID_VERSION = 23
 _RUNTIME_PERMISSIONS_SUPPORTED = 23
 # Dark mode was added in API 29
 _DARK_MODE_ANDROID_VERSION = 29
+# The command to change location does not work below API 29
+_LOCATION_CHANGE_ANDROID_VERSION = 29
 
 _PYTHON_CMD = 'python'
 if sys.version_info >= (3, 0):
@@ -187,12 +189,19 @@ def test_permissions_grant_revoke():
     _assert_fail('permissions revoke %s %s' % (_TEST_NON_EXISTANT_APP_ID, 'sms'))
 
 
+# Cache the SDK version after first use
+_sdk_version = None
+
 def _get_device_sdk_version():
+    global _sdk_version
+    # Return the cached value, if available
+    if _sdk_version is not None:
+        return _sdk_version
     stdout_data, _ = _assert_success('devices')
     regex_result = re.search('SDK version: ([0-9]+)', stdout_data)
     assert regex_result is not None
-    sdk_version = int(regex_result.group(1))
-    return sdk_version
+    _sdk_version = int(regex_result.group(1))
+    return _sdk_version
 
 
 def test_apps():
@@ -443,6 +452,15 @@ def test_notifications():
     _assert_success('notifications list')
 
 
+def test_location():
+    if _get_device_sdk_version() >= _LOCATION_CHANGE_ANDROID_VERSION:
+        check = _assert_success
+    else:
+        check = _assert_fail
+    check("location on")
+    check("location off")
+
+
 def _assert_fail(sub_cmd):
     exit_code, stdout_data, stderr_data = _execute(sub_cmd)
     assert exit_code == 1, 'Command "%s" failed with stdout: "%s" and stderr: "%s"' %(sub_cmd, stdout_data, stderr_data)
@@ -531,6 +549,7 @@ def main():
     test_wireless()
     test_screen_toggle()
     test_notifications()
+    test_location()
     # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
 
 

@@ -1,13 +1,33 @@
 name: AdbeInstallTests
 
-on: [push]
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'Makefile'
+      - 'requirements.txt'
+      - 'setup.py'
+      - 'setup.cfg'
+      - 'adbe/*'
+      - 'tests/*'
+      - '.github/workflows/adbe-installtests.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'Makefile'
+      - 'requirements.txt'
+      - 'setup.py'
+      - 'setup.cfg'
+      - 'adbe/*'
+      - 'tests/*'
+      - '.github/workflows/adbe-installtests.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
+  testOnAndroidDevice:
     runs-on: macos-latest
     timeout-minutes: 15
     strategy:
@@ -16,7 +36,7 @@ jobs:
         target: [default]  # Other option: google_apis
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:

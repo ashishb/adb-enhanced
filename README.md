@@ -1,6 +1,10 @@
 # ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
 
-[![Lint](https://github.com/ashishb/adb-enhanced/actions/workflows/lint.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint.yml) [![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml)
+[![Lint](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yml)
+[![Lint Markdown](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml)
+[![Lint YAML](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml)
+
+[![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml)
 
 [![AdbeInstallTests](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml) [![AdbeUnitTests](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml)
 
@@ -19,7 +23,7 @@
 
 ADB-Enhanced is a Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation. Its a wrapper around `adb` and not a replacement.
 
-<a href="https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK?theme=asciinema&rows=30&autoplay=1"><img src="https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK.png" width="836"/></a>
+[![asciicast](https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK.png)](https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK)
 
 ## Release announcement
 
@@ -238,6 +242,7 @@ adbe [options] enable wireless debugging
 adbe [options] disable wireless debugging
 adbe [options] screen (on | off | toggle)
 adbe [options] alarm (all | top | pending | history)
+adbe [options] location (on | off)
 ```
 
 ### Options

@@ -1,13 +1,26 @@
-name: Lint
+name: Lint Python
 
-on: [push]
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'Makefile'
+      - '**/*.py'
+      - '.github/workflows/lint-python.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'Makefile'
+      - '**/*.py'
+      - '.github/workflows/lint-python.yml'
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
+  lintPython:
     runs-on: macos-latest
     timeout-minutes: 15
     strategy:
@@ -15,7 +28,7 @@ jobs:
         python-version: [3.7]
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1

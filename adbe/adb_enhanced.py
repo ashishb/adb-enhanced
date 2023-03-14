@@ -53,6 +53,7 @@ except ImportError:
 _KEYCODE_BACK = 4
 _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 _MIN_API_FOR_DARK_MODE = 29
+_MIN_API_FOR_LOCATION = 29
 
 _REGEX_BACKUP_ALLOWED = '(pkgFlags|flags).*ALLOW_BACKUP'
 _REGEX_DEBUGGABLE = '(pkgFlags|flags).*DEBUGGABLE'
@@ -2101,6 +2102,14 @@ def alarm_manager(param):
         else:
             print_error(err_msg_api)
 
+
+def toggle_location(turn_on):
+    _error_if_min_version_less_than(_MIN_API_FOR_LOCATION)
+    if turn_on:
+        cmd = 'put secure location_mode 3'
+    else:
+        cmd = 'put secure location_mode 0'
+    execute_adb_shell_settings_command(cmd)
 
 # This permissions group seems to have been removed in API 29 and beyond.
 # https://github.com/ashishb/adb-enhanced/runs/1799363523?check_suite_focus=true
