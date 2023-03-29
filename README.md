@@ -19,6 +19,8 @@
 [![AdbeUnitTests-Api28](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api28.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api28.yml)
 [![AdbeUnitTests-Api29](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml)
 
+[![Packaging status](https://repology.org/badge/vertical-allrepos/python:adb-enhanced.svg)](https://repology.org/project/python:adb-enhanced/versions)
+
 ![Logo](docs/logo.png)
 
 ADB-Enhanced is a Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation. Its a wrapper around `adb` and not a replacement.
@@ -36,8 +38,8 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 ## Note
 
 1. `sudo pip install adb-enhanced` for python2 based install works as well but, I would recommend moving to python3 since I will deprecate python2 support anytime after Dec 31, 2018.
-2. If you don't have sudo access or you are installing without sudo then `adbe` might not be configured correctly in the path.
-3. To setup bash/z-sh auto-completion, execute `sudo pip3 install infi.docopt-completion && docopt-completion $(which adbe)` after installing adb-enhanced.
+1. If you don't have sudo access or you are installing without sudo then `adbe` might not be configured correctly in the path.
+1. To setup bash/z-sh auto-completion, execute `sudo pip3 install infi.docopt-completion && docopt-completion $(which adbe)` after installing adb-enhanced.
 
 ## Examples
 
