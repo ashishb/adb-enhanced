@@ -40,11 +40,10 @@ Usage:
     adbe [options] clear-data <app_name>
     adbe [options] dark mode (on | off)
     adbe [options] devices
-    adbe [options] disable wireless debugging
+    adbe [options] (enable | disable) wireless debugging
     adbe [options] dont-keep-activities (on | off)
     adbe [options] doze (on | off)
     adbe [options] dump-ui <xml_file>
-    adbe [options] enable wireless debugging
     adbe [options] force-stop <app_name>
     adbe [options] gfx (on | off | lines)
     adbe [options] input-text <text>
