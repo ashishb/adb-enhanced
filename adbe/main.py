@@ -20,7 +20,9 @@ except (ImportError, ModuleNotFoundError):
 
 # List of things which this enhanced adb tool does as of today.
 USAGE_STRING = """
-Swiss-army knife for Android testing and development.
+ADB-Enhanced (adbe) by Ashish Bhatia
+https://github.com/ashishb/adb-enhanced
+Swiss-army knife for Android testing and development
 
 Usage:
     adbe [options] airplane (on | off)
