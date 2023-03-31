@@ -1,7 +1,9 @@
 ADB Enhanced |Downloads| |PyPI version|
 =======================================
 
-|Lint| |InstallAdbeTest|
+|Lint| |Lint Markdown| |Lint YAML|
+
+|InstallAdbeTest|
 
 |AdbeInstallTests| |AdbeUnitTests|
 
@@ -9,6 +11,8 @@ ADB Enhanced |Downloads| |PyPI version|
 |AdbeUnitTests-Api23| |AdbeUnitTests-Api24| |AdbeUnitTests-Api25|
 |AdbeUnitTests-Api26| |AdbeUnitTests-Api27| |AdbeUnitTests-Api28|
 |AdbeUnitTests-Api29|
+
+|Packaging status|
 
 .. figure:: docs/logo.png
    :alt: Logo
@@ -112,7 +116,7 @@ Device info
 -  Detailed device info including model name, Android API version etc,
    device serial
 
-   ::
+   .. code:: bash
 
       $ adbe devices
       Unlock Device "dcc54112" and give USB debugging access to this PC/Laptop by unlocking and reconnecting the device. More info about this device: "unauthorized usb:339869696X transport_id:17"
@@ -138,7 +142,7 @@ App info
    permissions (requested, granted, denied), installer package name,
    etc.
 
-   ::
+   .. code:: bash
 
       $ adbe app info com.google.android.youtube
       App name: com.google.android.youtube
@@ -192,7 +196,7 @@ App info
 
 -  App backup to a tar file unlike the Android-specific .ab format
 
-   ::
+   .. code:: bash
 
       $ adbe app backup com.google.android.youtube backup.tar
       you might have to confirm the backup manually on your device's screen, enter "00" as password...
@@ -291,7 +295,7 @@ Python3 migration timeline
 Testing
 -------
 
-::
+.. code:: bash
 
    make lint
    make test
@@ -307,7 +311,12 @@ production release via ``make release_production``
 Updating docs for ReadTheDocs
 -----------------------------
 
-``pandoc --from=markdown --to=rst --output=docs/README.rst README.md && cd docs && make html``
+.. code:: bash
+
+   make documentation
+
+Note that this happens automatically during ``make release_production``.
+
 You will have to do ``brew install pandoc`` if you are missing pandoc.
 
 Note: The inspiration of this project came from
@@ -317,8 +326,12 @@ Note: The inspiration of this project came from
    :target: http://pepy.tech/project/adb-enhanced
 .. |PyPI version| image:: https://badge.fury.io/py/adb-enhanced.svg
    :target: https://badge.fury.io/py/adb-enhanced
-.. |Lint| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/lint.yml/badge.svg
-   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/lint.yml
+.. |Lint| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yml
+.. |Lint Markdown| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml
+.. |Lint YAML| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml
 .. |InstallAdbeTest| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml/badge.svg
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml
 .. |AdbeInstallTests| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml/badge.svg
@@ -345,5 +358,7 @@ Note: The inspiration of this project came from
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api28.yml
 .. |AdbeUnitTests-Api29| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml/badge.svg
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml
+.. |Packaging status| image:: https://repology.org/badge/vertical-allrepos/python:adb-enhanced.svg
+   :target: https://repology.org/project/python:adb-enhanced/versions
 .. |asciicast| image:: https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK.png
    :target: https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK
