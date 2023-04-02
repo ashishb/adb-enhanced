@@ -119,11 +119,11 @@ def main():
     if _using_python2():
         _fail_with_python2_warning()
 
-    args = docopt.docopt(USAGE_STRING, version=get_version())
+    args = docopt.docopt(USAGE_STRING, version=_get_version())
     set_verbose(args['--verbose'])
 
-    validate_options(args)
-    options = get_generic_options_from_args(args)
+    _validate_options(args)
+    options = _get_generic_options_from_args(args)
     if options:
         adb_prefix = '%s %s' % (adb_helper.get_adb_prefix(), options)
         adb_helper.set_adb_prefix(adb_prefix)
@@ -355,7 +355,7 @@ def main():
         print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 
 
-def validate_options(args):
+def _validate_options(args):
     count = 0
     if args['--emulator']:
         count += 1
@@ -367,7 +367,7 @@ def validate_options(args):
         print_error_and_exit('Only one out of -e, -d, or -s can be provided')
 
 
-def get_generic_options_from_args(args):
+def _get_generic_options_from_args(args):
     options = ''
     if args['--emulator']:
         options += '-e '
@@ -378,7 +378,7 @@ def get_generic_options_from_args(args):
     return options
 
 
-def get_version():
+def _get_version():
     dir_of_this_script = os.path.split(__file__)[0]
     version_file_path = os.path.join(dir_of_this_script, _VERSION_FILE_NAME)
     with open(version_file_path, 'r', encoding='UTF-8') as file_handle:
