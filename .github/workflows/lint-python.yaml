@@ -6,13 +6,13 @@ on:
     paths:
       - 'Makefile'
       - '**/*.py'
-      - '.github/workflows/lint-python.yml'
+      - '.github/workflows/lint-python.yaml'
   pull_request:
     branches: [master, main]
     paths:
       - 'Makefile'
       - '**/*.py'
-      - '.github/workflows/lint-python.yml'
+      - '.github/workflows/lint-python.yaml'
 
 
 concurrency:
@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   lintPython:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       matrix:
@@ -31,11 +31,19 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Lint
         run: |
           pip install -r requirements.txt
-          pip install pylint
+          pip install pylint flake8
           make lint_python3
