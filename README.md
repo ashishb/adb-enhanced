@@ -1,6 +1,6 @@
 # ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
 
-[![Lint](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yml)
+[![Lint Python](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml)
 [![Lint Markdown](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml)
 [![Lint YAML](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml)
 
