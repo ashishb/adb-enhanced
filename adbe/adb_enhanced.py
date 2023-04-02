@@ -1027,7 +1027,7 @@ def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions)
         print_message('%s %s permission to %s' % (action_display_name, permission, package_name))
         execute_adb_shell_command(base_cmd + ' ' + permission)
     if num_permissions_granted == 0:
-        print_error_and_exit('None of these permissions were granted to %s: %s' %(package_name, permissions))
+        print_error_and_exit('None of these permissions were granted to %s: %s' % (package_name, permissions))
 
 
 def _get_all_packages(pm_cmd):
@@ -2110,6 +2110,7 @@ def toggle_location(turn_on):
     else:
         cmd = 'put secure location_mode 0'
     execute_adb_shell_settings_command(cmd)
+
 
 # This permissions group seems to have been removed in API 29 and beyond.
 # https://github.com/ashishb/adb-enhanced/runs/1799363523?check_suite_focus=true
