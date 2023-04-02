@@ -1584,9 +1584,9 @@ def _get_permissions_info_above_api_23(app_info_dump):
             runtime_denied_permissions.append(permission)
     runtime_not_granted_permissions = list(filter(
         lambda p: p not in runtime_granted_permissions and
-                  p not in runtime_denied_permissions and
-                  p not in install_time_granted_permissions and
-                  p not in install_time_denied_permissions, requested_permissions))
+        p not in runtime_denied_permissions and
+        p not in install_time_granted_permissions and
+        p not in install_time_denied_permissions, requested_permissions))
 
     permissions_info_msg = ''
     permissions_info_msg += '\nPermissions:\n\n'
