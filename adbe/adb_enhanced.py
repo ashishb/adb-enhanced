@@ -1543,38 +1543,19 @@ def _get_permissions_info_below_api_23(app_info_dump):
 
 
 # API 23 and have runtime permissions
-def _get_permissions_info_above_api_23(app_info_dump):
-    requested_permissions_regex = \
-        re.search('requested permissions:(.*?)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
-    if requested_permissions_regex is None:
-        requested_permissions_regex = re.search('requested permissions:(.*?)runtime permissions:', app_info_dump,
-                                                re.IGNORECASE | re.DOTALL)
-    if requested_permissions_regex is None:
-        requested_permissions = []  # No permissions requested by the app.
-    else:
-        requested_permissions = requested_permissions_regex.group(1).split('\n')
-    install_time_permissions_regex = re.search('install permissions:(.*?)runtime permissions:', app_info_dump,
-                                               re.IGNORECASE | re.DOTALL)
-    if install_time_permissions_regex is None:
-        install_time_permissions_string = []
-    else:
-        install_time_permissions_string = install_time_permissions_regex.group(1).split('\n')
-    # Remove empty entries
-    requested_permissions = list(filter(None, requested_permissions))
-    install_time_permissions_string = filter(None, install_time_permissions_string)
-    install_time_granted_permissions = []
-    install_time_denied_permissions = []  # This will most likely remain empty
-    for permission_string in install_time_permissions_string:
-        if permission_string.find('granted=true') >= 0:
-            permission, _ = permission_string.split(':')
-            install_time_granted_permissions.append(permission)
-        elif permission_string.find('granted=false') >= 0:
-            permission, _ = permission_string.split(':')
-            install_time_denied_permissions.append(permission)
+def _get_permissions_info_above_api_23(app_info_dump: str):
+    requested_permissions = _extract_requested_permissions_above_api_23(app_info_dump)
+
+    install_time_permissions_string = _extract_install_time_permissions_above_api_23(app_info_dump)
+    install_time_denied_permissions, install_time_granted_permissions = \
+        _get_install_time_granted_denied_permissions(install_time_permissions_string)
+
     runtime_denied_permissions = []
     runtime_granted_permissions = []
     for permission in requested_permissions:
-        if permission in install_time_granted_permissions or permission in install_time_denied_permissions:
+        if permission in install_time_granted_permissions:
+            continue
+        if permission in install_time_denied_permissions:
             continue
         granted_pattern = '%s: granted=true' % permission
         denied_pattern = '%s: granted=false' % permission
@@ -1606,6 +1587,49 @@ def _get_permissions_info_above_api_23(app_info_dump):
         permissions_info_msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(
             runtime_not_granted_permissions)
     return permissions_info_msg
+
+
+def _get_install_time_granted_denied_permissions(
+        install_time_permissions_string: typing.List[str]) -> typing.Tuple[typing.List[str], typing.List[str]]:
+    granted_permissions = []
+    # This will most likely remain empty
+    denied_permissions = []
+    for permission_string in install_time_permissions_string:
+        if permission_string.find('granted=true') >= 0:
+            permission, _ = permission_string.split(':')
+            granted_permissions.append(permission)
+        elif permission_string.find('granted=false') >= 0:
+            permission, _ = permission_string.split(':')
+            denied_permissions.append(permission)
+    return denied_permissions, granted_permissions
+
+
+def _extract_requested_permissions_above_api_23(app_info_dump: str) -> typing.Optional[typing.List[str]]:
+    requested_permissions_regex = \
+        re.search('requested permissions:(.*?)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+    # Fallback
+    if requested_permissions_regex is None:
+        requested_permissions_regex = re.search(
+            'requested permissions:(.*?)runtime permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+
+    if requested_permissions_regex is None:
+        # No permissions requested by the app
+        return []
+    else:
+        requested_permissions = requested_permissions_regex.group(1).split('\n')
+        # Remove empty entries
+        return list(filter(None, requested_permissions))
+
+
+def _extract_install_time_permissions_above_api_23(app_info_dump: str) -> typing.Optional[typing.List[str]]:
+    install_time_permissions_regex = re.search(
+        'install permissions:(.*?)runtime permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+    if install_time_permissions_regex is None:
+        return []
+    else:
+        install_time_permissions_string = install_time_permissions_regex.group(1).split('\n')
+        # Remove empty entries
+        return list(filter(None, install_time_permissions_string))
 
 
 def _get_apk_path(app_name):
