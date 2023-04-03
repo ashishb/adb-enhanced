@@ -18,6 +18,7 @@
 [![AdbeUnitTests-Api27](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api27.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api27.yml)
 [![AdbeUnitTests-Api28](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api28.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api28.yml)
 [![AdbeUnitTests-Api29](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml)
+[![AdbeUnitTests-Api31](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api31.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api31.yml)
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/python:adb-enhanced.svg)](https://repology.org/project/python:adb-enhanced/versions)
 
