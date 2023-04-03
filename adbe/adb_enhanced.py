@@ -199,7 +199,7 @@ def get_current_rotation_direction():
         print_error("Failed to get direction, error: \"%s\"" % e)
 
 
-def handle_layout(value):
+def handle_layout(value: bool):
     if value:
         cmd = 'setprop debug.layout true'
     else:
@@ -208,7 +208,7 @@ def handle_layout(value):
 
 
 # Source: https://stackoverflow.com/questions/10506591/turning-airplane-mode-on-via-adb
-def handle_airplane(turn_on):
+def handle_airplane(turn_on: bool):
     state = (1 if turn_on else 0)
     return_code, su_path, _ = execute_adb_shell_command2("which su")
     if not return_code and su_path and len(su_path):
@@ -290,7 +290,7 @@ def get_battery_saver_state():
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 @partial(print_state_change_decorator, title="Battery saver", get_state_func=get_battery_saver_state)
-def handle_battery_saver(turn_on):
+def handle_battery_saver(turn_on: bool):
     _error_if_min_version_less_than(19)
     if turn_on:
         cmd = 'put global low_power 1'
@@ -312,7 +312,7 @@ def handle_battery_saver(turn_on):
 
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
-def handle_battery_level(level):
+def handle_battery_level(level: int):
     _error_if_min_version_less_than(19)
     if level < 0 or level > 100:
         print_error_and_exit(
@@ -335,7 +335,7 @@ def handle_battery_reset():
 
 
 # https://developer.android.com/training/monitoring-device-state/doze-standby.html
-def handle_doze(turn_on):
+def handle_doze(turn_on: bool):
     _error_if_min_version_less_than(23)
 
     enable_idle_mode_cmd = 'dumpsys deviceidle enable'
@@ -583,7 +583,7 @@ def get_wifi_state():
 
 
 @partial(print_state_change_decorator, title="Wi-Fi", get_state_func=get_wifi_state)
-def set_wifi(turn_on):
+def set_wifi(turn_on: bool):
     if turn_on:
         cmd = 'svc wifi enable'
     else:
@@ -596,7 +596,7 @@ def set_wifi(turn_on):
 # Source:
 # https://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later
 @partial(print_state_change_decorator, title="Mobile data", get_state_func=get_mobile_data_state)
-def handle_mobile_data(turn_on):
+def handle_mobile_data(turn_on: bool):
     if turn_on:
         cmd = 'svc data enable'
     else:
@@ -606,7 +606,7 @@ def handle_mobile_data(turn_on):
         print_error_and_exit('Failed to change mobile data setting')
 
 
-def force_rtl(turn_on):
+def force_rtl(turn_on: bool):
     _error_if_min_version_less_than(19)
     if turn_on:
         cmd = 'put global debug.force_rtl 1'
@@ -701,7 +701,7 @@ def get_mobile_data_saver_state():
 
 # https://developer.android.com/training/basics/network-ops/data-saver.html
 @partial(print_state_change_decorator, title="Mobile data saver", get_state_func=get_mobile_data_saver_state)
-def handle_mobile_data_saver(turn_on):
+def handle_mobile_data_saver(turn_on: bool):
     if turn_on:
         cmd = 'cmd netpolicy set restrict-background true'
     else:
@@ -734,7 +734,7 @@ def get_dont_keep_activities_in_background_state():
 @partial(print_state_change_decorator,
          title="Don\'t keep activities",
          get_state_func=get_dont_keep_activities_in_background_state)
-def handle_dont_keep_activities_in_background(turn_on):
+def handle_dont_keep_activities_in_background(turn_on: bool):
     # Till Api 25, the value was True/False, above API 25, 1/0 work. Source: manual testing
     use_true_false_as_value = get_device_android_api_version() <= 25
 
@@ -750,7 +750,7 @@ def handle_dont_keep_activities_in_background(turn_on):
     execute_adb_shell_command_and_poke_activity_service(cmd2)
 
 
-def toggle_animations(turn_on):
+def toggle_animations(turn_on: bool):
     if turn_on:
         value = 1
     else:
@@ -782,7 +782,7 @@ def get_show_taps_state():
 
 
 @partial(print_state_change_decorator, title="Show user taps", get_state_func=get_show_taps_state)
-def toggle_show_taps(turn_on):
+def toggle_show_taps(turn_on: bool):
     if turn_on:
         value = 1
     else:
@@ -811,7 +811,7 @@ def get_stay_awake_while_charging_state():
 @partial(print_state_change_decorator,
          title="Stay awake while charging",
          get_state_func=get_stay_awake_while_charging_state)
-def stay_awake_while_charging(turn_on):
+def stay_awake_while_charging(turn_on: bool):
     if turn_on:
         # 1 for USB charging, 2 for AC charging, 4 for wireless charging. Or them together to get 7.
         value = 7
@@ -858,7 +858,7 @@ def list_permission_groups():
         print_message(stdout)
 
 
-def list_permissions(dangerous_only_permissions):
+def list_permissions(dangerous_only_permissions: bool):
     # -g is to group permissions by permission groups.
     if dangerous_only_permissions:
         # -d => dangerous only permissions
