@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import sys
 import os
+import sys
+import typing
 
 import docopt
-
 
 try:
     # First try local import for development
@@ -119,7 +119,7 @@ def main():
     if _using_python2():
         _fail_with_python2_warning()
 
-    args = docopt.docopt(USAGE_STRING, version=_get_version())
+    args: typing.Dict[str, typing.Any] = docopt.docopt(USAGE_STRING, version=_get_version())
     set_verbose(args['--verbose'])
 
     _validate_options(args)
@@ -128,231 +128,197 @@ def main():
         adb_prefix = '%s %s' % (adb_helper.get_adb_prefix(), options)
         adb_helper.set_adb_prefix(adb_prefix)
 
-    # rotate
-    if args['rotate'] and args['portrait']:
-        adb_enhanced.handle_rotate('portrait')
-    elif args['rotate'] and args['landscape']:
-        adb_enhanced.handle_rotate('landscape')
-    elif args['rotate'] and args['left']:
-        adb_enhanced.handle_rotate('left')
-    elif args['rotate'] and args['right']:
-        adb_enhanced.handle_rotate('right')
+    action_dict = _get_actions(args)
 
-    # gfx
-    elif args['gfx'] and args['on']:
-        adb_enhanced.handle_gfx('on')
-    elif args['gfx'] and args['off']:
-        adb_enhanced.handle_gfx('off')
-    elif args['gfx'] and args['lines']:
-        adb_enhanced.handle_gfx('lines')
+    for keys, action in action_dict.items():
+        all_keys_match = True
+        for key in keys:
+            if not args[key]:
+                all_keys_match = False
+                break
+        if all_keys_match:
+            action()
+            sys.exit(0)
 
-    # overdraw
-    elif args['overdraw'] and args['on']:
-        adb_enhanced.handle_overdraw('on')
-    elif args['overdraw'] and args['off']:
-        adb_enhanced.handle_overdraw('off')
-    elif args['overdraw'] and args['deut']:
-        adb_enhanced.handle_overdraw('deut')
+    print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
 
-    elif args['layout']:
-        adb_enhanced.handle_layout(args['on'])
-    elif args['airplane']:  # This command does not always work
-        adb_enhanced.handle_airplane(args['on'])
 
-    # battery
-    elif args['battery'] and args['saver']:
-        adb_enhanced.handle_battery_saver(args['on'])
-    elif args['battery'] and args['level']:
-        adb_enhanced.handle_battery_level(int(args['<percentage>']))
-    elif args['battery'] and args['reset']:
-        adb_enhanced.handle_battery_reset()
+def _get_actions(args: typing.Dict[str, typing.Any]) -> typing.Dict[typing.Tuple[str, str], typing.Callable]:
+    app_name = args['<app_name>']
+    return {
+        # Airplane mode
+        ('airplane', 'on'): lambda: adb_enhanced.handle_airplane(True),
+        ('airplane', 'off'): lambda: adb_enhanced.handle_airplane(False),
 
-    elif args['doze']:
-        adb_enhanced.handle_doze(args['on'])
-    elif args['jank']:
-        adb_enhanced.handle_get_jank(args['<app_name>'])
-    elif args['devices']:
-        adb_enhanced.handle_list_devices()
-    elif args['top-activity']:
-        adb_enhanced.print_top_activity()
-    elif args['dump-ui']:
-        adb_enhanced.dump_ui(args['<xml_file>'])
-    elif args['force-stop']:
-        app_name = args['<app_name>']
-        adb_enhanced.force_stop(app_name)
-    elif args['clear-data']:
-        app_name = args['<app_name>']
-        adb_enhanced.clear_disk_data(app_name)
+        # Alarm
+        ('alarm', 'all'): lambda: adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.ALL),
+        ('alarm', 'history'): lambda: adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.HISTORY),
+        ('alarm', 'pending'): lambda: adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.PENDING),
+        ('alarm', 'top'): lambda: adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.TOP),
 
-    # mobile-data
-    elif args['mobile-data'] and args['saver']:
-        adb_enhanced.handle_mobile_data_saver(args['on'])
-    elif args['mobile-data']:
-        adb_enhanced.handle_mobile_data(args['on'])
+        # Animations
+        ('animations', 'on'): lambda: adb_enhanced.toggle_animations(True),
+        ('animations', 'off'): lambda: adb_enhanced.toggle_animations(False),
 
-    elif args['wifi']:
-        adb_enhanced.set_wifi(args['on'])
+        # App-related misc
+        ('app', 'backup'): lambda: _perform_backup(app_name, args['<backup_tar_file_path>']),
+        ('app', 'info'): lambda: adb_enhanced.print_app_info(app_name),
+        ('app', 'path'): lambda: adb_enhanced.print_app_path(app_name),
+        ('app', 'signature'): lambda: adb_enhanced.print_app_signature(app_name),
 
-    elif args['rtl']:  # This is not working as expected
-        adb_enhanced.force_rtl(args['on'])
-    elif args['screenshot']:
-        adb_enhanced.dump_screenshot(args['<filename.png>'])
-    elif args['screenrecord']:
-        adb_enhanced.dump_screenrecord(args['<filename.mp4>'])
-    elif args['dont-keep-activities']:
-        adb_enhanced.handle_dont_keep_activities_in_background(args['on'])
-    elif args['animations']:
-        adb_enhanced.toggle_animations(args['on'])
-    elif args['show-taps']:
-        adb_enhanced.toggle_show_taps(args['on'])
-    elif args['stay-awake-while-charging']:
-        # Keep screen on while the device is charging.
-        adb_enhanced.stay_awake_while_charging(args['on'])
-    elif args['input-text']:
-        adb_enhanced.input_text(args['<text>'])
-    elif args['back']:
-        adb_enhanced.press_back()
-    elif args['open-url']:
-        url = args['<url>']
-        adb_enhanced.open_url(url)
-    elif args['permission-groups'] and args['list'] and args['all']:
-        adb_enhanced.list_permission_groups()
-    elif args['permissions'] and args['list']:
-        adb_enhanced.list_permissions(args['dangerous'])
-    elif args['permissions']:
-        app_name = args['<app_name>']
-        permission_group = adb_enhanced.get_permission_group(args)
+        # App listing
+        ('apps', 'list', 'all'): adb_enhanced.print_list_all_apps,
+        ('apps', 'list', 'system'): adb_enhanced.list_system_apps,
+        ('apps', 'list', 'third-party'): adb_enhanced.print_list_non_system_apps,
+        ('apps', 'list', 'debug'): adb_enhanced.print_list_debug_apps,
+        ('apps', 'list', 'backup-enabled'): adb_enhanced.print_allow_backup_apps,
 
-        permissions = adb_enhanced.get_permissions_in_permission_group(permission_group)
-        if not permissions and \
-                adb_enhanced.is_permission_group_unavailable_after_api_29(permission_group) and \
-                adb_enhanced.get_device_android_api_version() >= 29:
-            print_error_and_exit('Android has made contacts group empty on API 29 and beyond, '
-                                 'your device version is %d' %
-                                 adb_enhanced.get_device_android_api_version())
-        elif not permissions:
-            print_error_and_exit('No permissions found in permissions group: %s' % permission_group)
-        adb_enhanced.grant_or_revoke_runtime_permissions(
-            app_name, args['grant'], permissions)
+        # Input-related
+        ('back',): adb_enhanced.press_back,
+        ('input-text',): lambda: adb_enhanced.input_text(args['<text>']),
+        ('open-url',): lambda: adb_enhanced.open_url(args['<url>']),
 
-    elif args['notifications'] and args['list']:
-        adb_enhanced.print_notifications()
+        # Battery-related
+        ('battery', 'level'): lambda: adb_enhanced.handle_battery_level(int(args['<percentage>'])),
+        ('battery', 'reset'): adb_enhanced.handle_battery_reset,
+        ('battery', 'saver', 'on'): lambda: adb_enhanced.handle_battery_saver(True),
+        ('battery', 'saver', 'off'): lambda: adb_enhanced.handle_battery_saver(False),
+        ('cat',): lambda: adb_enhanced.cat_file(args['<file_path>']),
 
-    # apps list
-    elif args['apps'] and args['list'] and args['all']:
-        adb_enhanced.print_list_all_apps()
-    elif args['apps'] and args['list'] and args['system']:
-        adb_enhanced.list_system_apps()
-    elif args['apps'] and args['list'] and args['third-party']:
-        adb_enhanced.print_list_non_system_apps()
-    elif args['apps'] and args['list'] and args['debug']:
-        adb_enhanced.print_list_debug_apps()
-    elif args['apps'] and args['list'] and args['backup-enabled']:
-        adb_enhanced.print_allow_backup_apps()
+        # Dark mode
+        ('dark', 'mode', 'on'): lambda: adb_enhanced.set_dark_mode(True),
+        ('dark', 'mode', 'off'): lambda: adb_enhanced.set_dark_mode(False),
 
-    # standby bucket
-    elif args['standby-bucket'] and args['get']:
-        adb_enhanced.get_standby_bucket(args['<app_name>'])
-    elif args['standby-bucket'] and args['set']:
-        adb_enhanced.set_standby_bucket(args['<app_name>'], adb_enhanced.calculate_standby_mode(args))
+        # List devices
+        ('devices',): adb_enhanced.handle_list_devices,
 
-    elif args['restrict-background']:
-        adb_enhanced.apply_or_remove_background_restriction(args['<app_name>'], args['true'])
-    elif args['ls']:
-        file_path = args['<file_path>']
-        long_format = args['-l']
+        # GFX
+        ('gfx', 'on'): lambda: adb_enhanced.handle_gfx('on'),
+        ('gfx', 'off'): lambda: adb_enhanced.handle_gfx('off'),
+        ('gfx', 'lines'): lambda: adb_enhanced.handle_gfx('lines'),
+
+        # Apk install
+        ('install',): lambda: adb_enhanced.perform_install(args['<file_path>']),
+        # Apk uninstall
+        ('uninstall',): lambda: adb_enhanced.perform_uninstall(app_name, args['--first-user']),
+        # Clear data
+        ('clear-data',): lambda: adb_enhanced.clear_disk_data(app_name),
+
+        # Mobile Data
+        ('mobile-data', 'saver', 'on'): lambda: adb_enhanced.handle_mobile_data_saver(True),
+        ('mobile-data', 'saver', 'off'): lambda: adb_enhanced.handle_mobile_data_saver(False),
+        ('mobile-data', 'on'): lambda: adb_enhanced.handle_mobile_data(True),
+        ('mobile-data', 'off'): lambda: adb_enhanced.handle_mobile_data(False),
+
+        # Layout
+        ('layout', 'on'): lambda: adb_enhanced.handle_layout(True),
+        ('layout', 'off'): lambda: adb_enhanced.handle_layout(False),
+
+        # Location
+        ('location', 'on'): lambda: adb_enhanced.toggle_location(True),
+        ('location', 'off'): lambda: adb_enhanced.toggle_location(False),
+        ('notifications', 'list'): adb_enhanced.print_notifications,
+
+        # Overdraw
+        ('overdraw', 'on'): lambda: adb_enhanced.handle_overdraw('on'),
+        ('overdraw', 'off'): lambda: adb_enhanced.handle_overdraw('off'),
+        ('overdraw', 'deut'): lambda: adb_enhanced.handle_overdraw('deut'),
+
+        # Permissions related
+        ('permissions', 'grant'): lambda: _grant_revoke_permissions(app_name, args),
+        ('permissions', 'revoke'): lambda: _grant_revoke_permissions(app_name, args),
+        ('permission-groups', 'list', 'all'): adb_enhanced.list_permission_groups,
+        ('permissions', 'list', 'all'): lambda: adb_enhanced.list_permissions(False),
+        ('permissions', 'list', 'dangerous'): lambda: adb_enhanced.list_permissions(True),
+
+        # Pull files
+        ('pull',): lambda: adb_enhanced.pull_file(
+            args['<file_path_on_android>'], args['<file_path_on_machine>'], args['-a']),
+        ('push',): lambda: adb_enhanced.push_file(
+            args['<file_path_on_machine>'], args['<file_path_on_android>']),
+        ('restrict-background', 'true'): lambda: adb_enhanced.apply_or_remove_background_restriction(app_name, True),
+        ('restrict-background', 'false'): lambda: adb_enhanced.apply_or_remove_background_restriction(app_name, False),
+
+        # Rotate
+        ('rotate', 'portrait'): lambda: adb_enhanced.handle_rotate('portrait'),
+        ('rotate', 'landscape'): lambda: adb_enhanced.handle_rotate('landscape'),
+        ('rotate', 'left'): lambda: adb_enhanced.handle_rotate('left'),
+        ('rotate', 'right'): lambda: adb_enhanced.handle_rotate('right'),
+
+        # RTL settings are not working as expected
+        ('rtl', 'on'): lambda: adb_enhanced.force_rtl(True),
+        ('rtl', 'off'): lambda: adb_enhanced.force_rtl(False),
+
+        # Files related
+        ('mv',): lambda: adb_enhanced.move_file(args['<src_path>'], args['<dest_path>'], args['-f']),
+        ('rm',): lambda: adb_enhanced.delete_file(args['<file_path>'], args['-f'], args['-R'] or args['-r']),
         # Always include hidden files, -a is left for backward-compatibility but is a no-op now.
-        include_hidden_files = True
-        recursive = args['-R'] or args['-r']
-        adb_enhanced.list_directory(file_path, long_format, recursive, include_hidden_files)
-    elif args['rm']:
-        file_path = args['<file_path>']
-        force_delete = args['-f']
-        recursive = args['-R'] or args['-r']
-        adb_enhanced.delete_file(file_path, force_delete, recursive)
-    elif args['mv']:
-        src_path = args['<src_path>']
-        dest_path = args['<dest_path>']
-        force_move = args['-f']
-        adb_enhanced.move_file(src_path, dest_path, force_move)
-    elif args['pull']:
-        remote_file_path = args['<file_path_on_android>']
-        local_file_path = args['<file_path_on_machine>']
-        copy_ancillary = args['-a']
-        adb_enhanced.pull_file(remote_file_path, local_file_path, copy_ancillary)
-    elif args['push']:
-        remote_file_path = args['<file_path_on_android>']
-        local_file_path = args['<file_path_on_machine>']
-        adb_enhanced.push_file(local_file_path, remote_file_path)
-    elif args['cat']:
-        file_path = args['<file_path>']
-        adb_enhanced.cat_file(file_path)
-    elif args['start']:
-        adb_enhanced.launch_app(args['<app_name>'])
-    elif args['stop']:
-        adb_enhanced.stop_app(args['<app_name>'])
-    elif args['restart']:
-        app_name = args['<app_name>']
-        adb_enhanced.force_stop(app_name)
-        adb_enhanced.launch_app(app_name)
+        ('ls',): lambda: adb_enhanced.list_directory(args['<file_path>'], args['-l'], args['-R'] or args['-r'], True),
 
-    # app
-    elif args['app'] and args['info']:
-        adb_enhanced.print_app_info(args['<app_name>'])
-    elif args['app'] and args['path']:
-        adb_enhanced.print_app_path(args['<app_name>'])
-    elif args['app'] and args['signature']:
-        adb_enhanced.print_app_signature(args['<app_name>'])
-    elif args['app'] and args['backup']:
-        app_name = args['<app_name>']
-        backup_tar_file_path = args['<backup_tar_file_path>']
-        if not backup_tar_file_path:
-            backup_tar_file_path = '%s_backup.tar' % app_name
-        adb_enhanced.perform_app_backup(app_name, backup_tar_file_path)
+        # Screen
+        ('screen', 'on'): lambda: adb_enhanced.switch_screen(adb_enhanced.SCREEN_ON),
+        ('screen', 'off'): lambda: adb_enhanced.switch_screen(adb_enhanced.SCREEN_OFF),
+        ('screen', 'toggle'): lambda: adb_enhanced.switch_screen(adb_enhanced.SCREEN_TOGGLE),
+        ('stay-awake-while-charging', 'on'): lambda: adb_enhanced.stay_awake_while_charging(True),
+        ('stay-awake-while-charging', 'off'): lambda: adb_enhanced.stay_awake_while_charging(False),
 
-    # dark mode
-    elif args['dark'] and args['mode']:
-        if args['on']:
-            adb_enhanced.set_dark_mode(True)
-        elif args['off']:
-            adb_enhanced.set_dark_mode(False)
+        # Standby bucket
+        ('standby-bucket', 'get'): lambda: adb_enhanced.get_standby_bucket(app_name),
+        ('standby-bucket', 'set'): lambda: adb_enhanced.set_standby_bucket(
+            app_name, adb_enhanced.calculate_standby_mode(args)),
+        # Doze
+        ('doze', 'on'): lambda: adb_enhanced.handle_doze(True),
+        ('doze', 'off'): lambda: adb_enhanced.handle_doze(False),
 
-    elif args['screen'] and args['on']:
-        adb_enhanced.switch_screen(adb_enhanced.SCREEN_ON)
-    elif args['screen'] and args['off']:
-        adb_enhanced.switch_screen(adb_enhanced.SCREEN_OFF)
-    elif args['screen'] and args['toggle']:
-        adb_enhanced.switch_screen(adb_enhanced.SCREEN_TOGGLE)
+        # App start
+        ('start',): lambda: adb_enhanced.launch_app(app_name),
+        ('stop',): lambda: adb_enhanced.stop_app(app_name),
+        ('restart',): lambda: (adb_enhanced.force_stop(app_name), adb_enhanced.launch_app(app_name)),
 
-    elif args['install']:
-        file_path = args['<file_path>']
-        adb_enhanced.perform_install(file_path)
-    elif args['uninstall']:
-        adb_enhanced.perform_uninstall(args['<app_name>'], args['--first-user'])
+        # Wi-Fi
+        ('wifi', 'on'): lambda: adb_enhanced.set_wifi(True),
+        ('wifi', 'off'): lambda: adb_enhanced.set_wifi(False),
 
-    elif args['enable']:
-        if args['wireless'] and args['debugging']:
-            adb_enhanced.enable_wireless_debug()
+        # Wireless debugging
+        ('wireless', 'debugging', 'enable'): adb_enhanced.enable_wireless_debug,
+        ('wireless', 'debugging', 'disable'): adb_enhanced.disable_wireless_debug,
 
-    elif args['disable']:
-        if args['wireless'] and args['debugging']:
-            adb_enhanced.disable_wireless_debug()
+        ('force-stop',): lambda: adb_enhanced.force_stop(app_name),
 
-    # alarm
-    elif args['alarm'] and args['all']:
-        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.ALL)
-    elif args['alarm'] and args['history']:
-        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.HISTORY)
-    elif args['alarm'] and args['pending']:
-        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.PENDING)
-    elif args['alarm'] and args['top']:
-        adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.TOP)
+        # Configure UI
+        ('dont-keep-activities', 'on'): lambda: adb_enhanced.handle_dont_keep_activities_in_background(True),
+        ('dont-keep-activities', 'off'): lambda: adb_enhanced.handle_dont_keep_activities_in_background(False),
+        ('show-taps', 'on'): lambda: adb_enhanced.toggle_show_taps(True),
+        ('show-taps', 'off'): lambda: adb_enhanced.toggle_show_taps(False),
 
-    elif args['location']:
-        adb_enhanced.toggle_location(args['on'])
+        # Fetching info from UI
+        ('dump-ui',): lambda: adb_enhanced.dump_ui(args['<xml_file>']),
+        ('jank',): lambda: adb_enhanced.handle_get_jank(app_name),
+        ('top-activity',): adb_enhanced.print_top_activity,
+        ('screenshot', ): lambda: adb_enhanced.dump_screenshot(args['<filename.png>']),
+        ('screenrecord',): lambda: adb_enhanced.dump_screenrecord(args['<filename.mp4>']),
+    }
 
-    else:
-        print_error_and_exit('Not implemented: "%s"' % ' '.join(sys.argv))
+
+def _grant_revoke_permissions(app_name, args):
+    permission_group = adb_enhanced.get_permission_group(args)
+    permissions = adb_enhanced.get_permissions_in_permission_group(permission_group)
+    if not permissions and \
+            adb_enhanced.is_permission_group_unavailable_after_api_29(permission_group) and \
+            adb_enhanced.get_device_android_api_version() >= 29:
+        print_error_and_exit('Android has made contacts group empty on API 29 and beyond, '
+                             'your device version is %d' %
+                             adb_enhanced.get_device_android_api_version())
+    elif not permissions:
+        print_error_and_exit('No permissions found in permissions group: %s' % permission_group)
+    adb_enhanced.grant_or_revoke_runtime_permissions(
+        app_name, args['grant'], permissions)
+
+
+def _perform_backup(app_name: str, backup_tar_file_path: typing.Optional[str]):
+    if not backup_tar_file_path:
+        backup_tar_file_path = '%s_backup.tar' % app_name
+    adb_enhanced.perform_app_backup(app_name, backup_tar_file_path)
 
 
 def _validate_options(args):
