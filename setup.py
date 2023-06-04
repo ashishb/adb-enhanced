@@ -11,8 +11,11 @@ _README_FILE_PATH = os.path.join(_DIR_OF_THIS_SCRIPT, _README_FILE_NAME)
 with open(_VERSION_FILE_PATH, 'r') as fh:
     version = fh.read().strip()
 
-with open(_README_FILE_PATH, 'r') as fh:
-    long_description = fh.read()
+if os.path.exists(_README_FILE_NAME):
+    with open(_README_FILE_PATH, 'r') as fh:
+        long_description = fh.read()
+else:
+    log.warn('README file missing, final package will lack README: %s', _README_FILE_PATH)
 
 packages = find_packages(exclude=['ez_setup', 'examples', 'tests'])
 if not packages or packages.index('adbe') == -1:
