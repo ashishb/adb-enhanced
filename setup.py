@@ -17,6 +17,7 @@ if os.path.exists(_README_FILE_NAME):
         long_description = fh.read()
 else:
     logging.warning('README file missing, final package will lack README: %s', _README_FILE_PATH)
+    long_description = ''
 
 packages = find_packages(exclude=['ez_setup', 'examples', 'tests'])
 if not packages or packages.index('adbe') == -1:
