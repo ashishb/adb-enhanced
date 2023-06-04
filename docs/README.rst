@@ -1,7 +1,7 @@
 ADB Enhanced |Downloads| |PyPI version|
 =======================================
 
-|Lint| |Lint Markdown| |Lint YAML|
+|Lint Python| |Lint Markdown| |Lint YAML|
 
 |InstallAdbeTest|
 
@@ -10,7 +10,8 @@ ADB Enhanced |Downloads| |PyPI version|
 |AdbeUnitTests-Api16| |AdbeUnitTests-Api21| |AdbeUnitTests-Api22|
 |AdbeUnitTests-Api23| |AdbeUnitTests-Api24| |AdbeUnitTests-Api25|
 |AdbeUnitTests-Api26| |AdbeUnitTests-Api27| |AdbeUnitTests-Api28|
-|AdbeUnitTests-Api29|
+|AdbeUnitTests-Api29| |AdbeUnitTests-Api31| |AdbeUnitTests-Api30|
+|AdbeUnitTests-Api31| |AdbeUnitTests-Api32| |AdbeUnitTests-Api33|
 
 |Packaging status|
 
@@ -207,63 +208,63 @@ Usage
 
 .. code:: bash
 
-   adbe [options] rotate (landscape | portrait | left | right)
-   adbe [options] gfx (on | off | lines)
-   adbe [options] overdraw (on | off | deut)
-   adbe [options] layout (on | off)
+   adbe [options] (enable | disable) wireless debugging
    adbe [options] airplane (on | off)
-   adbe [options] battery level <percentage>
-   adbe [options] battery saver (on | off)
-   adbe [options] battery reset
-   adbe [options] doze (on | off)
-   adbe [options] jank <app_name>
-   adbe [options] devices
-   adbe [options] top-activity
-   adbe [options] dump-ui <xml_file>
-   adbe [options] mobile-data (on | off)
-   adbe [options] mobile-data saver (on | off)
-   adbe [options] wifi (on | off)
-   adbe [options] rtl (on | off)
-   adbe [options] screenshot <filename.png>
-   adbe [options] screenrecord <filename.mp4>
-   adbe [options] dont-keep-activities (on | off)
+   adbe [options] alarm (all | top | pending | history)
    adbe [options] animations (on | off)
-   adbe [options] show-taps (on | off)
-   adbe [options] stay-awake-while-charging (on | off)
-   adbe [options] input-text <text>
-   adbe [options] press back
-   adbe [options] open-url <url>
-   adbe [options] permission-groups list all
-   adbe [options] permissions list (all | dangerous)
-   adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
-   adbe [options] notifications list
-   adbe [options] apps list (all | system | third-party | debug | backup-enabled)
-   adbe [options] standby-bucket get <app_name>
-   adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
-   adbe [options] restrict-background (true | false) <app_name>
-   adbe [options] ls [-a] [-l] [-R|-r] <file_path>
-   adbe [options] rm [-f] [-R|-r] <file_path>
-   adbe [options] mv [-f] <src_path> <dest_path>
-   adbe [options] pull [-a] <file_path_on_android>
-   adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
-   adbe [options] push <file_path_on_machine> <file_path_on_android>
-   adbe [options] cat <file_path>
-   adbe [options] start <app_name>
-   adbe [options] stop <app_name>
-   adbe [options] restart <app_name>
-   adbe [options] force-stop <app_name>
-   adbe [options] clear-data <app_name>
+   adbe [options] app backup <app_name> [<backup_tar_file_path>]
    adbe [options] app info <app_name>
    adbe [options] app path <app_name>
    adbe [options] app signature <app_name>
-   adbe [options] app backup <app_name> [<backup_tar_file_path>]
+   adbe [options] apps list (all | system | third-party | debug | backup-enabled)
+   adbe [options] battery level <percentage>
+   adbe [options] battery reset
+   adbe [options] battery saver (on | off)
+   adbe [options] cat <file_path>
+   adbe [options] clear-data <app_name>
+   adbe [options] dark mode (on | off)
+   adbe [options] devices
+   adbe [options] dont-keep-activities (on | off)
+   adbe [options] doze (on | off)
+   adbe [options] dump-ui <xml_file>
+   adbe [options] force-stop <app_name>
+   adbe [options] gfx (on | off | lines)
+   adbe [options] input-text <text>
    adbe [options] install <file_path>
-   adbe [options] uninstall [--first-user] <app_name>
-   adbe [options] enable wireless debugging
-   adbe [options] disable wireless debugging
-   adbe [options] screen (on | off | toggle)
-   adbe [options] alarm (all | top | pending | history)
+   adbe [options] jank <app_name>
+   adbe [options] layout (on | off)
    adbe [options] location (on | off)
+   adbe [options] ls [-a] [-l] [-R|-r] <file_path>
+   adbe [options] mobile-data (on | off)
+   adbe [options] mobile-data saver (on | off)
+   adbe [options] mv [-f] <src_path> <dest_path>
+   adbe [options] notifications list
+   adbe [options] open-url <url>
+   adbe [options] overdraw (on | off | deut)
+   adbe [options] permission-groups list all
+   adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+   adbe [options] permissions list (all | dangerous)
+   adbe [options] press back
+   adbe [options] pull [-a] <file_path_on_android>
+   adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
+   adbe [options] push <file_path_on_machine> <file_path_on_android>
+   adbe [options] restart <app_name>
+   adbe [options] restrict-background (true | false) <app_name>
+   adbe [options] rm [-f] [-R|-r] <file_path>
+   adbe [options] rotate (landscape | portrait | left | right)
+   adbe [options] rtl (on | off)
+   adbe [options] screen (on | off | toggle)
+   adbe [options] screenrecord <filename.mp4>
+   adbe [options] screenshot <filename.png>
+   adbe [options] show-taps (on | off)
+   adbe [options] standby-bucket get <app_name>
+   adbe [options] standby-bucket set <app_name> (active | working_set | frequent | rare)
+   adbe [options] start <app_name>
+   adbe [options] stay-awake-while-charging (on | off)
+   adbe [options] stop <app_name>
+   adbe [options] top-activity
+   adbe [options] uninstall [--first-user] <app_name>
+   adbe [options] wifi (on | off)
 
 Options
 ~~~~~~~
@@ -326,8 +327,8 @@ Note: The inspiration of this project came from
    :target: http://pepy.tech/project/adb-enhanced
 .. |PyPI version| image:: https://badge.fury.io/py/adb-enhanced.svg
    :target: https://badge.fury.io/py/adb-enhanced
-.. |Lint| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yml/badge.svg
-   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yml
+.. |Lint Python| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml
 .. |Lint Markdown| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml/badge.svg
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml
 .. |Lint YAML| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml/badge.svg
@@ -358,6 +359,14 @@ Note: The inspiration of this project came from
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api28.yml
 .. |AdbeUnitTests-Api29| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml/badge.svg
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api29.yml
+.. |AdbeUnitTests-Api31| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api31.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api31.yml
+.. |AdbeUnitTests-Api30| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api30.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api30.yml
+.. |AdbeUnitTests-Api32| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api32.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api32.yml
+.. |AdbeUnitTests-Api33| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api33.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api33.yml
 .. |Packaging status| image:: https://repology.org/badge/vertical-allrepos/python:adb-enhanced.svg
    :target: https://repology.org/project/python:adb-enhanced/versions
 .. |asciicast| image:: https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK.png
