@@ -15,17 +15,6 @@ from urllib.parse import urlparse
 from enum import Enum
 import psutil
 
-# asyncio was introduced in version 3.5
-if sys.version_info >= (3, 5):
-    try:
-        import asyncio_helper
-
-        _ASYNCIO_AVAILABLE = True
-    except ImportError:
-        # This is to deal with python versions below 3.5
-        _ASYNCIO_AVAILABLE = False
-else:
-    _ASYNCIO_AVAILABLE = False
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
@@ -37,7 +26,10 @@ try:
                                  get_device_android_api_version, toggle_screen)
     from adbe.output_helper import (print_message, print_error, print_error_and_exit,
                                     print_verbose)
-except ImportError:
+    # asyncio was introduced in version 3.5
+    from adbe import asyncio_helper
+# Python 3.6 onwards, this throws ModuleNotFoundError
+except ModuleNotFoundError:
     # This works when the code is executed directly.
     # noinspection PyUnresolvedReferences
     from adb_helper import (get_adb_shell_property, execute_adb_command2,
@@ -49,6 +41,8 @@ except ImportError:
     # noinspection PyUnresolvedReferences
     from output_helper import (print_message, print_error, print_error_and_exit,
                                print_verbose)
+    import asyncio_helper
+
 
 _KEYCODE_BACK = 4
 _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
@@ -1148,16 +1142,13 @@ def get_list_debug_apps():
     packages = _get_all_packages(cmd)
     debug_packages = []
 
-    if _ASYNCIO_AVAILABLE:
-        method_to_call = _is_debug_package
-        params_list = packages
-        result_list = asyncio_helper.execute_in_parallel(method_to_call, params_list)
+    method_to_call = _is_debug_package
+    params_list = packages
+    result_list = asyncio_helper.execute_in_parallel(method_to_call, params_list)
 
-        for (package_name, debuggable) in result_list:
-            if debuggable:
-                debug_packages.append(package_name)
-    else:
-        debug_packages = _list_debug_apps_no_async(packages)
+    for (package_name, debuggable) in result_list:
+        if debuggable:
+            debug_packages.append(package_name)
     return debug_packages
 
 
@@ -1170,29 +1161,7 @@ def print_list_debug_apps():
         >>> adb_h.set_device_id("DEVICE_ID")
         >>> list_debug_apps = adb_e.adb_print_list_debug_apps()
     """
-    if not _ASYNCIO_AVAILABLE:
-        print_message('Use python3 for faster execution of this call')
-
     print('\n'.join(get_list_debug_apps()))
-
-
-def _list_debug_apps_no_async(packages):
-    """Return a list of applications that have debug enabled without asynchronous enabled (less faster).
-        :returns: None
-            WHERE
-            list[str] packages is a strings list of installed packages names
-    """
-    debug_packages = []
-    count = 0
-    num_packages = len(packages)
-    for package in packages:
-        count += 1
-        print_verbose("Checking package: %d/%s" % (count, num_packages))
-        # No faster way to do this except to check each and every package individually
-        if _is_debug_package(package)[1]:
-            debug_packages.append(package)
-
-    return debug_packages
 
 
 def _is_debug_package(app_name):
@@ -1216,18 +1185,14 @@ def list_allow_backup_apps():
     cmd = 'pm list packages'
     packages = _get_all_packages(cmd)
 
-    if _ASYNCIO_AVAILABLE:
-        method_to_call = _is_allow_backup_package
-        params_list = packages
-        result_list = asyncio_helper.execute_in_parallel(method_to_call, params_list)
-        debug_packages = []
-        for (package_name, debuggable) in result_list:
-            if debuggable:
-                debug_packages.append(package_name)
-        return debug_packages
-    else:
-        print_message('Use python3 with Async IO package for faster execution of this call')
-        return _list_allow_backup_apps_no_async(packages)
+    method_to_call = _is_allow_backup_package
+    params_list = packages
+    result_list = asyncio_helper.execute_in_parallel(method_to_call, params_list)
+    debug_packages = []
+    for (package_name, debuggable) in result_list:
+        if debuggable:
+            debug_packages.append(package_name)
+    return debug_packages
 
 
 def print_allow_backup_apps():
@@ -1240,23 +1205,6 @@ def print_allow_backup_apps():
         >>> adb_e.print_allow_backup_apps()
     """
     print('\n'.join(list_allow_backup_apps()))
-
-
-def _list_allow_backup_apps_no_async(packages):
-    """Return list of applications that can be backed up (flag backup set to true) without
-       asynchronous enabled (less faster).
-            :returns: list[str] packages that have backup flag set to true
-    """
-    debug_packages = []
-    count = 0
-    num_packages = len(packages)
-    for package in packages:
-        count += 1
-        print_verbose("Checking package: %d/%s" % (count, num_packages))
-        # No faster way to do this except to check each and every package individually
-        if _is_allow_backup_package(package)[1]:
-            debug_packages.append(package)
-    return debug_packages
 
 
 def _is_allow_backup_package(app_name):
