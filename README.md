@@ -1,5 +1,11 @@
 # ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
 
+![Logo](docs/logo.png)
+
+ADB-Enhanced is a Swiss-army knife for Android testing and development.
+
+A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation. Its a wrapper around `adb` and not a replacement.
+
 [![Lint Python](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml)
 [![Lint Markdown](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml)
 [![Lint YAML](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml)
@@ -23,12 +29,6 @@
 [![AdbeUnitTests-Api31](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api31.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api31.yml)
 [![AdbeUnitTests-Api32](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api32.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api32.yml)
 [![AdbeUnitTests-Api33](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api33.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api33.yml)
-
-[![Packaging status](https://repology.org/badge/vertical-allrepos/python:adb-enhanced.svg)](https://repology.org/project/python:adb-enhanced/versions)
-
-![Logo](docs/logo.png)
-
-ADB-Enhanced is a Swiss-army knife for Android testing and development. A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation. Its a wrapper around `adb` and not a replacement.
 
 [![asciicast](https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK.png)](https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK)
 
@@ -298,3 +298,5 @@ Note that this happens automatically during `make release_production`.
 You will have to do `brew install pandoc` if you are missing pandoc.
 
 Note: The inspiration of this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/python:adb-enhanced.svg)](https://repology.org/project/python:adb-enhanced/versions)
