@@ -1,5 +1,6 @@
 import functools
 import subprocess
+import typing
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
@@ -39,7 +40,8 @@ def execute_adb_shell_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False
                                 ignore_stderr=ignore_stderr, device_serial=device_serial)
 
 
-def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None) -> [int, str, str]:
+def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None) -> \
+        typing.Tuple[int, typing.Optional[str], str]:
     """
     :param adb_cmd: command to run inside the adb shell (so, don't prefix it with "adb")
     :param piped_into_cmd: command to pipe the output of this command into
