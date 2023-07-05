@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  installAdbe:
+  installViaPip:
     runs-on: macos-latest
     timeout-minutes: 15
     strategy:
