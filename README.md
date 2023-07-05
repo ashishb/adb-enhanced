@@ -1,4 +1,4 @@
-# ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced) ![Homebrew downloads](https://img.shields.io/homebrew/installs/dm/adb-enhanced?label=Homebrew%20downloads) [![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/adb-enhanced.svg)](https://repology.org/project/adb-enhanced/versions)
+# ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
 
 ![Logo](docs/logo.png)
 
@@ -44,7 +44,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 `sudo pip3 install adb-enhanced`
 
-### Alternative on Mac OS via Homebrew
+### Alternative on Mac OS via Homebrew ![Homebrew downloads](https://img.shields.io/homebrew/installs/dm/adb-enhanced?label=Homebrew%20downloads) [![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/adb-enhanced.svg)](https://repology.org/project/adb-enhanced/versions)
 
 `brew install adb-enhanced`
 
