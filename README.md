@@ -14,6 +14,8 @@ A command-line interface to trigger various scenarios like screen rotation, batt
 
 [![AdbeInstallTests](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml) [![AdbeUnitTests](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml)
 
+[![Install adb-enhanced via pip](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-pip.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-pip.yml)
+
 [![AdbeUnitTests-Api16](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api16.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api16.yml)
 [![AdbeUnitTests-Api21](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api21.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api21.yml)
 [![AdbeUnitTests-Api22](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api22.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api22.yml)

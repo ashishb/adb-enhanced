@@ -1,0 +1,41 @@
+name: Install adb-enhanced via pip
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Sunday midnight UTC
+  push:
+    branches: [master, main]
+    paths:
+      - '.github/workflows/install-adb-enhanced-from-pip.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - '.github/workflows/install-adb-enhanced-from-pip.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  installAdbe:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        # A dependency, psutil, fails to install on Python 3.9
+        # https://github.com/ashishb/adb-enhanced/actions/runs/4309805993/jobs/7517607875
+        python-version: ["3.8", "3.11"]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install adb-enhanced from pip
+        run: |
+          sudo pip install adb-enhanced
+          adbe --version
+          sudo pip uninstall -y adb-enhanced
