@@ -1,4 +1,4 @@
-# ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
+# ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced) ![Homebrew downloads](https://img.shields.io/homebrew/installs/dm/adb-enhanced?label=Homebrew%20downloads) [![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/adb-enhanced.svg)](https://repology.org/project/adb-enhanced/versions)
 
 ![Logo](docs/logo.png)
 
@@ -14,7 +14,7 @@ A command-line interface to trigger various scenarios like screen rotation, batt
 
 [![AdbeInstallTests](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml) [![AdbeUnitTests](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml)
 
-[![Install adb-enhanced via pip](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-pip.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-pip.yml)
+[![Install adb-enhanced via pip](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-pip.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-pip.yml) [![Install adb-enhanced via homebrew](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-homebrew.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-homebrew.yml)
 
 [![AdbeUnitTests-Api16](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api16.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api16.yml)
 [![AdbeUnitTests-Api21](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api21.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api21.yml)
@@ -40,7 +40,13 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 ## Installation
 
+### Recommended
+
 `sudo pip3 install adb-enhanced`
+
+### Alternative on Mac OS via Homebrew
+
+`brew install adb-enhanced`
 
 ## Note
 

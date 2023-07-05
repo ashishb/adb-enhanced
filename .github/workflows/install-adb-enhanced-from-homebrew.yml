@@ -1,0 +1,35 @@
+name: Install adb-enhanced via homebrew
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Sunday midnight UTC
+  push:
+    branches: [master, main]
+    paths:
+      - '.github/workflows/install-adb-enhanced-from-homebrew.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - '.github/workflows/install-adb-enhanced-from-homebrew.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  installHomebrew:
+    runs-on: macos-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Install adb-enhanced from homebrew
+        run: |
+          # TODO(ashishb): Remove update after Aug 1, 2023
+          brew update || echo "brew update failed, still proceeding"
+          brew link --force python@3.11
+          HOMEBREW_NO_INSTALL_CLEANUP=true brew install --verbose adb-enhanced || echo "brew install returned non-zero exit code"
+          adbe --version
+          brew uninstall adb-enhanced
