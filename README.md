@@ -44,13 +44,13 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 `sudo pip3 install adb-enhanced`
 
-### Alternative on Mac OS via Homebrew ![Homebrew downloads](https://img.shields.io/homebrew/installs/dm/adb-enhanced?label=Homebrew%20downloads) [![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/adb-enhanced.svg)](https://repology.org/project/adb-enhanced/versions)
+### Alternative on Mac OS via Homebrew [![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/adb-enhanced.svg)](https://formulae.brew.sh/formula/adb-enhanced)
 
 `brew install adb-enhanced`
 
 ## Note
 
-1. `sudo pip install adb-enhanced` for python2 based install works as well but, I would recommend moving to python3 since I will deprecate python2 support anytime after Dec 31, 2018.
+1. `sudo pip install adb-enhanced` for Python2 based install works as well but, I would recommend moving to python3 since I will deprecate Python2 support anytime after Dec 31, 2018.
 1. If you don't have sudo access or you are installing without sudo then `adbe` might not be configured correctly in the path.
 1. To setup bash/z-sh auto-completion, execute `sudo pip3 install infi.docopt-completion && docopt-completion $(which adbe)` after installing adb-enhanced.
 
