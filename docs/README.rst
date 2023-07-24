@@ -1,29 +1,30 @@
 ADB Enhanced |Downloads| |PyPI version|
 =======================================
 
-|Lint Python| |Lint Markdown| |Lint YAML|
-
-|InstallAdbeTest|
-
-|AdbeInstallTests| |AdbeUnitTests|
-
-|AdbeUnitTests-Api16| |AdbeUnitTests-Api21| |AdbeUnitTests-Api22|
-|AdbeUnitTests-Api23| |AdbeUnitTests-Api24| |AdbeUnitTests-Api25|
-|AdbeUnitTests-Api26| |AdbeUnitTests-Api27| |AdbeUnitTests-Api28|
-|AdbeUnitTests-Api29| |AdbeUnitTests-Api31| |AdbeUnitTests-Api30|
-|AdbeUnitTests-Api31| |AdbeUnitTests-Api32| |AdbeUnitTests-Api33|
-
-|Packaging status|
-
 .. figure:: docs/logo.png
    :alt: Logo
 
    Logo
 
 ADB-Enhanced is a Swiss-army knife for Android testing and development.
+
 A command-line interface to trigger various scenarios like screen
 rotation, battery saver mode, data saver mode, doze mode, permission
 grant/revocation. Its a wrapper around ``adb`` and not a replacement.
+
+|Lint Python| |Lint Markdown| |Lint YAML|
+
+|InstallAdbeTest|
+
+|AdbeInstallTests| |AdbeUnitTests|
+
+|Install adb-enhanced via pip| |Install adb-enhanced via homebrew|
+
+|AdbeUnitTests-Api16| |AdbeUnitTests-Api21| |AdbeUnitTests-Api22|
+|AdbeUnitTests-Api23| |AdbeUnitTests-Api24| |AdbeUnitTests-Api25|
+|AdbeUnitTests-Api26| |AdbeUnitTests-Api27| |AdbeUnitTests-Api28|
+|AdbeUnitTests-Api29| |AdbeUnitTests-Api31| |AdbeUnitTests-Api30|
+|AdbeUnitTests-Api31| |AdbeUnitTests-Api32| |AdbeUnitTests-Api33|
 
 |asciicast|
 
@@ -36,14 +37,22 @@ announcement <https://ashishb.net/tech/introducing-adb-enhanced-a-swiss-army-kni
 Installation
 ------------
 
+Recommended
+~~~~~~~~~~~
+
 ``sudo pip3 install adb-enhanced``
+
+Alternative on Mac OS via Homebrew |Homebrew package|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``brew install adb-enhanced``
 
 Note
 ----
 
-1. ``sudo pip install adb-enhanced`` for python2 based install works as
+1. ``sudo pip install adb-enhanced`` for Python2 based install works as
    well but, I would recommend moving to python3 since I will deprecate
-   python2 support anytime after Dec 31, 2018.
+   Python2 support anytime after Dec 31, 2018.
 2. If you don’t have sudo access or you are installing without sudo then
    ``adbe`` might not be configured correctly in the path.
 3. To setup bash/z-sh auto-completion, execute
@@ -208,7 +217,6 @@ Usage
 
 .. code:: bash
 
-   adbe [options] (enable | disable) wireless debugging
    adbe [options] airplane (on | off)
    adbe [options] alarm (all | top | pending | history)
    adbe [options] animations (on | off)
@@ -224,6 +232,7 @@ Usage
    adbe [options] clear-data <app_name>
    adbe [options] dark mode (on | off)
    adbe [options] devices
+   adbe [options] (enable | disable) wireless debugging
    adbe [options] dont-keep-activities (on | off)
    adbe [options] doze (on | off)
    adbe [options] dump-ui <xml_file>
@@ -242,7 +251,7 @@ Usage
    adbe [options] open-url <url>
    adbe [options] overdraw (on | off | deut)
    adbe [options] permission-groups list all
-   adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+   adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | notifications | phone | sensors | sms | storage)
    adbe [options] permissions list (all | dangerous)
    adbe [options] press back
    adbe [options] pull [-a] <file_path_on_android>
@@ -323,6 +332,16 @@ You will have to do ``brew install pandoc`` if you are missing pandoc.
 Note: The inspiration of this project came from
 `android-scripts <https://github.com/dhelleberg/android-scripts>`__.
 
+|Packaging status|
+
+Contributors
+------------
+
+.. figure:: https://contrib.rocks/image?repo=ashishb/adb-enhanced
+   :alt: GitHub contributors
+
+   GitHub contributors
+
 .. |Downloads| image:: http://pepy.tech/badge/adb-enhanced
    :target: http://pepy.tech/project/adb-enhanced
 .. |PyPI version| image:: https://badge.fury.io/py/adb-enhanced.svg
@@ -339,6 +358,10 @@ Note: The inspiration of this project came from
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-installtests.yml
 .. |AdbeUnitTests| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml/badge.svg
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests.yml
+.. |Install adb-enhanced via pip| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-pip.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-pip.yml
+.. |Install adb-enhanced via homebrew| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-homebrew.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/install-adb-enhanced-from-homebrew.yml
 .. |AdbeUnitTests-Api16| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api16.yml/badge.svg
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api16.yml
 .. |AdbeUnitTests-Api21| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api21.yml/badge.svg
@@ -367,7 +390,9 @@ Note: The inspiration of this project came from
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api32.yml
 .. |AdbeUnitTests-Api33| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api33.yml/badge.svg
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api33.yml
-.. |Packaging status| image:: https://repology.org/badge/vertical-allrepos/python:adb-enhanced.svg
-   :target: https://repology.org/project/python:adb-enhanced/versions
 .. |asciicast| image:: https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK.png
    :target: https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK
+.. |Homebrew package| image:: https://repology.org/badge/version-for-repo/homebrew/adb-enhanced.svg
+   :target: https://formulae.brew.sh/formula/adb-enhanced
+.. |Packaging status| image:: https://repology.org/badge/vertical-allrepos/python:adb-enhanced.svg
+   :target: https://repology.org/project/python:adb-enhanced/versions

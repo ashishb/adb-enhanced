@@ -201,7 +201,6 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 ### Usage
 
 ```bash
-adbe [options] (enable | disable) wireless debugging
 adbe [options] airplane (on | off)
 adbe [options] alarm (all | top | pending | history)
 adbe [options] animations (on | off)
@@ -217,6 +216,7 @@ adbe [options] cat <file_path>
 adbe [options] clear-data <app_name>
 adbe [options] dark mode (on | off)
 adbe [options] devices
+adbe [options] (enable | disable) wireless debugging
 adbe [options] dont-keep-activities (on | off)
 adbe [options] doze (on | off)
 adbe [options] dump-ui <xml_file>
@@ -235,7 +235,7 @@ adbe [options] notifications list
 adbe [options] open-url <url>
 adbe [options] overdraw (on | off | deut)
 adbe [options] permission-groups list all
-adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | notifications | phone | sensors | sms | storage)
 adbe [options] permissions list (all | dangerous)
 adbe [options] press back
 adbe [options] pull [-a] <file_path_on_android>
