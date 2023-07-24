@@ -930,6 +930,8 @@ def get_permission_group(args):
         return 'android.permission-group.STORAGE'
     elif args['microphone']:
         return 'android.permission-group.MICROPHONE'
+    elif args['notifications']:
+        return 'android.special-permission-group.NOTIFICATIONS'
     elif args['sms']:
         return 'android.permission-group.SMS'
     else:
@@ -957,6 +959,8 @@ def _get_hardcoded_permissions_for_group(permission_group) -> typing.List[str]:
         return ['android.permission.READ_EXTERNAL_STORAGE', 'android.permission.WRITE_EXTERNAL_STORAGE']
     elif permission_group == 'android.permission-group.MICROPHONE':
         return ['android.permission.RECORD_AUDIO']
+    elif permission_group == 'android.special-permission-group.NOTIFICATIONS':
+        return ['android.permission.POST_NOTIFICATIONS']
     elif permission_group == 'android.permission-group.SMS':
         return ['android.permission.READ_SMS', 'android.permission.RECEIVE_SMS', 'android.permission.SEND_SMS']
     else:
@@ -1017,6 +1021,8 @@ def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions)
         if permission not in permissions_formatted_dump:
             print_message('Permission %s is not requested by %s, skipping' % (permission, package_name))
             continue
+        if permission == 'android.permission.POST_NOTIFICATIONS':
+            _error_if_min_version_less_than(33)
         num_permissions_granted += 1
         print_message('%s %s permission to %s' % (action_display_name, permission, package_name))
         execute_adb_shell_command(base_cmd + ' ' + permission)
