@@ -176,6 +176,10 @@ def test_permissions_grant_revoke():
         permissions_groups.append('microphone')
         permissions_groups.append('location')
         permissions_groups.append('sms')
+    if _get_device_sdk_version() >= 33:
+        # Newly added permission in API 33
+        # https://developer.android.com/develop/ui/views/notifications/notification-permission
+        permissions_groups.append('notifications')
 
     for permission_group in permissions_groups:
         if _get_device_sdk_version() >= _RUNTIME_PERMISSIONS_SUPPORTED:

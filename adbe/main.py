@@ -59,7 +59,7 @@ Usage:
     adbe [options] open-url <url>
     adbe [options] overdraw (on | off | deut)
     adbe [options] permission-groups list all
-    adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | phone | sensors | sms | storage)
+    adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | notifications | phone | sensors | sms | storage)
     adbe [options] permissions list (all | dangerous)
     adbe [options] press back
     adbe [options] pull [-a] <file_path_on_android>
@@ -306,7 +306,7 @@ def _grant_revoke_permissions(app_name, args):
     if not permissions and \
             adb_enhanced.is_permission_group_unavailable_after_api_29(permission_group) and \
             adb_enhanced.get_device_android_api_version() >= 29:
-        print_error_and_exit('Android has made contacts group empty on API 29 and beyond, '
+        print_error_and_exit('Android has made some permission group empty on API 29 and beyond, '
                              'your device version is %d' %
                              adb_enhanced.get_device_android_api_version())
     elif not permissions:
