@@ -1,10 +1,10 @@
-# ADB Enhanced [![Downloads](http://pepy.tech/badge/adb-enhanced)](http://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
+# ADB Enhanced [![Downloads](https://static.pepy.tech/badge/adb-enhanced)](https://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
 
 ![Logo](docs/logo.png)
 
-ADB-Enhanced is a Swiss-army knife for Android testing and development.
+ADB-Enhanced is a Swiss army knife for Android testing and development.
 
-A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, permission grant/revocation. Its a wrapper around `adb` and not a replacement.
+A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, and permission grant/revocation. It's a wrapper around `adb` and not a replacement.
 
 [![Lint Python](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml)
 [![Lint Markdown](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml)
@@ -50,9 +50,9 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 ## Note
 
-1. `sudo pip install adb-enhanced` for Python2 based install works as well but, I would recommend moving to python3 since I will deprecate Python2 support anytime after Dec 31, 2018.
+1. `sudo pip install adb-enhanced` works only for Python 3. Python 2 is no longer supported.
 1. If you don't have sudo access or you are installing without sudo then `adbe` might not be configured correctly in the path.
-1. To setup bash/z-sh auto-completion, execute `sudo pip3 install infi.docopt-completion && docopt-completion $(which adbe)` after installing adb-enhanced.
+1. To set up bash/z-sh auto-completion, execute `sudo pip3 install infi.docopt-completion && docopt-completion $(which adbe)` after installing adb-enhanced.
 
 ## Examples
 
@@ -305,7 +305,7 @@ Note that this happens automatically during `make release_production`.
 
 You will have to do `brew install pandoc` if you are missing pandoc.
 
-Note: The inspiration of this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
+Note: The inspiration for this project came from [android-scripts](https://github.com/dhelleberg/android-scripts).
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/python:adb-enhanced.svg)](https://repology.org/project/python:adb-enhanced/versions)
 
