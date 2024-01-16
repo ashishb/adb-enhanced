@@ -62,7 +62,7 @@ Note
 Examples
 --------
 
-Device configuration
+Features
 ~~~~~~~~~~~~~~~~~~~~
 
 -  Turn doze mode on
@@ -212,7 +212,7 @@ App info
       you might have to confirm the backup manually on your device's screen, enter "00" as password...
       Successfully backed up data of app com.google.android.youtube to backup.tar
 
-Usage
+Usage and Examples
 ~~~~~
 
 .. code:: bash
