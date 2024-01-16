@@ -6,9 +6,9 @@ ADB-Enhanced is a Swiss army knife for Android testing and development.
 
 A command-line interface to trigger various scenarios like screen rotation, battery saver mode, data saver mode, doze mode, and permission grant/revocation. It's a wrapper around `adb` and not a replacement.
 
-[![Lint Python](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml)
-[![Lint Markdown](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml)
-[![Lint YAML](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml)
+[![Lint Python](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml)
+[![Lint Markdown](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-markdown.yaml)
+[![Lint YAML](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/lint-yaml.yaml)
 
 [![InstallAdbeTest](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/install-adbe.yml)
 
