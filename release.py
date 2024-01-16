@@ -76,11 +76,8 @@ def _run_cmd_or_fail(cmd):
     print('Executing \"%s\"...' % cmd)
     with subprocess.Popen(cmd, shell=True, stdout=None, stderr=None) as process:
         process.communicate()
-        if process.returncode == 0:
-            print('Successfully executed \"%s\"' % cmd)
-        else:
-            print('Failed to execute \"%s\"' % cmd)
-            sys.exit(1)
+        if process.returncode != 0:
+            raise Exception('Failed to execute "%s"' % cmd)
 
 
 def _publish_release(testing_release=False):
