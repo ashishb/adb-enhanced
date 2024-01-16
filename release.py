@@ -61,6 +61,7 @@ def _push_new_release_to_git(version_file):
             _run_cmd_or_fail(cmd)
         except Exception as e:
             print('Error during Git command execution: %s' % e)
+        raise Exception('Failed to execute Git command: %s' % cmd)
 
 
 def _publish_package_to_pypi(testing_release=False):
@@ -77,7 +78,7 @@ def _publish_package_to_pypi(testing_release=False):
 
 def _run_cmd_or_fail(cmd):
     print('Executing \"%s\"...' % cmd)
-    with subprocess.Popen(cmd, shell=True, stdout=None, stderr=None) as process:
+    with subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
         process.communicate()
         if process.returncode != 0:
             raise Exception('Failed to execute "%s"' % cmd)
@@ -116,7 +117,7 @@ def _run_cmd_with_error_handling(cmd):
             if process.returncode != 0:
                 raise Exception('Failed to execute "%s"' % cmd)
     except Exception as e:
-        print('Error during command execution: %s' % e)
+        raise Exception('Error during command execution: %s' % e)
 
 
 def main():
