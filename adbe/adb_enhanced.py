@@ -1108,7 +1108,7 @@ def list_system_apps():
     :returns: None
     """
     packages = get_list_system_apps()
-    print('\n'.join(packages))
+    return packages
 
 
 def get_list_non_system_apps():
