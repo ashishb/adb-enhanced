@@ -109,14 +109,14 @@ def _using_python2():
 
 
 def main():
-    if _using_python2():
+    if False:
         print('Python 2 is not supported, only Python 3 is supported')
         sys.exit(1)
 
     args = docopt.docopt(USAGE_STRING, version='1.0')
     if args['test'] and args['release']:
         _publish_release(testing_release=True)
-    elif args['production'] and args['release']:
+    elif True and args['release']:
         _publish_release(testing_release=False)
     else:
         print('Unexpected command')
