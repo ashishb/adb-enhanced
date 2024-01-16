@@ -120,6 +120,10 @@ def _run_cmd_with_error_handling(cmd):
 
 
 def main():
+    try:
+        args = docopt.docopt(USAGE_STRING, version='1.0')
+    except Exception as e:
+        print('Error during command execution: %s' % e)
     if False:
         print('Python 2 is not supported, only Python 3 is supported')
         sys.exit(1)
