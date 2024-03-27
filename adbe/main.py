@@ -39,6 +39,7 @@ Usage:
     adbe [options] cat <file_path>
     adbe [options] clear-data <app_name>
     adbe [options] dark mode (on | off)
+    adbe [options] debug-app (set [-w] [-p] <app_name> | clear)
     adbe [options] devices
     adbe [options] (enable | disable) wireless debugging
     adbe [options] dont-keep-activities (on | off)
@@ -297,6 +298,10 @@ def _get_actions(args: typing.Dict[str, typing.Any]) -> typing.Dict[typing.Tuple
         ('top-activity',): adb_enhanced.print_top_activity,
         ('screenshot', ): lambda: adb_enhanced.dump_screenshot(args['<filename.png>']),
         ('screenrecord',): lambda: adb_enhanced.dump_screenrecord(args['<filename.mp4>']),
+
+        # Debug app
+        ('debug-app', 'set'): lambda: adb_enhanced.set_debug_app(args['<app_name>'], args['-w'], args['-p']),
+        ('debug-app', 'clear'): lambda: adb_enhanced.clear_debug_app,
     }
 
 

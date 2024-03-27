@@ -2090,6 +2090,22 @@ def toggle_location(turn_on):
     execute_adb_shell_settings_command(cmd)
 
 
+@ensure_package_exists
+def set_debug_app(app_name, wait_for_debugger, persistent):
+    cmd = 'am set-debug-app'
+    if wait_for_debugger:
+        cmd += ' -w'
+    if persistent:
+        cmd += ' --persistent'
+    cmd += ' %s' % app_name
+    execute_adb_shell_command2(cmd)
+
+
+def clear_debug_app():
+    cmd = 'am clear-debug-app'
+    execute_adb_shell_command2(cmd)
+
+
 # This permissions group seems to have been removed in API 29 and beyond.
 # https://github.com/ashishb/adb-enhanced/runs/1799363523?check_suite_focus=true
 def is_permission_group_unavailable_after_api_29(permission_group):
