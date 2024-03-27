@@ -465,6 +465,16 @@ def test_location():
     check("location off")
 
 
+def test_debug_app():
+    _assert_success('debug-app set %s' % _TEST_APP_ID)
+    _assert_success('debug-app set %s -w' % _TEST_APP_ID)
+    _assert_success('debug-app set %s -p' % _TEST_APP_ID)
+    _assert_success('debug-app set %s -p -w' % _TEST_APP_ID)
+    _assert_fail('debug-app set %s' % _TEST_NON_EXISTANT_APP_ID)
+
+    _assert_success('debug-app clear')
+
+
 def _assert_fail(sub_cmd):
     exit_code, stdout_data, stderr_data = _execute(sub_cmd)
     assert exit_code == 1, 'Command "%s" failed with stdout: "%s" and stderr: "%s"' %(sub_cmd, stdout_data, stderr_data)
@@ -554,6 +564,7 @@ def main():
     test_screen_toggle()
     test_notifications()
     test_location()
+    test_debug_app()
     # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
 
 
