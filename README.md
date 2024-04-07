@@ -31,6 +31,7 @@ A command-line interface to trigger various scenarios like screen rotation, batt
 [![AdbeUnitTests-Api31](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api31.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api31.yml)
 [![AdbeUnitTests-Api32](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api32.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api32.yml)
 [![AdbeUnitTests-Api33](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api33.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api33.yml)
+[![AdbeUnitTests-Api34](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api34.yml/badge.svg)](https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api34.yml)
 
 [![asciicast](https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK.png)](https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK)
 

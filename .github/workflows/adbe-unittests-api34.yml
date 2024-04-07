@@ -1,4 +1,5 @@
-name: AdbeUnitTests-Api26
+---
+name: AdbeUnitTests-Api34
 
 on:
   schedule:
@@ -6,21 +7,24 @@ on:
   pull_request:
     branches: [master, main]
     paths:
-      - '.github/workflows/adbe-unittests-api26.yml'
+      - '.github/workflows/adbe-unittests-api34.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  testOnApi26:
+  testOnApi34:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     strategy:
       matrix:
-        api-level: [26]
-        target: [default]  # Other option: google_apis
+        api-level: [34]
+        # API 30+ emulators only have x86_64 system images.
+        arch: ["x86_64"]
+        # "default" is not available
+        target: ["google_apis"]
 
     steps:
       - name: checkout
@@ -43,13 +47,15 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ matrix.api-level }}
+          key: avd-${{ matrix.api-level }} - ${{ matrix.arch }} - ${{ matrix.target }}
 
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
+          arch: ${{ matrix.arch }}
+          target: ${{ matrix.target }}
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
@@ -59,10 +65,11 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
+          arch: ${{ matrix.arch }}
+          target: ${{ matrix.target }}
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          target: ${{ matrix.target }}
           script: |
             python3 -m pip install --upgrade pip
             python3 -m pip install --user -r requirements.txt

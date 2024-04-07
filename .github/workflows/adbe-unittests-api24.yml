@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   testOnApi24:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 15
 
     strategy:
@@ -28,6 +28,13 @@ jobs:
 
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
+
+      # Ref: https://github.com/ReactiveCircus/android-emulator-runner?tab=readme-ov-file#running-hardware-accelerated-emulators-on-linux-runners
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
       - name: AVD cache
         uses: actions/cache@v4

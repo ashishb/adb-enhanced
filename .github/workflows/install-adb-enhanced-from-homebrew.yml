@@ -27,8 +27,6 @@ jobs:
 
       - name: Install adb-enhanced from homebrew
         run: |
-          # TODO(ashishb): Remove update after Aug 1, 2023
-          brew update || echo "brew update failed, still proceeding"
           brew link --force python@3.11
           HOMEBREW_NO_INSTALL_CLEANUP=true brew install --verbose adb-enhanced || echo "brew install returned non-zero exit code"
           adbe --version
