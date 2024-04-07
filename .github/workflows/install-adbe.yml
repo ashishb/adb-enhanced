@@ -30,7 +30,7 @@ jobs:
       matrix:
         # A dependency, psutil, fails to install on Python 3.9
         # https://github.com/ashishb/adb-enhanced/actions/runs/4309805993/jobs/7517607875
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12"]
     steps:
       - name: checkout
         uses: actions/checkout@v4
