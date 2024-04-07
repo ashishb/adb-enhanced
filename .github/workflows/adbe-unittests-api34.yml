@@ -1,5 +1,5 @@
 ---
-name: AdbeUnitTests-Api32
+name: AdbeUnitTests-Api34
 
 on:
   schedule:
@@ -7,20 +7,20 @@ on:
   pull_request:
     branches: [master, main]
     paths:
-      - '.github/workflows/adbe-unittests-api32.yml'
+      - '.github/workflows/adbe-unittests-api34.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  testOnApi32:
+  testOnApi34:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     strategy:
       matrix:
-        api-level: [32]
+        api-level: [34]
         # API 30+ emulators only have x86_64 system images.
         arch: ["x86_64"]
         # "default" is not available
