@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   testOnApi33:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     # This test is slow
     timeout-minutes: 30
 
@@ -31,6 +31,13 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+
+      # Ref: https://github.com/ReactiveCircus/android-emulator-runner?tab=readme-ov-file#running-hardware-accelerated-emulators-on-linux-runners
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
