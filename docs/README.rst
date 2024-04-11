@@ -6,11 +6,11 @@ ADB Enhanced |Downloads| |PyPI version|
 
    Logo
 
-ADB-Enhanced is a Swiss-army knife for Android testing and development.
+ADB-Enhanced is a Swiss army knife for Android testing and development.
 
 A command-line interface to trigger various scenarios like screen
-rotation, battery saver mode, data saver mode, doze mode, permission
-grant/revocation. Its a wrapper around ``adb`` and not a replacement.
+rotation, battery saver mode, data saver mode, doze mode, and permission
+grant/revocation. It’s a wrapper around ``adb`` and not a replacement.
 
 |Lint Python| |Lint Markdown| |Lint YAML|
 
@@ -25,6 +25,7 @@ grant/revocation. Its a wrapper around ``adb`` and not a replacement.
 |AdbeUnitTests-Api26| |AdbeUnitTests-Api27| |AdbeUnitTests-Api28|
 |AdbeUnitTests-Api29| |AdbeUnitTests-Api31| |AdbeUnitTests-Api30|
 |AdbeUnitTests-Api31| |AdbeUnitTests-Api32| |AdbeUnitTests-Api33|
+|AdbeUnitTests-Api34|
 
 |asciicast|
 
@@ -50,12 +51,11 @@ Alternative on Mac OS via Homebrew |Homebrew package|
 Note
 ----
 
-1. ``sudo pip install adb-enhanced`` for Python2 based install works as
-   well but, I would recommend moving to python3 since I will deprecate
-   Python2 support anytime after Dec 31, 2018.
+1. ``sudo pip install adb-enhanced`` works only for Python 3. Python 2
+   is no longer supported.
 2. If you don’t have sudo access or you are installing without sudo then
    ``adbe`` might not be configured correctly in the path.
-3. To setup bash/z-sh auto-completion, execute
+3. To set up bash/z-sh auto-completion, execute
    ``sudo pip3 install infi.docopt-completion && docopt-completion $(which adbe)``
    after installing adb-enhanced.
 
@@ -329,7 +329,7 @@ Note that this happens automatically during ``make release_production``.
 
 You will have to do ``brew install pandoc`` if you are missing pandoc.
 
-Note: The inspiration of this project came from
+Note: The inspiration for this project came from
 `android-scripts <https://github.com/dhelleberg/android-scripts>`__.
 
 |Packaging status|
@@ -342,8 +342,8 @@ Contributors
 
    GitHub contributors
 
-.. |Downloads| image:: http://pepy.tech/badge/adb-enhanced
-   :target: http://pepy.tech/project/adb-enhanced
+.. |Downloads| image:: https://static.pepy.tech/badge/adb-enhanced
+   :target: https://pepy.tech/project/adb-enhanced
 .. |PyPI version| image:: https://badge.fury.io/py/adb-enhanced.svg
    :target: https://badge.fury.io/py/adb-enhanced
 .. |Lint Python| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/lint-python.yaml/badge.svg
@@ -390,6 +390,8 @@ Contributors
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api32.yml
 .. |AdbeUnitTests-Api33| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api33.yml/badge.svg
    :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api33.yml
+.. |AdbeUnitTests-Api34| image:: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api34.yml/badge.svg
+   :target: https://github.com/ashishb/adb-enhanced/actions/workflows/adbe-unittests-api34.yml
 .. |asciicast| image:: https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK.png
    :target: https://asciinema.org/a/0IhbOF6QNIhBlgtO6VgzNmTbK
 .. |Homebrew package| image:: https://repology.org/badge/version-for-repo/homebrew/adb-enhanced.svg
