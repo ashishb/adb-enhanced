@@ -49,19 +49,19 @@ _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 _MIN_API_FOR_DARK_MODE = 29
 _MIN_API_FOR_LOCATION = 29
 
-_REGEX_BACKUP_ALLOWED = '(pkgFlags|flags).*ALLOW_BACKUP'
-_REGEX_DEBUGGABLE = '(pkgFlags|flags).*DEBUGGABLE'
+_REGEX_BACKUP_ALLOWED = "(pkgFlags|flags).*ALLOW_BACKUP"
+_REGEX_DEBUGGABLE = "(pkgFlags|flags).*DEBUGGABLE"
 
 # Value to be return as 'on' to the user
-_USER_PRINT_VALUE_ON = 'on'
+_USER_PRINT_VALUE_ON = "on"
 # Value to be return as 'partially on' to the user
-_USER_PRINT_VALUE_PARTIALLY_ON = 'partially on'
+_USER_PRINT_VALUE_PARTIALLY_ON = "partially on"
 # Value to be return as 'off' to the user
-_USER_PRINT_VALUE_OFF = 'off'
+_USER_PRINT_VALUE_OFF = "off"
 # Value to be return as 'unknown' to the user
-_USER_PRINT_VALUE_UNKNOWN = 'unknown'
+_USER_PRINT_VALUE_UNKNOWN = "unknown"
 # Value to be return as 'auto' to the user
-_USER_PRINT_VALUE_AUTO = 'auto'
+_USER_PRINT_VALUE_AUTO = "auto"
 
 SCREEN_ON = 1
 SCREEN_OFF = 2
@@ -80,7 +80,7 @@ def ensure_package_exists(func):
 
 
 def _package_exists(package_name):
-    cmd = 'pm path %s' % package_name
+    cmd = "pm path %s" % package_name
     return_code, response, _ = execute_adb_shell_command2(cmd)
     return return_code == 0 and response is not None and len(response.strip()) != 0
 
@@ -153,39 +153,39 @@ def handle_overdraw(value):
 # Perform screen rotation. Accepts four direction types - left, right, portrait, and landscape.
 # Source:
 # https://stackoverflow.com/questions/25864385/changing-android-device-orientation-with-adb
-def handle_rotate(direction):
-    disable_acceleration = 'put system accelerometer_rotation 0'
+def handle_rotate(direction: str):
+    disable_acceleration = "put system accelerometer_rotation 0"
     execute_adb_shell_settings_command(disable_acceleration)
 
-    if direction == 'portrait':
+    if direction == "portrait":
         new_direction = 0
-    elif direction == 'landscape':
+    elif direction == "landscape":
         new_direction = 1
-    elif direction == 'left':
+    elif direction == "left":
         current_direction = get_current_rotation_direction()
         print_verbose("Current direction: %s" % current_direction)
         if current_direction is None:
             return
         new_direction = (current_direction + 1) % 4
-    elif direction == 'right':
+    elif direction == "right":
         current_direction = get_current_rotation_direction()
         print_verbose("Current direction: %s" % current_direction)
         if current_direction is None:
             return
         new_direction = (current_direction - 1) % 4
     else:
-        print_error_and_exit('Unexpected direction %s' % direction)
+        print_error_and_exit("Unexpected direction %s" % direction)
         return
 
-    cmd = 'put system user_rotation %s' % new_direction
+    cmd = "put system user_rotation %s" % new_direction
     execute_adb_shell_settings_command(cmd)
 
 
-def get_current_rotation_direction():
-    cmd = 'get system user_rotation'
+def get_current_rotation_direction() -> int:
+    cmd = "get system user_rotation"
     direction = execute_adb_shell_settings_command(cmd)
     print_verbose("Return value is %s" % direction)
-    if not direction or direction == 'null':
+    if not direction or direction == "null":
         return 0  # default direction is 0, vertical straight
     try:
         return int(direction)
@@ -195,9 +195,9 @@ def get_current_rotation_direction():
 
 def handle_layout(value: bool):
     if value:
-        cmd = 'setprop debug.layout true'
+        cmd = "setprop debug.layout true"
     else:
-        cmd = 'setprop debug.layout false'
+        cmd = "setprop debug.layout false"
     execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
@@ -260,7 +260,7 @@ def handle_airplane(turn_on: bool):
             set_wifi(True)
 
 
-def get_battery_saver_state():
+def get_battery_saver_state() -> str:
     _error_if_min_version_less_than(19)
     cmd = 'get global low_power'
     return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
@@ -287,21 +287,21 @@ def get_battery_saver_state():
 def handle_battery_saver(turn_on: bool):
     _error_if_min_version_less_than(19)
     if turn_on:
-        cmd = 'put global low_power 1'
+        cmd = "put global low_power 1"
     else:
-        cmd = 'put global low_power 0'
+        cmd = "put global low_power 0"
 
     if turn_on:
         return_code, _, _ = execute_adb_shell_command2(get_battery_unplug_cmd())
         if return_code != 0:
-            print_error_and_exit('Failed to unplug battery')
+            print_error_and_exit("Failed to unplug battery")
         return_code, _, _ = execute_adb_shell_command2(get_battery_discharging_cmd())
         if return_code != 0:
-            print_error_and_exit('Failed to put battery in discharge mode')
+            print_error_and_exit("Failed to put battery in discharge mode")
 
     return_code, _, _ = execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to modify battery saver mode')
+        print_error_and_exit("Failed to modify battery saver mode")
 
 
 # Source:
@@ -332,16 +332,16 @@ def handle_battery_reset():
 def handle_doze(turn_on: bool):
     _error_if_min_version_less_than(23)
 
-    enable_idle_mode_cmd = 'dumpsys deviceidle enable'
+    enable_idle_mode_cmd = "dumpsys deviceidle enable"
     if turn_on:
         # Source: https://stackoverflow.com/a/42440619
-        cmd = 'dumpsys deviceidle force-idle'
+        cmd = "dumpsys deviceidle force-idle"
         execute_adb_shell_command2(get_battery_unplug_cmd())
         execute_adb_shell_command2(get_battery_discharging_cmd())
         execute_adb_shell_command2(enable_idle_mode_cmd)
         execute_adb_shell_command2(cmd)
     else:
-        cmd = 'dumpsys deviceidle unforce'
+        cmd = "dumpsys deviceidle unforce"
         execute_adb_shell_command2(get_battery_reset_cmd())
         execute_adb_shell_command2(enable_idle_mode_cmd)
         execute_adb_shell_command2(cmd)
@@ -352,21 +352,21 @@ def handle_doze(turn_on: bool):
 # https://gitlab.com/SaberMod/pa-android-frameworks-base/commit/a53de0629f3b94472c0f160f5bbe1090b020feab
 def get_update_activity_service_cmd():
     # Note: 1599295570 == ('_' << 24) | ('S' << 16) | ('P' << 8) | 'R'
-    return 'service call activity 1599295570'
+    return "service call activity 1599295570"
 
 
 # This command puts the battery in discharging mode (most likely this is
 # Android 6.0 onwards only)
-def get_battery_discharging_cmd():
-    return 'dumpsys battery set status 3'
+def get_battery_discharging_cmd() -> str:
+    return "dumpsys battery set status 3"
 
 
-def get_battery_unplug_cmd():
-    return 'dumpsys battery unplug'
+def get_battery_unplug_cmd() -> str:
+    return "dumpsys battery unplug"
 
 
-def get_battery_reset_cmd():
-    return 'dumpsys battery reset'
+def get_battery_reset_cmd() -> str:
+    return "dumpsys battery reset"
 
 
 @ensure_package_exists
@@ -374,31 +374,31 @@ def handle_get_jank(app_name):
     running = _is_app_running(app_name)
     if not running:
         # Jank information cannot be fetched unless the app is running
-        print_verbose('Starting the app %s to get its jank information' % app_name)
+        print_verbose("Starting the app %s to get its jank information" % app_name)
         launch_app(app_name)
 
     try:
-        cmd = 'dumpsys gfxinfo %s ' % app_name
+        cmd = "dumpsys gfxinfo %s " % app_name
         return_code, result, _ = execute_adb_shell_command2(cmd)
         print_verbose(result)
         found = False
         if return_code == 0:
             for line in result.split('\n'):
-                if line.find('Janky') != -1:
+                if line.find("Janky") != -1:
                     print(line)
                     found = True
                     break
         if not found:
-            print_error('No jank information found for %s' % app_name)
+            print_error("No jank information found for %s" % app_name)
     finally:
         # If app was not running then kill app after getting the jank information.
         if not running:
-            print_verbose('Stopping the app %s after getting its jank information' % app_name)
+            print_verbose("Stopping the app %s after getting its jank information" % app_name)
             force_stop(app_name)
 
 
-def _is_app_running(app_name):
-    return_code, result, _ = execute_adb_shell_command2('ps -o NAME')
+def _is_app_running(app_name: str):
+    return_code, result, _ = execute_adb_shell_command2("ps -o NAME")
     if return_code != 0 or not result:
         return False
     result = result.strip()
@@ -409,17 +409,17 @@ def handle_list_devices():
     device_serials = _get_device_serials()
 
     if not device_serials:
-        print_error_and_exit('No attached Android device found')
+        print_error_and_exit("No attached Android device found")
 
     for device_serial in device_serials:
         _print_device_info(device_serial)
 
 
 def _get_device_serials() -> [str]:
-    cmd = 'devices -l'
+    cmd = "devices -l"
     return_code, stdout, stderr = execute_adb_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to execute command %s, error: %s ' % (cmd, stderr))
+        print_error_and_exit("Failed to execute command %s, error: %s " % (cmd, stderr))
 
     device_serials = []
     # Skip the first line, it says "List of devices attached"
@@ -438,7 +438,7 @@ def _get_device_serials() -> [str]:
         if not device_info:
             continue
         device_serial = device_info.split()[0]
-        if 'unauthorized' in device_info:
+        if "unauthorized" in device_info:
             device_info = ' '.join(device_info.split()[1:])
             print_error(
                 ('Unlock Device "%s" and give USB debugging access to ' +
@@ -451,45 +451,43 @@ def _get_device_serials() -> [str]:
 
 
 def _print_device_info(device_serial=None):
-    manufacturer = get_adb_shell_property('ro.product.manufacturer', device_serial=device_serial)
-    model = get_adb_shell_property('ro.product.model', device_serial=device_serial)
+    manufacturer = get_adb_shell_property("ro.product.manufacturer", device_serial=device_serial)
+    model = get_adb_shell_property("ro.product.model", device_serial=device_serial)
     # This worked on 4.4.3 API 19 Moto E
-    display_name = get_adb_shell_property('ro.product.display', device_serial=device_serial)
+    display_name = get_adb_shell_property("ro.product.display", device_serial=device_serial)
     # First fallback: undocumented
-    if not display_name or display_name == 'null':
+    if not display_name or display_name == "null":
         # This works on 4.4.4 API 19 Galaxy Grand Prime
         if get_device_android_api_version(device_serial=device_serial) >= 19:
-            display_name = execute_adb_shell_settings_command('get system device_name', device_serial=device_serial)
+            display_name = execute_adb_shell_settings_command("get system device_name", device_serial=device_serial)
     # Second fallback, documented to work on API 25 and above
     # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#DEVICE_NAME
-    if not display_name or display_name == 'null':
+    if not display_name or display_name == "null":
         if get_device_android_api_version(device_serial=device_serial) >= 25:
-            display_name = execute_adb_shell_settings_command('get global device_name', device_serial=device_serial)
+            display_name = execute_adb_shell_settings_command("get global device_name", device_serial=device_serial)
 
     # ABI info
     abi = get_adb_shell_property('ro.product.cpu.abi', device_serial=device_serial)
     release = get_adb_shell_property('ro.build.version.release', device_serial=device_serial)
-
-    release = get_adb_shell_property('ro.build.version.release', device_serial=device_serial)
     sdk = get_adb_shell_property('ro.build.version.sdk', device_serial=device_serial)
     print_message(
-        'Serial ID: %s\nManufacturer: %s\nModel: %s (%s)\nRelease: %s\nSDK version: %s\nCPU: %s\n' %
+        "Serial ID: %s\nManufacturer: %s\nModel: %s (%s)\nRelease: %s\nSDK version: %s\nCPU: %s\n" %
         (device_serial, manufacturer, model, display_name, release, sdk, abi))
 
 
 def print_top_activity():
     app_name, activity_name = _get_top_activity_data()
     if app_name:
-        print_message('Application name: %s' % app_name)
+        print_message("Application name: %s" % app_name)
     if activity_name:
-        print_message('Activity name: %s' % activity_name)
+        print_message("Activity name: %s" % activity_name)
 
 
 def _get_top_activity_data():
-    cmd = 'dumpsys window windows'
+    cmd = "dumpsys window windows"
     return_code, output, _ = execute_adb_shell_command2(cmd)
     if return_code != 0 and not output:
-        print_error_and_exit('Device returned no response, is it still connected?')
+        print_error_and_exit("Device returned no response, is it still connected?")
     for line in output.split('\n'):
         line = line.strip()
         regex_result = re.search(r'ActivityRecord{.* (\S+)/(\S+)', line)
@@ -506,48 +504,48 @@ def _get_top_activity_data():
 
 
 def dump_ui(xml_file):
-    tmp_file = _create_tmp_file('dump-ui', 'xml')
-    cmd1 = 'uiautomator dump %s' % tmp_file
-    cmd2 = 'pull %s %s' % (tmp_file, xml_file)
-    cmd3 = 'rm %s' % tmp_file
+    tmp_file = _create_tmp_file("dump-ui", "xml")
+    cmd1 = "uiautomator dump %s" % tmp_file
+    cmd2 = "pull %s %s" % (tmp_file, xml_file)
+    cmd3 = "rm %s" % tmp_file
 
-    print_verbose('Writing UI to %s' % tmp_file)
+    print_verbose("Writing UI to %s" % tmp_file)
     return_code, _, stderr = execute_adb_shell_command2(cmd1)
     if return_code != 0:
-        print_error_and_exit('Failed to execute \"%s\", stderr: \"%s\"' % (cmd1, stderr))
+        print_error_and_exit("Failed to execute \"%s\", stderr: \"%s\"" % (cmd1, stderr))
 
-    print_verbose('Pulling file %s' % xml_file)
+    print_verbose("Pulling file %s" % xml_file)
     return_code, _, stderr = execute_adb_command2(cmd2)
-    print_verbose('Deleting file %s' % tmp_file)
+    print_verbose("Deleting file %s" % tmp_file)
     execute_adb_shell_command2(cmd3)
     if return_code != 0:
-        print_error_and_exit('Failed to fetch file %s' % tmp_file)
+        print_error_and_exit("Failed to fetch file %s" % tmp_file)
     else:
-        print_message('XML UI dumped to %s, you might want to format it using \"xmllint --format %s\"' %
+        print_message("XML UI dumped to %s, you might want to format it using \"xmllint --format %s\"" %
                       (xml_file, xml_file))
 
 
 @ensure_package_exists
 def force_stop(app_name):
-    cmd = 'am force-stop %s' % app_name
+    cmd = "am force-stop %s" % app_name
     return_code, stdout, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to stop \"%s\"' % app_name)
+        print_error_and_exit("Failed to stop \"%s\"" % app_name)
     else:
         print_message(stdout)
 
 
 @ensure_package_exists
 def clear_disk_data(app_name):
-    cmd = 'pm clear %s' % app_name
+    cmd = "pm clear %s" % app_name
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to clear data of \"%s\"' % app_name)
+        print_error_and_exit("Failed to clear data of \"%s\"" % app_name)
 
 
 def get_mobile_data_state():
     # Using "adb shell dumpsys telephony.registry | ag mDataConnectionState"
-    cmd = 'dumpsys telephony.registry'
+    cmd = "dumpsys telephony.registry"
     return_code, stdout, _ = execute_adb_shell_command2(cmd)
     if return_code != 0 or not stdout:
         print_error('Failed to get mobile data setting')
@@ -563,12 +561,12 @@ def get_mobile_data_state():
 
 
 # Source: https://developer.android.com/reference/android/provider/Settings.Global#WIFI_ON
-def get_wifi_state():
+def get_wifi_state() -> str:
     _error_if_min_version_less_than(17)
 
-    return_code, stdout, _ = execute_adb_shell_settings_command2('get global wifi_on')
+    return_code, stdout, _ = execute_adb_shell_settings_command2("get global wifi_on")
     if return_code != 0:
-        print_error('Failed to get global Wi-Fi setting')
+        print_error("Failed to get global Wi-Fi setting")
         return _USER_PRINT_VALUE_UNKNOWN
 
     if int(stdout.strip()) == 1:
@@ -579,12 +577,12 @@ def get_wifi_state():
 @partial(print_state_change_decorator, title="Wi-Fi", get_state_func=get_wifi_state)
 def set_wifi(turn_on: bool):
     if turn_on:
-        cmd = 'svc wifi enable'
+        cmd = "svc wifi enable"
     else:
-        cmd = 'svc wifi disable'
+        cmd = "svc wifi disable"
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to change Wi-Fi setting')
+        print_error_and_exit("Failed to change Wi-Fi setting")
 
 
 # Source:
@@ -592,33 +590,33 @@ def set_wifi(turn_on: bool):
 @partial(print_state_change_decorator, title="Mobile data", get_state_func=get_mobile_data_state)
 def handle_mobile_data(turn_on: bool):
     if turn_on:
-        cmd = 'svc data enable'
+        cmd = "svc data enable"
     else:
-        cmd = 'svc data disable'
+        cmd = "svc data disable"
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to change mobile data setting')
+        print_error_and_exit("Failed to change mobile data setting")
 
 
 def force_rtl(turn_on: bool):
     _error_if_min_version_less_than(19)
     if turn_on:
-        cmd = 'put global debug.force_rtl 1'
+        cmd = "put global debug.force_rtl 1"
     else:
-        cmd = 'put global debug.force_rtl 0'
+        cmd = "put global debug.force_rtl 0"
     execute_adb_shell_settings_command_and_poke_activity_service(cmd)
 
 
 def dump_screenshot(filepath):
-    screenshot_file_path_on_device = _create_tmp_file('screenshot', 'png')
-    dump_cmd = 'screencap -p %s ' % screenshot_file_path_on_device
+    screenshot_file_path_on_device = _create_tmp_file("screenshot", "png")
+    dump_cmd = "screencap -p %s " % screenshot_file_path_on_device
     return_code, stdout, stderr = execute_adb_shell_command2(dump_cmd)
     if return_code != 0:
         print_error_and_exit(
-            'Failed to capture the screenshot: (stdout: %s, stderr: %s)' % (stdout, stderr))
+            "Failed to capture the screenshot: (stdout: %s, stderr: %s)" % (stdout, stderr))
     pull_cmd = 'pull %s %s' % (screenshot_file_path_on_device, filepath)
     execute_adb_command2(pull_cmd)
-    del_cmd = 'rm %s' % screenshot_file_path_on_device
+    del_cmd = "rm %s" % screenshot_file_path_on_device
     execute_adb_shell_command2(del_cmd)
 
 
@@ -628,8 +626,8 @@ def dump_screenrecord(filepath):
 
     # I have tested that on API 23 and above this works. Till Api 22, on emulator, it does not.
     if api_version < 23 and _is_emulator():
-        print_error_and_exit('screenrecord is not supported on emulator below API 23\n' +
-                             'Source: %s ' % 'https://issuetracker.google.com/issues/36982354')
+        print_error_and_exit("screenrecord is not supported on emulator below API 23\n" +
+                             "Source: https://issuetracker.google.com/issues/36982354")
 
     screen_record_file_path_on_device = None
     original_sigint_handler = None
@@ -681,12 +679,12 @@ def dump_screenrecord(filepath):
 
 
 def get_mobile_data_saver_state():
-    cmd = 'cmd netpolicy get restrict-background'
+    cmd = "cmd netpolicy get restrict-background"
     return_code, stdout, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error('Failed to get mobile data saver mode setting')
+        print_error("Failed to get mobile data saver mode setting")
         return _USER_PRINT_VALUE_UNKNOWN
-    enabled = stdout.strip().find('enabled') != -1
+    enabled = stdout.strip().find("enabled") != -1
     if enabled:
         return _USER_PRINT_VALUE_ON
     else:
@@ -697,12 +695,12 @@ def get_mobile_data_saver_state():
 @partial(print_state_change_decorator, title="Mobile data saver", get_state_func=get_mobile_data_saver_state)
 def handle_mobile_data_saver(turn_on: bool):
     if turn_on:
-        cmd = 'cmd netpolicy set restrict-background true'
+        cmd = "cmd netpolicy set restrict-background true"
     else:
-        cmd = 'cmd netpolicy set restrict-background false'
+        cmd = "cmd netpolicy set restrict-background false"
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to modify data saver mode setting')
+        print_error_and_exit("Failed to modify data saver mode setting")
 
 
 def get_dont_keep_activities_in_background_state():
@@ -1840,24 +1838,20 @@ def switch_screen(switch_type):
         c, o, e = toggle_screen()
 
         if c != 0:
-            print_error_and_exit("Something gone wrong on "
-                                 "screen control operation. Error: %s" % e)
+            print_error_and_exit("Something gone wrong on screen control operation. Error: %s" % e)
         return o
 
     c, o, e = execute_adb_shell_command2("dumpsys display")
     if c != 0:
-        print_error_and_exit("Something gone wrong on "
-                             "screen control operation. Error: %s" % e)
+        print_error_and_exit("Something gone wrong on screen control operation. Error: %s" % e)
 
     state = re.findall(r"^\s*mScreenState=(\w*)$", o, re.MULTILINE)[0]
 
     if (state == "ON" and switch_type == SCREEN_OFF) or \
             (state in ["OFF", "DOZE"] and switch_type == SCREEN_ON):
         c, o, e = toggle_screen()
-
         if c != 0:
-            print_error_and_exit("Something gone wrong on "
-                                 "screen control operation. Error: %s" % e)
+            print_error_and_exit("Something gone wrong on screen control operation. Error: %s" % e)
 
     return o
 
@@ -1866,9 +1860,9 @@ def get_dark_mode() -> str:
     _error_if_min_version_less_than(_MIN_API_FOR_DARK_MODE)
     return_code, stdout, stderr = execute_adb_shell_settings_command2('get secure ui_night_mode')
     if return_code != 0:
-        print_error('Failed to get current UI mode: %s' % stderr)
+        print_error("Failed to get current UI mode: %s" % stderr)
         return _USER_PRINT_VALUE_UNKNOWN
-    if stdout == 'null':
+    if stdout == "null":
         return _USER_PRINT_VALUE_UNKNOWN
     val = int(stdout)
     if val == 2:
@@ -1878,7 +1872,7 @@ def get_dark_mode() -> str:
     elif val == 0:
         return _USER_PRINT_VALUE_AUTO
     else:
-        return 'Unknown: %d' % val
+        return "Unknown: %d" % val
 
 
 # This code worked for emulator on API 29.

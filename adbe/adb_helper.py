@@ -20,7 +20,7 @@ _IGNORED_LINES = [
 _MIN_VERSION_ABOVE_WHICH_ADB_SHELL_RETURNS_CORRECT_EXIT_CODE = 24
 
 
-def get_adb_prefix():
+def get_adb_prefix() -> str:
     return _adb_prefix
 
 
@@ -30,7 +30,7 @@ def set_adb_prefix(adb_prefix):
     _adb_prefix = adb_prefix
 
 
-def get_adb_shell_property(property_name, device_serial=None):
+def get_adb_shell_property(property_name, device_serial=None) -> typing.Optional[str]:
     _, stdout, _ = execute_adb_shell_command2('getprop %s' % property_name, device_serial=device_serial)
     return stdout
 
@@ -101,40 +101,41 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
         print_error_and_exit('stdout_data is weird type: %s' % type(stdout_data))
 
 
-def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
+def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None) -> str:
     _, stdout, _ = execute_adb_command2(
-        'shell %s' % adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
+        "shell %s" % adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
     return stdout
 
 
-def execute_file_related_adb_shell_command(adb_shell_cmd, file_path, piped_into_cmd=None, ignore_stderr=False,
-                                           device_serial=None):
-    file_not_found_message = 'No such file or directory'
-    is_a_directory_message = 'Is a directory'  # Error when someone tries to delete a dir with "-r"
+def execute_file_related_adb_shell_command(
+        adb_shell_cmd: str, file_path: str, piped_into_cmd: typing.Optional[str] = None,
+        ignore_stderr: bool = False, device_serial: typing.Optional[str] = None) -> str:
+    file_not_found_message = "No such file or directory"
+    is_a_directory_message = "Is a directory"  # Error when someone tries to delete a dir without "-r"
 
     adb_cmds_prefix = []
     run_as_package = get_package(file_path)
     if run_as_package:
-        adb_cmds_prefix.append('shell run-as %s' % run_as_package)
+        adb_cmds_prefix.append("shell run-as %s" % run_as_package)
     if root_required_to_access_file(file_path):
-        adb_cmds_prefix.append('shell su root')
+        adb_cmds_prefix.append("shell su root")
     # As a backup, still try with a plain-old access, if run-as is not possible and root is not available.
-    adb_cmds_prefix.append('shell')
+    adb_cmds_prefix.append("shell")
 
     stdout = None
     attempt_count = 1
     for adb_cmd_prefix in adb_cmds_prefix:
         print_verbose('Attempt %d/%d: "%s"' % (attempt_count, len(adb_cmds_prefix), adb_cmd_prefix))
         attempt_count += 1
-        adb_cmd = '%s %s' % (adb_cmd_prefix, adb_shell_cmd)
+        adb_cmd = "%s %s" % (adb_cmd_prefix, adb_shell_cmd)
         return_code, stdout, stderr = execute_adb_command2(adb_cmd, piped_into_cmd, ignore_stderr,
                                                            device_serial=device_serial)
 
         if stderr.find(file_not_found_message) >= 0:
-            print_error('File not found: %s' % file_path)
+            print_error("File not found: %s" % file_path)
             return stderr
         if stderr.find(is_a_directory_message) >= 0:
-            print_error('%s is a directory' % file_path)
+            print_error("%s is a directory" % file_path)
             return stderr
 
         api_version = get_device_android_api_version()
@@ -147,7 +148,7 @@ def execute_file_related_adb_shell_command(adb_shell_cmd, file_path, piped_into_
 # Gets the package name given a file path.
 # Eg. if the file is in /data/data/com.foo/.../file1 then package is com.foo
 # Or if the file is in /data/user/0/com.foo/.../file1 then package is com.foo
-def get_package(file_path):
+def get_package(file_path) -> typing.Optional[str]:
     if not file_path:
         return None
 
@@ -168,19 +169,19 @@ def get_package(file_path):
 
 # adb shell getprop ro.build.version.sdk
 @functools.lru_cache(maxsize=10)
-def get_device_android_api_version(device_serial=None):
-    version_string = get_adb_shell_property('ro.build.version.sdk', device_serial=device_serial)
+def get_device_android_api_version(device_serial=None) -> int:
+    version_string = get_adb_shell_property("ro.build.version.sdk", device_serial=device_serial)
     if version_string is None:
-        print_error_and_exit('Unable to get Android device version, is it still connected?')
+        print_error_and_exit("Unable to get Android device version, is it still connected?")
     return int(version_string)
 
 
-def root_required_to_access_file(remote_file_path):
+def root_required_to_access_file(remote_file_path) -> bool:
     if not remote_file_path:
         return False
-    elif remote_file_path.startswith('/data/local/tmp'):
+    elif remote_file_path.startswith("/data/local/tmp"):
         return False
-    elif remote_file_path.startswith('/sdcard'):
+    elif remote_file_path.startswith("/sdcard"):
         return False
     return True
 
