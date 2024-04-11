@@ -89,8 +89,8 @@ def _publish_release(testing_release=False):
     _prompt_user_to_update_version(version_file)
     _run_cmd_or_fail('make build')
 
-    _push_new_release_to_git(version_file)
     _publish_package_to_pypi(testing_release)
+    _push_new_release_to_git(version_file)
 
 
 # List of things which this release tool does as of today.
