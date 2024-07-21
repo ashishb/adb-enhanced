@@ -57,13 +57,23 @@ jobs:
 
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          # Ref: https://github.com/ReactiveCircus/android-emulator-runner/issues/385
+          ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL: 60
         with:
           api-level: ${{ matrix.api-level }}
           force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-metrics -camera-back none
           disable-animations: true
           target: ${{ matrix.target }}
           script: |
             python3 -m pip install --upgrade pip
             python3 -m pip install --user -r requirements.txt
             make test_python3
+
+      # Ref: https://github.com/ReactiveCircus/android-emulator-runner/issues/385
+      - name: Kill crashpad_handler processes
+        run: |
+          pkill -SIGTERM crashpad_handler || true
+          sleep 5
+          pkill -SIGKILL crashpad_handler || true
