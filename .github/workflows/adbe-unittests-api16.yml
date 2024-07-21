@@ -1,6 +1,7 @@
 name: AdbeUnitTests-Api16
 
 on:
+  workflow_dispatch:
   push:
     branches: [master, main]
     paths:
