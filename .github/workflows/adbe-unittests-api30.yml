@@ -2,12 +2,13 @@
 name: AdbeUnitTests-Api30
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 0'  # Sunday midnight UTC
+    - cron: "0 0 * * 0"  # Sunday midnight UTC
   pull_request:
     branches: [master, main]
     paths:
-      - '.github/workflows/adbe-unittests-api30.yml'
+      - ".github/workflows/adbe-unittests-api30.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

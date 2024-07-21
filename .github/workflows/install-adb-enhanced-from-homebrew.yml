@@ -2,15 +2,16 @@ name: Install adb-enhanced via homebrew
 
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Sunday midnight UTC
+    - cron: "0 0 * * 0"  # Sunday midnight UTC
+  workflow_dispatch:
   push:
     branches: [master, main]
     paths:
-      - '.github/workflows/install-adb-enhanced-from-homebrew.yml'
+      - ".github/workflows/install-adb-enhanced-from-homebrew.yml"
   pull_request:
     branches: [master, main]
     paths:
-      - '.github/workflows/install-adb-enhanced-from-homebrew.yml'
+      - ".github/workflows/install-adb-enhanced-from-homebrew.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
