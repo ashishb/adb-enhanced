@@ -2,15 +2,16 @@ name: Install adb-enhanced via pip
 
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Sunday midnight UTC
+    - cron: "0 0 * * 0"  # Sunday midnight UTC
+  workflow_dispatch:
   push:
     branches: [master, main]
     paths:
-      - '.github/workflows/install-adb-enhanced-from-pip.yml'
+      - ".github/workflows/install-adb-enhanced-from-pip.yml"
   pull_request:
     branches: [master, main]
     paths:
-      - '.github/workflows/install-adb-enhanced-from-pip.yml'
+      - ".github/workflows/install-adb-enhanced-from-pip.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

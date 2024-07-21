@@ -1,6 +1,7 @@
 name: Verify that package can be installed on Python
 
 on:
+  workflow_dispatch:
   push:
     branches: [master, main]
     paths:

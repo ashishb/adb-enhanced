@@ -1,6 +1,7 @@
 name: Lint Python
 
 on:
+  workflow_dispatch:
   push:
     branches: [master, main]
     paths:
