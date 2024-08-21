@@ -45,7 +45,7 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 
 `sudo pip3 install adb-enhanced`
 
-### Alternative on Mac OS via Homebrew [![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/adb-enhanced.svg)](https://formulae.brew.sh/formula/adb-enhanced)
+### Alternative on Mac OS via Homebrew https://repology.org/badge/version-for-repo/homebrew/adb-enhanced.svg)](https://formulae.brew.sh/formula/adb-enhanced)
 
 `brew install adb-enhanced`
 
