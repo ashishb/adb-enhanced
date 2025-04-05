@@ -28,7 +28,6 @@ jobs:
 
       - name: Install adb-enhanced from homebrew
         run: |
-          brew link --force python@3.11
           HOMEBREW_NO_INSTALL_CLEANUP=true brew install --verbose adb-enhanced || echo "brew install returned non-zero exit code"
           adbe --version
           brew uninstall adb-enhanced
