@@ -1,9 +1,10 @@
 import functools
+import os
 import re
 import subprocess
 import sys
-import os
 import time
+
 import pytest
 
 _SETTINGS_CMD_VERSION = 19

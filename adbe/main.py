@@ -360,9 +360,9 @@ def _using_python2():
 
 
 def _fail_with_python2_warning():
-    msg = ('You are using Python 2\nADB-enhanced no longer supports Python 2.\n' +
-           'Install Python 3 and then re-install this tool using\n' +
-           '\"sudo pip uninstall adb-enhanced && sudo pip3 install adb-enhanced\"')
+    msg = ('You are using Python 2\nADB-enhanced no longer supports Python 2.\n'
+           + 'Install Python 3 and then re-install this tool using\n'
+           + '\"sudo pip uninstall adb-enhanced && sudo pip3 install adb-enhanced\"')
     print_error_and_exit(msg)
 
 
