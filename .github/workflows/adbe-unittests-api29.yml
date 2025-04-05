@@ -71,4 +71,4 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-metrics -camera-back none
           disable-animations: true
           target: ${{ matrix.target }}
-          script: make test_python3
+          script: make test_python
