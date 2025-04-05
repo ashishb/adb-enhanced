@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import os
+import random
 import re
 import signal
 import subprocess
@@ -7,41 +9,39 @@ import sys
 import tempfile
 import threading
 import time
-import os
-import random
 import typing
-from functools import wraps, partial
-from urllib.parse import urlparse
 from enum import Enum
-import psutil
+from functools import partial, wraps
+from urllib.parse import urlparse
 
+import psutil
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
     # I definitely need a better way to handle this.
-    from adbe.adb_helper import (get_adb_shell_property, execute_adb_command2,
-                                 execute_adb_shell_command, execute_adb_shell_command2,
-                                 execute_file_related_adb_shell_command, get_package,
-                                 root_required_to_access_file,
-                                 get_device_android_api_version, toggle_screen)
-    from adbe.output_helper import (print_message, print_error, print_error_and_exit,
-                                    print_verbose)
     # asyncio was introduced in version 3.5
     from adbe import asyncio_helper
+    from adbe.adb_helper import (execute_adb_command2, execute_adb_shell_command,
+                                 execute_adb_shell_command2,
+                                 execute_file_related_adb_shell_command,
+                                 get_adb_shell_property, get_device_android_api_version,
+                                 get_package, root_required_to_access_file,
+                                 toggle_screen)
+    from adbe.output_helper import (print_error, print_error_and_exit, print_message,
+                                    print_verbose)
 # Python 3.6 onwards, this throws ModuleNotFoundError
 except ModuleNotFoundError:
     # This works when the code is executed directly.
     # noinspection PyUnresolvedReferences
-    from adb_helper import (get_adb_shell_property, execute_adb_command2,
-                            execute_adb_shell_command, execute_adb_shell_command2,
-                            execute_file_related_adb_shell_command, get_package,
-                            root_required_to_access_file,
-                            get_device_android_api_version, toggle_screen)
-
-    # noinspection PyUnresolvedReferences
-    from output_helper import (print_message, print_error, print_error_and_exit,
-                               print_verbose)
     import asyncio_helper
+    from adb_helper import (execute_adb_command2, execute_adb_shell_command,
+                            execute_adb_shell_command2,
+                            execute_file_related_adb_shell_command,
+                            get_adb_shell_property, get_device_android_api_version,
+                            get_package, root_required_to_access_file, toggle_screen)
+    # noinspection PyUnresolvedReferences
+    from output_helper import (print_error, print_error_and_exit, print_message,
+                               print_verbose)
 
 
 _KEYCODE_BACK = 4

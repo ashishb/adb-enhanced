@@ -8,8 +8,7 @@ import docopt
 
 try:
     # First try local import for development
-    from adbe import adb_enhanced
-    from adbe import adb_helper
+    from adbe import adb_enhanced, adb_helper
     from adbe.output_helper import print_error_and_exit, set_verbose
 # Python 3.6 onwards, this throws ModuleNotFoundError
 except ModuleNotFoundError:
