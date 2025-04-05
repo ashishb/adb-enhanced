@@ -24,9 +24,11 @@ adbe = "adbe.main:main"
 
 [dependency-groups]
 dev = [
+    "autoflake>=2.3.1",
     "flake8>=7.2.0",
     "pylint>=3.3.6",
     "pytest>=8.3.5",
+    "ruff>=0.11.4",
     "setuptools>=78.1.0",
     "types-docopt>=0.6.11.20241107",
     "types-psutil>=7.0.0.20250401",
