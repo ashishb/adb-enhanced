@@ -441,9 +441,9 @@ def _get_device_serials() -> [str]:
         if "unauthorized" in device_info:
             device_info = ' '.join(device_info.split()[1:])
             print_error(
-                ('Unlock Device "%s" and give USB debugging access to ' +
-                 'this PC/Laptop by unlocking and reconnecting ' +
-                 'the device. More info about this device: "%s"\n') % (
+                ('Unlock Device "%s" and give USB debugging access to '
+                 + 'this PC/Laptop by unlocking and reconnecting '
+                 + 'the device. More info about this device: "%s"\n') % (
                     device_serial, device_info))
         else:
             device_serials.append(device_serial)
@@ -626,8 +626,8 @@ def dump_screenrecord(filepath):
 
     # I have tested that on API 23 and above this works. Till Api 22, on emulator, it does not.
     if api_version < 23 and _is_emulator():
-        print_error_and_exit("screenrecord is not supported on emulator below API 23\n" +
-                             "Source: https://issuetracker.google.com/issues/36982354")
+        print_error_and_exit("screenrecord is not supported on emulator below API 23\n"
+                             + "Source: https://issuetracker.google.com/issues/36982354")
 
     original_sigint_handler = None
 
@@ -1514,10 +1514,10 @@ def _get_permissions_info_above_api_23(app_info_dump: str):
         elif app_info_dump.find(denied_pattern) >= 0:
             runtime_denied_permissions.append(permission)
     runtime_not_granted_permissions = list(filter(
-        lambda p: p not in runtime_granted_permissions and
-        p not in runtime_denied_permissions and
-        p not in install_time_granted_permissions and
-        p not in install_time_denied_permissions, requested_permissions))
+        lambda p: p not in runtime_granted_permissions
+        and p not in runtime_denied_permissions
+        and p not in install_time_granted_permissions
+        and p not in install_time_denied_permissions, requested_permissions))
 
     permissions_info_msg = ''
     permissions_info_msg += '\nPermissions:\n\n'
@@ -1917,9 +1917,9 @@ def print_notifications():
         notification_actions = []
         action_strings = re.findall(r"actions=\{(.*?)\n\}", output_for_this_notification, re.MULTILINE | re.DOTALL)
         if len(action_strings) > 0 and (
-                i + 1 >= len(notification_records) or
-                output_for_this_notification.find(action_strings[0]) >
-                output_for_this_notification.find(notification_records[i + 1])):
+                i + 1 >= len(notification_records)
+                or output_for_this_notification.find(action_strings[0])
+                > output_for_this_notification.find(notification_records[i + 1])):
             for actions in action_strings[0].split('\n'):
                 notification_actions += re.findall(r"\".*?\"", actions)
 
