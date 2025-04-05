@@ -22,10 +22,9 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 15
     strategy:
+      max-parallel: 1
       matrix:
-        # A dependency, psutil, fails to install on Python 3.9
-        # https://github.com/ashishb/adb-enhanced/actions/runs/4309805993/jobs/7517607875
-        python-version: ["3.8", "3.11"]
+        python-version: ["3.11", "3.12"]
     steps:
       - name: checkout
         uses: actions/checkout@v4

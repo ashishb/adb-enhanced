@@ -25,8 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
+      max-parallel: 1
       matrix:
-        python-version: ["3.8", "3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12"]
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -46,5 +47,5 @@ jobs:
       - name: Lint
         run: |
           pip install -r requirements.txt
-          pip install pylint flake8
+          pip install pylint flake8 setuptools
           make lint_python3

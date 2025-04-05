@@ -29,6 +29,7 @@ jobs:
     timeout-minutes: 30
 
     strategy:
+      max-parallel: 1
       matrix:
         api-level: [21, 26]
         target: [default]  # Other option: google_apis
