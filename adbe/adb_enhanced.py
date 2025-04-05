@@ -629,22 +629,20 @@ def dump_screenrecord(filepath):
         print_error_and_exit("screenrecord is not supported on emulator below API 23\n" +
                              "Source: https://issuetracker.google.com/issues/36982354")
 
-    screen_record_file_path_on_device = None
     original_sigint_handler = None
 
-    def _start_recording():
-        global screen_record_file_path_on_device
+    def _start_recording() -> str:
         print_message('Recording video, press Ctrl+C to end...')
-        screen_record_file_path_on_device = _create_tmp_file('screenrecord', 'mp4')
-        dump_cmd = 'screenrecord --verbose %s ' % screen_record_file_path_on_device
+        tmp_file_path = _create_tmp_file('screenrecord', 'mp4')
+        dump_cmd = 'screenrecord --verbose %s ' % tmp_file_path
         execute_adb_shell_command2(dump_cmd)
+        return tmp_file_path
 
-    def _pull_and_delete_file_from_device():
-        global screen_record_file_path_on_device
+    def _pull_and_delete_file_from_device(screen_record_file_path: str):
         print_message('Saving recording to %s' % filepath)
-        pull_cmd = 'pull %s %s' % (screen_record_file_path_on_device, filepath)
+        pull_cmd = 'pull %s %s' % (screen_record_file_path, filepath)
         execute_adb_command2(pull_cmd)
-        del_cmd = 'rm %s' % screen_record_file_path_on_device
+        del_cmd = 'rm %s' % screen_record_file_path
         execute_adb_shell_command2(del_cmd)
 
     def _kill_all_child_processes():
@@ -654,28 +652,28 @@ def dump_screenrecord(filepath):
             print_verbose('Child process is %s' % child)
             os.kill(child.pid, signal.SIGTERM)
 
-    def _handle_recording_ended():
+    def _handle_recording_ended(screen_record_file_path: str):
         print_message('Finishing...')
         # Kill all child processes.
-        # This is not neat but it is OK for now since we know that we have only one adb child process which is
+        # This is not neat, but it is OK for now since we know that we have only one adb child process which is
         # running screen recording.
         _kill_all_child_processes()
         # Wait for one second.
         time.sleep(1)
         # Finish rest of the processing.
-        _pull_and_delete_file_from_device()
+        _pull_and_delete_file_from_device(screen_record_file_path)
         # And exit
         sys.exit(0)
 
     def signal_handler(unused_sig, unused_frame):
         # Restore the original handler for Ctrl-C
         signal.signal(signal.SIGINT, original_sigint_handler)
-        _handle_recording_ended()
+        _handle_recording_ended(screen_record_file_path_on_device)
 
     original_sigint_handler = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, signal_handler)
 
-    _start_recording()
+    screen_record_file_path_on_device = _start_recording()
 
 
 def get_mobile_data_saver_state():
