@@ -32,20 +32,14 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
+          cache-dependency-path: "pyproject.toml"
           python-version: ${{ matrix.python-version }}
 
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
       - name: Lint
-        run: |
-          pip install -r requirements.txt
-          pip install pylint flake8 setuptools
-          make lint_python3
+        run: make lint_python3

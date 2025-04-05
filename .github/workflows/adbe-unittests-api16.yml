@@ -5,19 +5,21 @@ on:
   push:
     branches: [master, main]
     paths:
-      - 'Makefile'
-      - 'requirements.txt'
-      - 'adbe/*'
-      - 'tests/*'
-      - '.github/workflows/adbe-unittests-api16.yml'
+      - "Makefile"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "adbe/*"
+      - "tests/*"
+      - ".github/workflows/adbe-unittests-api16.yml"
   pull_request:
     branches: [master, main]
     paths:
-      - 'Makefile'
-      - 'requirements.txt'
-      - 'adbe/*'
-      - 'tests/*'
-      - '.github/workflows/adbe-unittests-api16.yml'
+      - "Makefile"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "adbe/*"
+      - "tests/*"
+      - ".github/workflows/adbe-unittests-api16.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -68,6 +70,9 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -76,7 +81,4 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-metrics -camera-back none
           disable-animations: true
           target: ${{ matrix.target }}
-          script: |
-            python3 -m pip install --upgrade pip
-            python3 -m pip install --user -r requirements.txt
-            make test_python3
+          script: make test_python3

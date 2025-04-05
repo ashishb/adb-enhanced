@@ -60,6 +60,9 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         env:
@@ -71,7 +74,4 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-metrics -no-metrics -camera-back none
           disable-animations: true
           target: ${{ matrix.target }}
-          script: |
-            python3 -m pip install --upgrade pip
-            python3 -m pip install --user -r requirements.txt
-            make test_python3
+          script: make test_python3
