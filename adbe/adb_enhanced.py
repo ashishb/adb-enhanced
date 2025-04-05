@@ -1916,10 +1916,10 @@ def print_notifications():
             notification_text = None
         notification_actions = []
         action_strings = re.findall(r"actions=\{(.*?)\n\}", output_for_this_notification, re.MULTILINE | re.DOTALL)
-        if len(action_strings) > 0 and (i + 1 >= len(notification_records) or
-                                        output_for_this_notification.find(
-                                            action_strings[0]) > output_for_this_notification.find(
-                    notification_records[i + 1])):
+        if len(action_strings) > 0 and (
+                i + 1 >= len(notification_records) or
+                output_for_this_notification.find(action_strings[0]) >
+                output_for_this_notification.find(notification_records[i + 1])):
             for actions in action_strings[0].split('\n'):
                 notification_actions += re.findall(r"\".*?\"", actions)
 
