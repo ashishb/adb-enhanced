@@ -88,4 +88,4 @@ jobs:
             ls $(python3 -m site --user-base)/bin/adbe
             $(python3 -m site --user-base)/bin/adbe --version
             PATH=$PATH:$(python3 -m site --user-base)/bin adbe --version  # Verify adbe is installed
-            PATH=$PATH:$(python3 -m site --user-base)/bin make test_python3_installation
+            PATH=$PATH:$(python3 -m site --user-base)/bin make test_python_installation

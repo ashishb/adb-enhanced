@@ -42,4 +42,4 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Lint
-        run: make lint_python3
+        run: make lint_python

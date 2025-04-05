@@ -1,4 +1,4 @@
-lint: lint_python3 lint_markdown
+lint: lint_python lint_markdown
 
 test: test_python3
 
@@ -33,7 +33,7 @@ format:
 	uv run isort --line-length 88 --skip-gitignore adbe
 	uv run isort --line-length 88 --skip-gitignore tests
 
-lint_python3:
+lint_python:
 	uv run -- autoflake --check-diff -r --quiet --remove-all-unused-imports --remove-unused-variables adbe
 	# Fail if there are Python syntax errors or undefined names
 	uv run -- flake8 adbe --count --select=E9,F63,F7,F82 --show-source --statistics
@@ -58,13 +58,13 @@ lint_python3:
 
 # To run a single test, for example, test_file_move3, try this
 # python3 -m pytest -v tests/adbe_tests.py -k test_file_move3
-test_python3:
+test_python:
 	echo "Wait for device"
 	adb wait-for-device
 	echo "Run the tests"
 	uv run -- pytest -v tests/adbe_tests.py  # Python3 tests
 
-test_python3_installation:
+test_python_installation:
 	echo "Wait for device"
 	adb wait-for-device
 	echo "Run the tests"
