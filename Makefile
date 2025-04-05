@@ -16,11 +16,11 @@ setup:
 build: clean
 	uv build
 
-release_debug: documentation
-	./release.py test release
+release_debug:
+	uv publish --publish-url=https://test.pypi.org/legacy/
 
-release_production: documentation
-	./release.py production release
+release_production:
+	uv publish
 
 lint_markdown:
 	mdl -r ~MD013,~MD029,~MD033 README.md
