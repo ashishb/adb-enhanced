@@ -65,152 +65,150 @@ Examples
 Device configuration
 ~~~~~~~~~~~~~~~~~~~~
 
--  Turn doze mode on
+- Turn doze mode on
 
-   ``adbe doze on``
+  ``adbe doze on``
 
--  Turn mobile-data off
+- Turn mobile-data off
 
-   ``adbe mobile-data off``
+  ``adbe mobile-data off``
 
--  Turn on battery saver
+- Turn on battery saver
 
-   ``adbe battery saver on``
+  ``adbe battery saver on``
 
--  Don’t keep activities in the background
+- Don’t keep activities in the background
 
-   ``adbe dont-keep-activities on``
+  ``adbe dont-keep-activities on``
 
--  Take a screenshot ``adbe screenshot ~/Downloads/screenshot1.png``
+- Take a screenshot ``adbe screenshot ~/Downloads/screenshot1.png``
 
--  Take a video ``adbe screenrecord video.mp4 # Press ^C when finished``
+- Take a video ``adbe screenrecord video.mp4 # Press ^C when finished``
 
--  Turn Wireless Debug mode on ``adbe enable wireless debugging``
+- Turn Wireless Debug mode on ``adbe enable wireless debugging``
 
 Permissions
 ~~~~~~~~~~~
 
--  Grant storage-related runtime permissions
+- Grant storage-related runtime permissions
 
-   ``adbe permissions grant com.example storage``
+  ``adbe permissions grant com.example storage``
 
--  Revoke storage-related runtime permissions
+- Revoke storage-related runtime permissions
 
-   ``adbe permissions revoke com.example storage``
+  ``adbe permissions revoke com.example storage``
 
 Interacting with app
 ~~~~~~~~~~~~~~~~~~~~
 
--  Start an app
+- Start an app
 
-   ``adbe start com.example``
+  ``adbe start com.example``
 
--  Kill an app
+- Kill an app
 
-   ``adbe force-stop com.example``
+  ``adbe force-stop com.example``
 
--  Clear app data - equivalent of uninstall and reinstall
+- Clear app data - equivalent of uninstall and reinstall
 
-   ``adbe clear-data com.example``
+  ``adbe clear-data com.example``
 
--  ls/cat/rm any file without worrying about adding “run-as” or “su
-   root”
+- ls/cat/rm any file without worrying about adding “run-as” or “su root”
 
-   ``adbe ls /data/data/com.example/databases`` # Works as long as
-   com.example is a debuggable package or shell has the root permission
-   or directory has been made publicly accessible
+  ``adbe ls /data/data/com.example/databases`` # Works as long as
+  com.example is a debuggable package or shell has the root permission
+  or directory has been made publicly accessible
 
 Device info
 ~~~~~~~~~~~
 
--  Detailed device info including model name, Android API version etc,
-   device serial
+- Detailed device info including model name, Android API version etc,
+  device serial
 
-   .. code:: bash
+  .. code:: bash
 
-      $ adbe devices
-      Unlock Device "dcc54112" and give USB debugging access to this PC/Laptop by unlocking and reconnecting the device. More info about this device: "unauthorized usb:339869696X transport_id:17"
+     $ adbe devices
+     Unlock Device "dcc54112" and give USB debugging access to this PC/Laptop by unlocking and reconnecting the device. More info about this device: "unauthorized usb:339869696X transport_id:17"
 
-      Serial ID: dcc54111
-      Manufacturer: OnePlus
-      Model: ONEPLUS A5000 (OnePlus 5T)
-      Release: 8.1.0
-      SDK version: 27
-      CPU: arm64-v8a
+     Serial ID: dcc54111
+     Manufacturer: OnePlus
+     Model: ONEPLUS A5000 (OnePlus 5T)
+     Release: 8.1.0
+     SDK version: 27
+     CPU: arm64-v8a
 
-      Serial ID: emulator-5554
-      Manufacturer: unknown
-      Model: Android SDK built for x86
-      Release: 4.4.2
-      SDK version: 19
-      CPU: x86
+     Serial ID: emulator-5554
+     Manufacturer: unknown
+     Model: Android SDK built for x86
+     Release: 4.4.2
+     SDK version: 19
+     CPU: x86
 
 App info
 ~~~~~~~~
 
--  Detailed information about app version, target SDK version,
-   permissions (requested, granted, denied), installer package name,
-   etc.
+- Detailed information about app version, target SDK version,
+  permissions (requested, granted, denied), installer package name, etc.
 
-   .. code:: bash
+  .. code:: bash
 
-      $ adbe app info com.google.android.youtube
-      App name: com.google.android.youtube
-      Version: 12.17.41
-      Version Code: 121741370
-      Is debuggable: False
-      Min SDK version: 21
-      Target SDK version: 26
+     $ adbe app info com.google.android.youtube
+     App name: com.google.android.youtube
+     Version: 12.17.41
+     Version Code: 121741370
+     Is debuggable: False
+     Min SDK version: 21
+     Target SDK version: 26
 
-      Permissions:
+     Permissions:
 
-      Install time granted permissions:
-      com.google.android.c2dm.permission.RECEIVE
-      android.permission.USE_CREDENTIALS
-      com.google.android.providers.gsf.permission.READ_GSERVICES
-      com.google.android.youtube.permission.C2D_MESSAGE
-      android.permission.MANAGE_ACCOUNTS
-      android.permission.SYSTEM_ALERT_WINDOW
-      android.permission.NFC
-      android.permission.CHANGE_NETWORK_STATE
-      android.permission.RECEIVE_BOOT_COMPLETED
-      com.google.android.gms.permission.AD_ID_NOTIFICATION
-      android.permission.INTERNET
-      android.permission.GET_PACKAGE_SIZE
-      android.permission.ACCESS_NETWORK_STATE
-      android.permission.VIBRATE
-      android.permission.ACCESS_WIFI_STATE
-      android.permission.WAKE_LOCK
+     Install time granted permissions:
+     com.google.android.c2dm.permission.RECEIVE
+     android.permission.USE_CREDENTIALS
+     com.google.android.providers.gsf.permission.READ_GSERVICES
+     com.google.android.youtube.permission.C2D_MESSAGE
+     android.permission.MANAGE_ACCOUNTS
+     android.permission.SYSTEM_ALERT_WINDOW
+     android.permission.NFC
+     android.permission.CHANGE_NETWORK_STATE
+     android.permission.RECEIVE_BOOT_COMPLETED
+     com.google.android.gms.permission.AD_ID_NOTIFICATION
+     android.permission.INTERNET
+     android.permission.GET_PACKAGE_SIZE
+     android.permission.ACCESS_NETWORK_STATE
+     android.permission.VIBRATE
+     android.permission.ACCESS_WIFI_STATE
+     android.permission.WAKE_LOCK
 
-      Runtime Permissions not granted and not yet requested:
-      android.permission.WRITE_EXTERNAL_STORAGE
-      android.permission.MANAGE_DOCUMENTS
-      android.permission.GET_ACCOUNTS
-      android.permission.CAMERA
-      android.permission.RECORD_AUDIO
-      android.permission.READ_CONTACTS
-      android.permission.ACCESS_FINE_LOCATION
-      android.permission.ACCESS_COARSE_LOCATION
-      android.permission.READ_PHONE_STATE
-      android.permission.SEND_SMS
-      android.permission.RECEIVE_SMS
-      com.sec.android.provider.badge.permission.READ
-      com.sec.android.provider.badge.permission.WRITE
-      com.htc.launcher.permission.READ_SETTINGS
-      com.htc.launcher.permission.UPDATE_SHORTCUT
-      com.sonyericsson.home.permission.BROADCAST_BADGE
-      com.sonymobile.home.permission.PROVIDER_INSERT_BADGE
-      android.permission.READ_EXTERNAL_STORAGE
+     Runtime Permissions not granted and not yet requested:
+     android.permission.WRITE_EXTERNAL_STORAGE
+     android.permission.MANAGE_DOCUMENTS
+     android.permission.GET_ACCOUNTS
+     android.permission.CAMERA
+     android.permission.RECORD_AUDIO
+     android.permission.READ_CONTACTS
+     android.permission.ACCESS_FINE_LOCATION
+     android.permission.ACCESS_COARSE_LOCATION
+     android.permission.READ_PHONE_STATE
+     android.permission.SEND_SMS
+     android.permission.RECEIVE_SMS
+     com.sec.android.provider.badge.permission.READ
+     com.sec.android.provider.badge.permission.WRITE
+     com.htc.launcher.permission.READ_SETTINGS
+     com.htc.launcher.permission.UPDATE_SHORTCUT
+     com.sonyericsson.home.permission.BROADCAST_BADGE
+     com.sonymobile.home.permission.PROVIDER_INSERT_BADGE
+     android.permission.READ_EXTERNAL_STORAGE
 
-      Installer package name: None
+     Installer package name: None
 
--  App backup to a tar file unlike the Android-specific .ab format
+- App backup to a tar file unlike the Android-specific .ab format
 
-   .. code:: bash
+  .. code:: bash
 
-      $ adbe app backup com.google.android.youtube backup.tar
-      you might have to confirm the backup manually on your device's screen, enter "00" as password...
-      Successfully backed up data of app com.google.android.youtube to backup.tar
+     $ adbe app backup com.google.android.youtube backup.tar
+     you might have to confirm the backup manually on your device's screen, enter "00" as password...
+     Successfully backed up data of app com.google.android.youtube to backup.tar
 
 Usage
 ~~~~~
@@ -293,14 +291,14 @@ Options
 Python3 migration timeline
 --------------------------
 
--  Nov 27, 2017 - Code is Python3 compatible
--  Jan 18, 2018 - pip (python package manager) has the updated version
-   which is Python3 compatible
--  Nov 15, 2018 - Python2 based installation discouraged. Python3 is
-   recommended.
--  Dec 31, 2018 - Python2 will not be officially supported after Dec 31,
-   2018.
--  May 7, 2020 - Python2 no longer works with the current master branch
+- Nov 27, 2017 - Code is Python3 compatible
+- Jan 18, 2018 - pip (python package manager) has the updated version
+  which is Python3 compatible
+- Nov 15, 2018 - Python2 based installation discouraged. Python3 is
+  recommended.
+- Dec 31, 2018 - Python2 will not be officially supported after Dec 31,
+  2018.
+- May 7, 2020 - Python2 no longer works with the current master branch
 
 Testing
 -------
