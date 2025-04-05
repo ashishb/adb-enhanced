@@ -1,0 +1,35 @@
+[project]
+authors = [
+  {name = "Ashish Bhatia", email="ashishb@ashishb.net"},
+]
+name = "adb-enhanced"
+# Ref: https://pypi.org/pypi?%3Aaction=list_classifiers
+classifiers=[
+    "Intended Audience :: Developers",
+    "Operating System :: Android",
+]
+keywords=["Android ADB developer"]
+version = "2.5.24"
+description = "ADB-Enhanced is a Swiss army knife for Android testing and development"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dependencies = [
+    "docopt>=0.6.2",
+    "psutil>=7.0.0",
+]
+
+[project.scripts]
+adbe = "adbe.main:main"
+
+[dependency-groups]
+dev = [
+    "flake8>=7.2.0",
+    "pylint>=3.3.6",
+    "pytest>=8.3.5",
+    "setuptools>=78.1.0",
+    "types-docopt>=0.6.11.20241107",
+    "types-psutil>=7.0.0.20250401",
+    "twine>=6.1.0",
+    "wheel>=0.45.1",
+]

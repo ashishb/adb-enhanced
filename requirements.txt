@@ -1,6 +1,0 @@
-docopt
-psutil
-
-pytest
-types-docopt
-types-psutil
