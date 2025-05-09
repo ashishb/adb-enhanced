@@ -11,7 +11,7 @@ def execute_in_parallel(method_to_call, params_list):
     num_workers = 50
     loop = asyncio.get_event_loop()
 
-    async def _list_debug_apps_async(params_list2):
+    async def _list_debug_apps_async(params_list2) -> None:
         with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
             loop = asyncio.get_event_loop()
             futures = [
