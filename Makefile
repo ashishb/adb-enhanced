@@ -30,8 +30,6 @@ format:
 	# See full error code list at https://pypi.org/project/autopep8/#features
 	uv run autopep8 --recursive --in-place --select W292,W293,W391,W504,E121,E122,E123,E126,E128,E129,E131,E202,E225,E226,E241,E301,E302,E303,E704,E731 adbe
 	uv run ruff check --config pyproject.toml --fix adbe
-	uv run isort --line-length 88 --skip-gitignore adbe
-	uv run isort --line-length 88 --skip-gitignore tests
 
 lint_python:
 	uv run -- autoflake --check-diff -r --quiet --remove-all-unused-imports --remove-unused-variables adbe
@@ -41,8 +39,6 @@ lint_python:
 	uv run -- flake8 adbe --count --show-source --statistics --max-line-length=88 --ignore=E501,W503
 	# Config file is specified for brevity
 	uv run ruff check --config pyproject.toml adbe
-	# Same line length as Black
-	uv run isort --check --diff --line-length 88 --skip-gitignore .
 	# E0602 is due to undefined variable unicode which is defined only for Python 2
 	# W0511 is fixme due to TODOs in the code.
 	# adbe/adbe.py:756:8: W0601: Global variable 'screen_record_file_path_on_device' undefined at the module level (global-variable-undefined)
