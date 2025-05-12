@@ -173,10 +173,7 @@ def test_permissions_grant_revoke():
     if _get_device_sdk_version() < 29:
         # This permissions group seems to have been removed in API 29 and beyond.
         # https://github.com/ashishb/adb-enhanced/runs/1799363523?check_suite_focus=true
-        permissions_groups.append('contacts')
-        permissions_groups.append('microphone')
-        permissions_groups.append('location')
-        permissions_groups.append('sms')
+        permissions_groups.extend(('contacts', 'microphone', 'location', 'sms'))
     if _get_device_sdk_version() >= 33:
         # Newly added permission in API 33
         # https://developer.android.com/develop/ui/views/notifications/notification-permission
@@ -196,6 +193,7 @@ def test_permissions_grant_revoke():
 
 # Cache the SDK version after first use
 _sdk_version = None
+
 
 def _get_device_sdk_version():
     global _sdk_version
@@ -473,7 +471,7 @@ def test_debug_app():
 
 def _assert_fail(sub_cmd):
     exit_code, stdout_data, stderr_data = _execute(sub_cmd)
-    assert exit_code == 1, 'Command "%s" failed with stdout: "%s" and stderr: "%s"' %(sub_cmd, stdout_data, stderr_data)
+    assert exit_code == 1, 'Command "%s" failed with stdout: "%s" and stderr: "%s"' % (sub_cmd, stdout_data, stderr_data)
     return stdout_data, stderr_data
 
 
