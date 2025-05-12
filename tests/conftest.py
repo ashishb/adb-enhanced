@@ -4,6 +4,7 @@ import pytest
 def pytest_addoption(parser):
     parser.addoption("--testpythoninstallation", action="store")
 
+
 @pytest.fixture(scope='session')
 def testpythoninstallation(request):
     value = request.config.option.testpythoninstallation

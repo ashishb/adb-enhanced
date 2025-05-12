@@ -685,7 +685,7 @@ def dump_screenrecord(filepath):
         # And exit
         sys.exit(0)
 
-    def signal_handler(unused_sig, unused_frame):
+    def signal_handler(_sig, _frame):
         # Restore the original handler for Ctrl-C
         signal.signal(signal.SIGINT, original_sigint_handler)
         _handle_recording_ended(screen_record_file_path_on_device)
