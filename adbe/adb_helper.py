@@ -1,6 +1,5 @@
 import functools
 import subprocess
-import typing
 
 try:
     # This fails when the code is executed directly and not as a part of python package installation,
@@ -11,9 +10,9 @@ except ImportError:
     from output_helper import print_error, print_error_and_exit, print_verbose
 
 
-_adb_prefix = 'adb'
+_adb_prefix = "adb"
 _IGNORED_LINES = [
-    'WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.'
+    "WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.",
 ]
 
 # Below version 24, if an adb shell command fails, then it still has an incorrect exit code of 0.
@@ -24,24 +23,24 @@ def get_adb_prefix() -> str:
     return _adb_prefix
 
 
-def set_adb_prefix(adb_prefix):
+def set_adb_prefix(adb_prefix) -> None:
     # pylint: disable=global-statement
     global _adb_prefix
     _adb_prefix = adb_prefix
 
 
-def get_adb_shell_property(property_name, device_serial=None) -> typing.Optional[str]:
-    _, stdout, _ = execute_adb_shell_command2('getprop %s' % property_name, device_serial=device_serial)
+def get_adb_shell_property(property_name, device_serial=None) -> str | None:
+    _, stdout, _ = execute_adb_shell_command2(f"getprop {property_name}", device_serial=device_serial)
     return stdout
 
 
 def execute_adb_shell_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
-    return execute_adb_command2('shell %s' % adb_cmd, piped_into_cmd=piped_into_cmd,
+    return execute_adb_command2(f"shell {adb_cmd}", piped_into_cmd=piped_into_cmd,
                                 ignore_stderr=ignore_stderr, device_serial=device_serial)
 
 
 def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None) -> \
-        typing.Tuple[int, typing.Optional[str], str]:
+        tuple[int, str | None, str]:
     """
     :param adb_cmd: command to run inside the adb shell (so, don't prefix it with "adb")
     :param piped_into_cmd: command to pipe the output of this command into
@@ -51,21 +50,21 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
     """
     adb_prefix = _adb_prefix
     if device_serial:
-        adb_prefix = '%s -s %s' % (adb_prefix, device_serial)
+        adb_prefix = f"{adb_prefix} -s {device_serial}"
 
-    final_cmd = '%s %s' % (adb_prefix, adb_cmd)
+    final_cmd = f"{adb_prefix} {adb_cmd}"
     if piped_into_cmd:
-        final_cmd = '%s | %s' % (final_cmd, piped_into_cmd)
+        final_cmd = f"{final_cmd} | {piped_into_cmd}"
 
-    print_verbose("Executing \"%s\"" % final_cmd)
+    print_verbose(f'Executing "{final_cmd}"')
     with subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
         stdout_data, stderr_data = ps1.communicate()
         return_code = ps1.returncode
     try:
-        stdout_data = stdout_data.decode('utf-8')
+        stdout_data = stdout_data.decode("utf-8")
     except UnicodeDecodeError:
-        print_error('Unable to decode data as UTF-8, defaulting to printing the binary data')
-    stderr_data = stderr_data.decode('utf-8')
+        print_error("Unable to decode data as UTF-8, defaulting to printing the binary data")
+    stderr_data = stderr_data.decode("utf-8")
 
     _check_for_adb_not_found_error(stderr_data)
     _check_for_more_than_one_device_error(stderr_data)
@@ -78,13 +77,13 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
 
     # stdout_data is not None
     if isinstance(stdout_data, bytes):
-        print_verbose("Result is \"%s\"" % stdout_data)
+        print_verbose(f'Result is "{stdout_data}"')
         return return_code, stdout_data, stderr_data
     # str for Python 3, this used to be unicode type for python 2
-    elif isinstance(stdout_data, str):
-        output = ''
+    if isinstance(stdout_data, str):
+        output = ""
         first_line = True
-        for line in stdout_data.split('\n'):
+        for line in stdout_data.split("\n"):
             line = line.strip()
             if not line:
                 continue
@@ -94,29 +93,29 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
                 output += line
                 first_line = False
             else:
-                output += '\n' + line
-        print_verbose("Result is \"%s\"" % output)
+                output += "\n" + line
+        print_verbose(f'Result is "{output}"')
         return return_code, output, stderr_data
-    else:
-        print_error_and_exit('stdout_data is weird type: %s' % type(stdout_data))
+    print_error_and_exit(f"stdout_data is weird type: {type(stdout_data)}")
+    return None
 
 
 def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None) -> str:
     _, stdout, _ = execute_adb_command2(
-        "shell %s" % adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
+        f"shell {adb_cmd}", piped_into_cmd, ignore_stderr, device_serial=device_serial)
     return stdout
 
 
 def execute_file_related_adb_shell_command(
-        adb_shell_cmd: str, file_path: str, piped_into_cmd: typing.Optional[str] = None,
-        ignore_stderr: bool = False, device_serial: typing.Optional[str] = None) -> str:
+        adb_shell_cmd: str, file_path: str, piped_into_cmd: str | None = None,
+        ignore_stderr: bool = False, device_serial: str | None = None) -> str:
     file_not_found_message = "No such file or directory"
     is_a_directory_message = "Is a directory"  # Error when someone tries to delete a dir without "-r"
 
     adb_cmds_prefix = []
     run_as_package = get_package(file_path)
     if run_as_package:
-        adb_cmds_prefix.append("shell run-as %s" % run_as_package)
+        adb_cmds_prefix.append(f"shell run-as {run_as_package}")
     if root_required_to_access_file(file_path):
         adb_cmds_prefix.append("shell su root")
     # As a backup, still try with a plain-old access, if run-as is not possible and root is not available.
@@ -127,15 +126,15 @@ def execute_file_related_adb_shell_command(
     for adb_cmd_prefix in adb_cmds_prefix:
         print_verbose('Attempt %d/%d: "%s"' % (attempt_count, len(adb_cmds_prefix), adb_cmd_prefix))
         attempt_count += 1
-        adb_cmd = "%s %s" % (adb_cmd_prefix, adb_shell_cmd)
+        adb_cmd = f"{adb_cmd_prefix} {adb_shell_cmd}"
         return_code, stdout, stderr = execute_adb_command2(adb_cmd, piped_into_cmd, ignore_stderr,
                                                            device_serial=device_serial)
 
         if stderr.find(file_not_found_message) >= 0:
-            print_error("File not found: %s" % file_path)
+            print_error(f"File not found: {file_path}")
             return stderr
         if stderr.find(is_a_directory_message) >= 0:
-            print_error("%s is a directory" % file_path)
+            print_error(f"{file_path} is a directory")
             return stderr
 
         api_version = get_device_android_api_version()
@@ -148,22 +147,20 @@ def execute_file_related_adb_shell_command(
 # Gets the package name given a file path.
 # Eg. if the file is in /data/data/com.foo/.../file1 then package is com.foo
 # Or if the file is in /data/user/0/com.foo/.../file1 then package is com.foo
-def get_package(file_path) -> typing.Optional[str]:
+def get_package(file_path) -> str | None:
     if not file_path:
         return None
 
-    if file_path.startswith('/data/data/'):
-        items = file_path.split('/')
+    if file_path.startswith("/data/data/"):
+        items = file_path.split("/")
         if len(items) >= 4:
-            run_as_package = items[3]
-            return run_as_package
+            return items[3]
 
     # Handles the new multi-user mode
-    if file_path.startswith('/data/user/'):
-        items = file_path.split('/')
+    if file_path.startswith("/data/user/"):
+        items = file_path.split("/")
         if len(items) >= 5:
-            run_as_package = items[4]
-            return run_as_package
+            return items[4]
     return None
 
 
@@ -177,48 +174,42 @@ def get_device_android_api_version(device_serial=None) -> int:
 
 
 def root_required_to_access_file(remote_file_path) -> bool:
-    if not remote_file_path:
-        return False
-    elif remote_file_path.startswith("/data/local/tmp"):
-        return False
-    elif remote_file_path.startswith("/sdcard"):
-        return False
-    return True
+    return not (not remote_file_path or remote_file_path.startswith(("/data/local/tmp", "/sdcard")))
 
 
-def _check_for_adb_not_found_error(stderr_data):
+def _check_for_adb_not_found_error(stderr_data) -> None:
     if not stderr_data:
         return
     stderr_data = stderr_data.strip()
-    if stderr_data.endswith('%s: command not found' % _adb_prefix):
-        message = 'ADB (Android debug bridge) command not found.\n'
-        message += 'Install ADB via https://developer.android.com/studio/releases/platform-tools.html'
+    if stderr_data.endswith(f"{_adb_prefix}: command not found"):
+        message = "ADB (Android debug bridge) command not found.\n"
+        message += "Install ADB via https://developer.android.com/studio/releases/platform-tools.html"
         print_error_and_exit(message)
 
 
-def _check_for_more_than_one_device_error(stderr_data):
+def _check_for_more_than_one_device_error(stderr_data) -> None:
     if not stderr_data:
         return
-    for line in stderr_data.split('\n'):
+    for line in stderr_data.split("\n"):
         line = line.strip()
         if line:
             print_verbose(line)
-        if line.find('error: more than one') != -1:
-            message = ''
-            message += 'More than one device/emulator are connected.\n'
-            message += 'Please select a device by providing the serial ID (-s parameter).\n'
-            message += 'You can list all connected devices/emulators via \"devices\" subcommand.'
+        if line.find("error: more than one") != -1:
+            message = ""
+            message += "More than one device/emulator are connected.\n"
+            message += "Please select a device by providing the serial ID (-s parameter).\n"
+            message += 'You can list all connected devices/emulators via "devices" subcommand.'
             print_error_and_exit(message)
 
 
-def _check_for_device_not_found_error(stderr_data):
+def _check_for_device_not_found_error(stderr_data) -> None:
     if not stderr_data:
         return
-    for line in stderr_data.split('\n'):
+    for line in stderr_data.split("\n"):
         line = line.strip()
         if line:
             print_verbose(line)
-        if line.find('error: device') > -1 and line.find('not found') > -1:
+        if line.find("error: device") > -1 and line.find("not found") > -1:
             print_error_and_exit(line)
 
 
@@ -226,20 +217,20 @@ def toggle_screen():
     return execute_adb_shell_command2("input keyevent KEYCODE_POWER")
 
 
-def set_device_id(device_id):
+def set_device_id(device_id) -> None:
     """
     Make :param device_id: as main device to use
     Primary use-case: scripting
     Command line equivalent: "-s :param device_id:"
     """
     old_adb_prefix = get_adb_prefix()
-    if '-s' in old_adb_prefix:
-        old_device = old_adb_prefix.split('-s ')[1]
-        if ' ' in old_device:
+    if "-s" in old_adb_prefix:
+        old_device = old_adb_prefix.split("-s ")[1]
+        if " " in old_device:
             # Case: device ID is not the last argument
-            old_device = old_adb_prefix.split('-s')[1].split(' ')[0]
-        print_verbose('Switching from  %s to  %s' % (old_device, device_id))
+            old_device = old_adb_prefix.split("-s")[1].split(" ")[0]
+        print_verbose(f"Switching from  {old_device} to  {device_id}")
         old_adb_prefix.replace(old_device, device_id)
 
-    print_verbose('Setting device ID to %s' % device_id)
-    set_adb_prefix("%s -s %s" % (old_adb_prefix, device_id))
+    print_verbose(f"Setting device ID to {device_id}")
+    set_adb_prefix(f"{old_adb_prefix} -s {device_id}")
