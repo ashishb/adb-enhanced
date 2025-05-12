@@ -461,9 +461,9 @@ def _get_device_serials() -> [str]:
         if "unauthorized" in device_info:
             device_info = ' '.join(device_info.split()[1:])
             print_error(
-                ('Unlock Device "%s" and give USB debugging access to '
-                 + 'this PC/Laptop by unlocking and reconnecting '
-                 + 'the device. More info about this device: "%s"\n') % (
+                ("Unlock Device \"%s\" and give USB debugging access to "
+                 "this PC/Laptop by unlocking and reconnecting "
+                 "the device. More info about this device: \"%s\"\n") % (
                     device_serial, device_info))
         else:
             device_serials.append(device_serial)
@@ -647,7 +647,7 @@ def dump_screenrecord(filepath):
     # I have tested that on API 23 and above this works. Till Api 22, on emulator, it does not.
     if api_version < 23 and _is_emulator():
         print_error_and_exit("screenrecord is not supported on emulator below API 23\n"
-                             + "Source: https://issuetracker.google.com/issues/36982354")
+                             "Source: https://issuetracker.google.com/issues/36982354")
 
     original_sigint_handler = None
 
@@ -2056,13 +2056,11 @@ def print_pending_alarms(output_dump_alarm, padding):
 def alarm_manager(param):
     cmd = "dumpsys alarm"
     api_version = get_device_android_api_version()
-    err_msg_api = "Your Android version (API 28 and bellow) does not support " \
-                  "listing pending alarm"
+    err_msg_api = "Your Android version (API 28 and bellow) does not support listing pending alarm"
 
     c, o, e = execute_adb_shell_command2(cmd)
     if c != 0:
-        print_error_and_exit("Something gone wrong on "
-                             "dumping alarms. Error: %s" % e)
+        print_error_and_exit("Something gone wrong on dumping alarms. Error: %s" % e)
         return
 
     if not isinstance(param, AlarmEnum):
