@@ -36,3 +36,8 @@ dev = [
     "twine>=6.1.0",
     "wheel>=0.45.1",
 ]
+
+[tool.ruff.lint]
+extend-select = [
+    "I",     # https://docs.astral.sh/ruff/rules/#isort-i
+]

@@ -21,27 +21,47 @@ try:
     # I definitely need a better way to handle this.
     # asyncio was introduced in version 3.5
     from adbe import asyncio_helper
-    from adbe.adb_helper import (execute_adb_command2, execute_adb_shell_command,
-                                 execute_adb_shell_command2,
-                                 execute_file_related_adb_shell_command,
-                                 get_adb_shell_property, get_device_android_api_version,
-                                 get_package, root_required_to_access_file,
-                                 toggle_screen)
-    from adbe.output_helper import (print_error, print_error_and_exit, print_message,
-                                    print_verbose)
+    from adbe.adb_helper import (
+        execute_adb_command2,
+        execute_adb_shell_command,
+        execute_adb_shell_command2,
+        execute_file_related_adb_shell_command,
+        get_adb_shell_property,
+        get_device_android_api_version,
+        get_package,
+        root_required_to_access_file,
+        toggle_screen,
+    )
+    from adbe.output_helper import (
+        print_error,
+        print_error_and_exit,
+        print_message,
+        print_verbose,
+    )
 # Python 3.6 onwards, this throws ModuleNotFoundError
 except ModuleNotFoundError:
     # This works when the code is executed directly.
     # noinspection PyUnresolvedReferences
     import asyncio_helper
-    from adb_helper import (execute_adb_command2, execute_adb_shell_command,
-                            execute_adb_shell_command2,
-                            execute_file_related_adb_shell_command,
-                            get_adb_shell_property, get_device_android_api_version,
-                            get_package, root_required_to_access_file, toggle_screen)
+    from adb_helper import (
+        execute_adb_command2,
+        execute_adb_shell_command,
+        execute_adb_shell_command2,
+        execute_file_related_adb_shell_command,
+        get_adb_shell_property,
+        get_device_android_api_version,
+        get_package,
+        root_required_to_access_file,
+        toggle_screen,
+    )
+
     # noinspection PyUnresolvedReferences
-    from output_helper import (print_error, print_error_and_exit, print_message,
-                               print_verbose)
+    from output_helper import (
+        print_error,
+        print_error_and_exit,
+        print_message,
+        print_verbose,
+    )
 
 
 _KEYCODE_BACK = 4
@@ -988,9 +1008,7 @@ def get_permissions_in_permission_group(permission_group):
                 lambda x: len(
                     x.strip()) > 0,
                 potential_permissions)
-            permissions = list(map(
-                lambda x: x.replace(
-                    'permission:', ''), permissions))
+            permissions = [x.replace('permission:', '') for x in permissions]
             permissions = list(set(permissions + _get_hardcoded_permissions_for_group(permission_group)))
             print_message(
                 'Permissions in %s group are %s' %
@@ -1067,7 +1085,7 @@ def get_list_all_apps():
         return None, err_msg, err
     all_apps = re.findall(pattern_packages, result)
     # Get the unique results
-    all_apps = sorted(list(dict.fromkeys(all_apps)))
+    all_apps = sorted(dict.fromkeys(all_apps))
     return all_apps, None, None
 
 
