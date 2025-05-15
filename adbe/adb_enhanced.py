@@ -1078,7 +1078,7 @@ def get_list_all_apps():
     """
     # https://developer.android.com/studio/command-line/dumpsys
     cmd = 'dumpsys package'
-    pattern_packages = re.compile('Package \\[(.*?)\\]')
+    pattern_packages = re.compile(r"Package \[(.*?)]")
     return_code, result, err = execute_adb_shell_command2(cmd)
     if return_code != 0:
         err_msg = 'Command "%s" failed, something is wrong' % cmd
@@ -1491,7 +1491,7 @@ def print_app_info(app_name):
 
 # API < 23 have no runtime permissions
 def _get_permissions_info_below_api_23(app_info_dump):
-    install_time_permissions_regex = re.search('grantedPermissions:(.*)', app_info_dump,
+    install_time_permissions_regex = re.search(r'grantedPermissions:(.*)', app_info_dump,
                                                re.IGNORECASE | re.DOTALL)
     if install_time_permissions_regex is None:
         install_time_permissions_string = []
@@ -1574,11 +1574,11 @@ def _get_install_time_granted_denied_permissions(
 
 def _extract_requested_permissions_above_api_23(app_info_dump: str) -> typing.Optional[typing.List[str]]:
     requested_permissions_regex = \
-        re.search('requested permissions:(.*?)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+        re.search(r'requested permissions:(.*?)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
     # Fallback
     if requested_permissions_regex is None:
         requested_permissions_regex = re.search(
-            'requested permissions:(.*?)runtime permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+            r'requested permissions:(.*?)runtime permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
 
     if requested_permissions_regex is None:
         # No permissions requested by the app
@@ -1591,7 +1591,7 @@ def _extract_requested_permissions_above_api_23(app_info_dump: str) -> typing.Op
 
 def _extract_install_time_permissions_above_api_23(app_info_dump: str) -> typing.Optional[typing.List[str]]:
     install_time_permissions_regex = re.search(
-        'install permissions:(.*?)runtime permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+        r'install permissions:(.*?)runtime permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
     if install_time_permissions_regex is None:
         return []
     else:
@@ -1737,7 +1737,7 @@ def _get_window_size():
     if result is None:
         return -1, -1
 
-    regex_data = re.search('size: ([0-9]+)x([0-9]+)', result)
+    regex_data = re.search(r'size: ([0-9]+)x([0-9]+)', result)
     if regex_data is None:
         return -1, -1
 
@@ -1922,12 +1922,12 @@ def print_notifications():
         if i + 1 < len(notification_records):
             output_for_this_notification = output_for_this_notification.split(notification_records[i + 1])[0]
         notification_package = re.findall(r"pkg=(\S*)", notification_record)[0]
-        titles = re.findall("android.title=(.*)", output_for_this_notification)
+        titles = re.findall(r"android.title=(.*)", output_for_this_notification)
         if len(titles) > 0:
             notification_title = titles[0]
         else:
             notification_title = None
-        texts = re.findall("android.text=(.*)", output_for_this_notification)
+        texts = re.findall(r"android.text=(.*)", output_for_this_notification)
         if len(texts) > 0:
             notification_text = texts[0]
         else:
@@ -2040,8 +2040,7 @@ def print_pending_alarms(output_dump_alarm, padding):
             # TO-DO: translate the flags
             print_verbose("%sflag: %s" % (padding * 2, info[4].split("=")[1]))
 
-        if line.startswith("RTC") or line.startswith("RTC_WAKEUP") or \
-                line.startswith("ELAPSED") or line.startswith("ELAPSED_WAKEUP"):
+        if line.startswith(("RTC", "RTC_WAKEUP", "ELAPSED", "ELAPSED_WAKEUP")):
             pattern_between_brackets = re.compile(r'(?<=\{).*?(?=\})',
                                                   re.DOTALL)
             info = re.search(pattern_between_brackets, line).group(0).split(" ")
