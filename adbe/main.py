@@ -116,17 +116,17 @@ List of things which this tool will do in the future
 _VERSION_FILE_NAME = "version.txt"
 
 
-def main():
+def main() -> None:
     if _using_python2():
         _fail_with_python2_warning()
 
-    args: typing.Dict[str, typing.Any] = docopt.docopt(USAGE_STRING, version=_get_version())
+    args: dict[str, typing.Any] = docopt.docopt(USAGE_STRING, version=_get_version())
     set_verbose(args["--verbose"])
 
     _validate_options(args)
     options = _get_generic_options_from_args(args)
     if options:
-        adb_prefix = "%s %s" % (adb_helper.get_adb_prefix(), options)
+        adb_prefix = f"{adb_helper.get_adb_prefix()} {options}"
         adb_helper.set_adb_prefix(adb_prefix)
 
     action_dict = _get_actions(args)
@@ -141,10 +141,10 @@ def main():
             action()
             sys.exit(0)
 
-    print_error_and_exit('Not implemented: "%s"' % " ".join(sys.argv))
+    print_error_and_exit('Not implemented: "{}"'.format(" ".join(sys.argv)))
 
 
-def _get_actions(args: typing.Dict[str, typing.Any]) -> typing.Dict[typing.Tuple[str, str], typing.Callable]:
+def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Callable]:
     app_name = args["<app_name>"]
     return {
         # Airplane mode
@@ -305,28 +305,27 @@ def _get_actions(args: typing.Dict[str, typing.Any]) -> typing.Dict[typing.Tuple
     }
 
 
-def _grant_revoke_permissions(app_name, args):
+def _grant_revoke_permissions(app_name, args) -> None:
     permission_group = adb_enhanced.get_permission_group(args)
     permissions = adb_enhanced.get_permissions_in_permission_group(permission_group)
     if not permissions and \
             adb_enhanced.is_permission_group_unavailable_after_api_29(permission_group) and \
             adb_enhanced.get_device_android_api_version() >= 29:
         print_error_and_exit("Android has made some permission group empty on API 29 and beyond, "
-                             "your device version is %d" %
-                             adb_enhanced.get_device_android_api_version())
+                             f"your device version is {adb_enhanced.get_device_android_api_version()}")
     elif not permissions:
-        print_error_and_exit("No permissions found in permissions group: %s" % permission_group)
+        print_error_and_exit(f"No permissions found in permissions group: {permission_group}")
     adb_enhanced.grant_or_revoke_runtime_permissions(
         app_name, args["grant"], permissions)
 
 
-def _perform_backup(app_name: str, backup_tar_file_path: typing.Optional[str]):
+def _perform_backup(app_name: str, backup_tar_file_path: str | None) -> None:
     if not backup_tar_file_path:
-        backup_tar_file_path = "%s_backup.tar" % app_name
+        backup_tar_file_path = f"{app_name}_backup.tar"
     adb_enhanced.perform_app_backup(app_name, backup_tar_file_path)
 
 
-def _validate_options(args):
+def _validate_options(args) -> None:
     count = 0
     if args["--emulator"]:
         count += 1
@@ -345,7 +344,7 @@ def _get_generic_options_from_args(args):
     if args["--device"]:
         options += "-d "
     if args["--serial"]:
-        options += "-s %s " % args["--serial"]
+        options += "-s {} ".format(args["--serial"])
     return options
 
 
@@ -359,7 +358,7 @@ def _using_python2():
     return sys.version_info < (3, 0)
 
 
-def _fail_with_python2_warning():
+def _fail_with_python2_warning() -> None:
     msg = ("You are using Python 2\nADB-enhanced no longer supports Python 2.\n"
            "Install Python 3 and then re-install this tool using\n"
            '"sudo pip uninstall adb-enhanced && sudo pip3 install adb-enhanced"')

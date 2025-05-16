@@ -124,11 +124,11 @@ def execute_file_related_adb_shell_command(
     stdout = None
     attempt_count = 1
     for adb_cmd_prefix in adb_cmds_prefix:
-        print_verbose('Attempt %d/%d: "%s"' % (attempt_count, len(adb_cmds_prefix), adb_cmd_prefix))
+        print_verbose(f'Attempt {attempt_count}/{len(adb_cmds_prefix)}: "{adb_cmd_prefix}"')
         attempt_count += 1
         adb_cmd = f"{adb_cmd_prefix} {adb_shell_cmd}"
-        return_code, stdout, stderr = execute_adb_command2(adb_cmd, piped_into_cmd, ignore_stderr,
-                                                           device_serial=device_serial)
+        return_code, stdout, stderr = execute_adb_command2(
+            adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
 
         if stderr.find(file_not_found_message) >= 0:
             print_error(f"File not found: {file_path}")
@@ -145,7 +145,7 @@ def execute_file_related_adb_shell_command(
 
 
 # Gets the package name given a file path.
-# Eg. if the file is in /data/data/com.foo/.../file1 then package is com.foo
+# E.g. if the file is in /data/data/com.foo/.../file1 then package is com.foo
 # Or if the file is in /data/user/0/com.foo/.../file1 then package is com.foo
 def get_package(file_path) -> str | None:
     if not file_path:
