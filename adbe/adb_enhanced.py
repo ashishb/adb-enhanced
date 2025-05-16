@@ -893,26 +893,23 @@ def _is_sqlite_database(file_path: str) -> bool:
 
 # Returns a fully-qualified permission group name.
 def get_permission_group(args) -> str | None:
-    if args["contacts"]:
-        return "android.permission-group.CONTACTS"
-    if args["phone"]:
-        return "android.permission-group.PHONE"
-    if args["calendar"]:
-        return "android.permission-group.CALENDAR"
-    if args["camera"]:
-        return "android.permission-group.CAMERA"
-    if args["sensors"]:
-        return "android.permission-group.SENSORS"
-    if args["location"]:
-        return "android.permission-group.LOCATION"
-    if args["storage"]:
-        return "android.permission-group.STORAGE"
-    if args["microphone"]:
-        return "android.permission-group.MICROPHONE"
-    if args["notifications"]:
-        return "android.special-permission-group.NOTIFICATIONS"
-    if args["sms"]:
-        return "android.permission-group.SMS"
+    result_map = {
+        "contacts": "android.permission-group.CONTACTS",
+        "phone": "android.permission-group.PHONE",
+        "calendar": "android.permission-group.CALENDAR",
+        "camera": "android.permission-group.CAMERA",
+        "sensors": "android.permission-group.SENSORS",
+        "location": "android.permission-group.LOCATION",
+        "storage": "android.permission-group.STORAGE",
+        "microphone": "android.permission-group.MICROPHONE",
+        "notifications": "android.special-permission-group.NOTIFICATIONS",
+        "sms": "android.permission-group.SMS",
+    }
+
+    for key, value in result_map.items():
+        if args[key]:
+            return value
+
     print_error_and_exit(f"Unexpected permission group: {args}")
     return None
 
