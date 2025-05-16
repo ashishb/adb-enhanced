@@ -126,14 +126,14 @@ def print_state_change_decorator(fun, title, get_state_func):
 # Source:
 # https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
 def handle_gfx(value):
-    if value == 'on':
-        cmd = 'setprop debug.hwui.profile visual_bars'
-    elif value == 'off':
-        cmd = 'setprop debug.hwui.profile false'
-    elif value == 'lines':
-        cmd = 'setprop debug.hwui.profile visual_lines'
+    if value == "on":
+        cmd = "setprop debug.hwui.profile visual_bars"
+    elif value == "off":
+        cmd = "setprop debug.hwui.profile false"
+    elif value == "lines":
+        cmd = "setprop debug.hwui.profile visual_lines"
     else:
-        print_error_and_exit('Unexpected value for gfx %s' % value)
+        print_error_and_exit("Unexpected value for gfx %s" % value)
         return
 
     execute_adb_shell_command_and_poke_activity_service(cmd)
@@ -145,26 +145,26 @@ def handle_overdraw(value):
     version = get_device_android_api_version()
 
     if version < 19:
-        if value == 'on':
-            cmd = 'setprop debug.hwui.show_overdraw true'
-        elif value == 'off':
-            cmd = 'setprop debug.hwui.show_overdraw false'
-        elif value == 'deut':
+        if value == "on":
+            cmd = "setprop debug.hwui.show_overdraw true"
+        elif value == "off":
+            cmd = "setprop debug.hwui.show_overdraw false"
+        elif value == "deut":
             print_error_and_exit(
-                'deut mode is available only on API 19 and above, your Android API version is %d' % version)
+                "deut mode is available only on API 19 and above, your Android API version is %d" % version)
             return
         else:
-            print_error_and_exit('Unexpected value for overdraw %s' % value)
+            print_error_and_exit("Unexpected value for overdraw %s" % value)
             return
     else:
-        if value == 'on':
-            cmd = 'setprop debug.hwui.overdraw show'
-        elif value == 'off':
-            cmd = 'setprop debug.hwui.overdraw false'
-        elif value == 'deut':
-            cmd = 'setprop debug.hwui.overdraw show_deuteranomaly'
+        if value == "on":
+            cmd = "setprop debug.hwui.overdraw show"
+        elif value == "off":
+            cmd = "setprop debug.hwui.overdraw false"
+        elif value == "deut":
+            cmd = "setprop debug.hwui.overdraw show_deuteranomaly"
         else:
-            print_error_and_exit('Unexpected value for overdraw %s' % value)
+            print_error_and_exit("Unexpected value for overdraw %s" % value)
             return
 
     execute_adb_shell_command_and_poke_activity_service(cmd)
@@ -210,7 +210,7 @@ def get_current_rotation_direction() -> int:
     try:
         return int(direction)
     except ValueError as e:
-        print_error("Failed to get direction, error: \"%s\"" % e)
+        print_error('Failed to get direction, error: "%s"' % e)
 
 
 def handle_layout(value: bool):
@@ -226,26 +226,26 @@ def handle_airplane(turn_on: bool):
     state = (1 if turn_on else 0)
     return_code, su_path, _ = execute_adb_shell_command2("which su")
     if not return_code and su_path and len(su_path):
-        cmd = 'put global airplane_mode_on %d' % state
-        broadcast_change_cmd = 'am broadcast -a android.intent.action.AIRPLANE_MODE'
+        cmd = "put global airplane_mode_on %d" % state
+        broadcast_change_cmd = "am broadcast -a android.intent.action.AIRPLANE_MODE"
         # This is a protected intent which would require root to run
         # https://developer.android.com/reference/android/content/Intent.html#ACTION_AIRPLANE_MODE_CHANGED
-        broadcast_change_cmd = 'su root %s' % broadcast_change_cmd
+        broadcast_change_cmd = "su root %s" % broadcast_change_cmd
         execute_adb_shell_settings_command2(cmd)
         return_code, _, _ = execute_adb_shell_command2(broadcast_change_cmd)
         if return_code != 0:
-            print_error_and_exit('Failed to change airplane mode')
+            print_error_and_exit("Failed to change airplane mode")
         return _USER_PRINT_VALUE_UNKNOWN
 
     return_code_wifi, output_wifi, _ = execute_adb_shell_settings_command2("get global wifi_on")
     return_code_data, output_data, _ = execute_adb_shell_settings_command2("get global mobile_data")
 
     if return_code_wifi != 0:
-        print_error('Failed to get wifi state')
+        print_error("Failed to get wifi state")
         return _USER_PRINT_VALUE_UNKNOWN
 
     if return_code_data != 0:
-        print_error('Failed to get mobile-data state')
+        print_error("Failed to get mobile-data state")
         return _USER_PRINT_VALUE_UNKNOWN
 
     if turn_on:
@@ -267,27 +267,27 @@ def handle_airplane(turn_on: bool):
             print_error('Failed to get "Global" settings states. Enabling mobile-data and Wifi ...')
 
         if return_code_airplane != 0:
-            print_error('Failed to change airplane mode.')
+            print_error("Failed to change airplane mode.")
 
         if last_data_state:
-            handle_mobile_data(last_data_state == '1')
+            handle_mobile_data(last_data_state == "1")
         else:
             handle_mobile_data(True)
 
         if last_wifi_state:
-            set_wifi(last_wifi_state == '1')
+            set_wifi(last_wifi_state == "1")
         else:
             set_wifi(True)
 
 
 def get_battery_saver_state() -> str:
     _error_if_min_version_less_than(19)
-    cmd = 'get global low_power'
+    cmd = "get global low_power"
     return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
-        print_error('Failed to get battery saver state')
+        print_error("Failed to get battery saver state")
         return _USER_PRINT_VALUE_UNKNOWN
-    if stdout.strip() == 'null':
+    if stdout.strip() == "null":
         return _USER_PRINT_VALUE_OFF
 
     try:
@@ -330,9 +330,9 @@ def handle_battery_level(level: int):
     _error_if_min_version_less_than(19)
     if level < 0 or level > 100:
         print_error_and_exit(
-            'Battery percentage %d is outside the valid range of 0 to 100' %
+            "Battery percentage %d is outside the valid range of 0 to 100" %
             level)
-    cmd = 'dumpsys battery set level %d' % level
+    cmd = "dumpsys battery set level %d" % level
 
     execute_adb_shell_command2(get_battery_unplug_cmd())
     execute_adb_shell_command2(get_battery_discharging_cmd())
@@ -403,7 +403,7 @@ def handle_get_jank(app_name):
         print_verbose(result)
         found = False
         if return_code == 0:
-            for line in result.split('\n'):
+            for line in result.split("\n"):
                 if line.find("Janky") != -1:
                     print(line)
                     found = True
@@ -443,7 +443,7 @@ def _get_device_serials() -> [str]:
 
     device_serials = []
     # Skip the first line, it says "List of devices attached"
-    device_infos = stdout.split('\n')[1:]
+    device_infos = stdout.split("\n")[1:]
 
     if len(device_infos) == 0 or (
             len(device_infos) == 1 and len(device_infos[0]) == 0):
@@ -459,11 +459,11 @@ def _get_device_serials() -> [str]:
             continue
         device_serial = device_info.split()[0]
         if "unauthorized" in device_info:
-            device_info = ' '.join(device_info.split()[1:])
+            device_info = " ".join(device_info.split()[1:])
             print_error(
-                ("Unlock Device \"%s\" and give USB debugging access to "
+                ('Unlock Device "%s" and give USB debugging access to '
                  "this PC/Laptop by unlocking and reconnecting "
-                 "the device. More info about this device: \"%s\"\n") % (
+                 'the device. More info about this device: "%s"\n') % (
                     device_serial, device_info))
         else:
             device_serials.append(device_serial)
@@ -487,9 +487,9 @@ def _print_device_info(device_serial=None):
             display_name = execute_adb_shell_settings_command("get global device_name", device_serial=device_serial)
 
     # ABI info
-    abi = get_adb_shell_property('ro.product.cpu.abi', device_serial=device_serial)
-    release = get_adb_shell_property('ro.build.version.release', device_serial=device_serial)
-    sdk = get_adb_shell_property('ro.build.version.sdk', device_serial=device_serial)
+    abi = get_adb_shell_property("ro.product.cpu.abi", device_serial=device_serial)
+    release = get_adb_shell_property("ro.build.version.release", device_serial=device_serial)
+    sdk = get_adb_shell_property("ro.build.version.sdk", device_serial=device_serial)
     print_message(
         "Serial ID: %s\nManufacturer: %s\nModel: %s (%s)\nRelease: %s\nSDK version: %s\nCPU: %s\n" %
         (device_serial, manufacturer, model, display_name, release, sdk, abi))
@@ -508,18 +508,18 @@ def _get_top_activity_data():
     return_code, output, _ = execute_adb_shell_command2(cmd)
     if return_code != 0 and not output:
         print_error_and_exit("Device returned no response, is it still connected?")
-    for line in output.split('\n'):
+    for line in output.split("\n"):
         line = line.strip()
-        regex_result = re.search(r'ActivityRecord{.* (\S+)/(\S+)', line)
+        regex_result = re.search(r"ActivityRecord{.* (\S+)/(\S+)", line)
         if regex_result is None:
             continue
         app_name, activity_name = regex_result.group(1), regex_result.group(2)
         # If activity name is a short hand then complete it.
-        if activity_name.startswith('.'):
-            activity_name = '%s%s' % (app_name, activity_name)
+        if activity_name.startswith("."):
+            activity_name = "%s%s" % (app_name, activity_name)
         return app_name, activity_name
 
-    print_error('Unable to extract activity name')
+    print_error("Unable to extract activity name")
     return None, None
 
 
@@ -532,7 +532,7 @@ def dump_ui(xml_file):
     print_verbose("Writing UI to %s" % tmp_file)
     return_code, _, stderr = execute_adb_shell_command2(cmd1)
     if return_code != 0:
-        print_error_and_exit("Failed to execute \"%s\", stderr: \"%s\"" % (cmd1, stderr))
+        print_error_and_exit('Failed to execute "%s", stderr: "%s"' % (cmd1, stderr))
 
     print_verbose("Pulling file %s" % xml_file)
     return_code, _, stderr = execute_adb_command2(cmd2)
@@ -541,7 +541,7 @@ def dump_ui(xml_file):
     if return_code != 0:
         print_error_and_exit("Failed to fetch file %s" % tmp_file)
     else:
-        print_message("XML UI dumped to %s, you might want to format it using \"xmllint --format %s\"" %
+        print_message('XML UI dumped to %s, you might want to format it using "xmllint --format %s"' %
                       (xml_file, xml_file))
 
 
@@ -550,7 +550,7 @@ def force_stop(app_name):
     cmd = "am force-stop %s" % app_name
     return_code, stdout, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit("Failed to stop \"%s\"" % app_name)
+        print_error_and_exit('Failed to stop "%s"' % app_name)
     else:
         print_message(stdout)
 
@@ -560,7 +560,7 @@ def clear_disk_data(app_name):
     cmd = "pm clear %s" % app_name
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit("Failed to clear data of \"%s\"" % app_name)
+        print_error_and_exit('Failed to clear data of "%s"' % app_name)
 
 
 def get_mobile_data_state():
@@ -568,9 +568,9 @@ def get_mobile_data_state():
     cmd = "dumpsys telephony.registry"
     return_code, stdout, _ = execute_adb_shell_command2(cmd)
     if return_code != 0 or not stdout:
-        print_error('Failed to get mobile data setting')
+        print_error("Failed to get mobile data setting")
         return _USER_PRINT_VALUE_UNKNOWN
-    m = re.search(r'mDataConnectionState=(\d+)', stdout)
+    m = re.search(r"mDataConnectionState=(\d+)", stdout)
     if not m:
         print_error('Failed to get mobile data setting from "%s"' % stdout)
         return _USER_PRINT_VALUE_UNKNOWN
@@ -634,7 +634,7 @@ def dump_screenshot(filepath):
     if return_code != 0:
         print_error_and_exit(
             "Failed to capture the screenshot: (stdout: %s, stderr: %s)" % (stdout, stderr))
-    pull_cmd = 'pull %s %s' % (screenshot_file_path_on_device, filepath)
+    pull_cmd = "pull %s %s" % (screenshot_file_path_on_device, filepath)
     execute_adb_command2(pull_cmd)
     del_cmd = "rm %s" % screenshot_file_path_on_device
     execute_adb_shell_command2(del_cmd)
@@ -652,28 +652,28 @@ def dump_screenrecord(filepath):
     original_sigint_handler = None
 
     def _start_recording() -> str:
-        print_message('Recording video, press Ctrl+C to end...')
-        tmp_file_path = _create_tmp_file('screenrecord', 'mp4')
-        dump_cmd = 'screenrecord --verbose %s ' % tmp_file_path
+        print_message("Recording video, press Ctrl+C to end...")
+        tmp_file_path = _create_tmp_file("screenrecord", "mp4")
+        dump_cmd = "screenrecord --verbose %s " % tmp_file_path
         execute_adb_shell_command2(dump_cmd)
         return tmp_file_path
 
     def _pull_and_delete_file_from_device(screen_record_file_path: str):
-        print_message('Saving recording to %s' % filepath)
-        pull_cmd = 'pull %s %s' % (screen_record_file_path, filepath)
+        print_message("Saving recording to %s" % filepath)
+        pull_cmd = "pull %s %s" % (screen_record_file_path, filepath)
         execute_adb_command2(pull_cmd)
-        del_cmd = 'rm %s' % screen_record_file_path
+        del_cmd = "rm %s" % screen_record_file_path
         execute_adb_shell_command2(del_cmd)
 
     def _kill_all_child_processes():
         current_process = psutil.Process()
         children = current_process.children(recursive=True)
         for child in children:
-            print_verbose('Child process is %s' % child)
+            print_verbose("Child process is %s" % child)
             os.kill(child.pid, signal.SIGTERM)
 
     def _handle_recording_ended(screen_record_file_path: str):
-        print_message('Finishing...')
+        print_message("Finishing...")
         # Kill all child processes.
         # This is not neat, but it is OK for now since we know that we have only one adb child process which is
         # running screen recording.
@@ -722,13 +722,13 @@ def handle_mobile_data_saver(turn_on: bool):
 
 
 def get_dont_keep_activities_in_background_state():
-    cmd = 'get global always_finish_activities'
+    cmd = "get global always_finish_activities"
     return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
-        print_error('Failed to get don\'t keep activities in the background setting')
+        print_error("Failed to get don't keep activities in the background setting")
         return _USER_PRINT_VALUE_UNKNOWN
 
-    if stdout is None or stdout.strip() == 'null':
+    if stdout is None or stdout.strip() == "null":
         return _USER_PRINT_VALUE_OFF
 
     enabled = int(stdout.strip()) != 0
@@ -742,20 +742,20 @@ def get_dont_keep_activities_in_background_state():
 # It was in system (not global before ICS)
 # adb shell service call activity 43 i32 1 followed by that
 @partial(print_state_change_decorator,
-         title="Don\'t keep activities",
+         title="Don't keep activities",
          get_state_func=get_dont_keep_activities_in_background_state)
 def handle_dont_keep_activities_in_background(turn_on: bool):
     # Till Api 25, the value was True/False, above API 25, 1/0 work. Source: manual testing
     use_true_false_as_value = get_device_android_api_version() <= 25
 
     if turn_on:
-        value = 'true' if use_true_false_as_value else '1'
-        cmd1 = 'put global always_finish_activities %s' % value
-        cmd2 = 'service call activity 43 i32 1'
+        value = "true" if use_true_false_as_value else "1"
+        cmd1 = "put global always_finish_activities %s" % value
+        cmd2 = "service call activity 43 i32 1"
     else:
-        value = 'false' if use_true_false_as_value else '0'
-        cmd1 = 'put global always_finish_activities %s' % value
-        cmd2 = 'service call activity 43 i32 0'
+        value = "false" if use_true_false_as_value else "0"
+        cmd1 = "put global always_finish_activities %s" % value
+        cmd2 = "service call activity 43 i32 0"
     execute_adb_shell_settings_command(cmd1)
     execute_adb_shell_command_and_poke_activity_service(cmd2)
 
@@ -767,9 +767,9 @@ def toggle_animations(turn_on: bool):
         value = 0
 
     # Source: https://github.com/jaredsburrows/android-gif-example/blob/824c493285a2a2cf22f085662431cf0a7aa204b8/.travis.yml#L34
-    cmd1 = 'put global window_animation_scale %d' % value
-    cmd2 = 'put global transition_animation_scale %d' % value
-    cmd3 = 'put global animator_duration_scale %d' % value
+    cmd1 = "put global window_animation_scale %d" % value
+    cmd2 = "put global transition_animation_scale %d" % value
+    cmd3 = "put global animator_duration_scale %d" % value
 
     execute_adb_shell_settings_command(cmd1)
     execute_adb_shell_settings_command(cmd2)
@@ -777,14 +777,14 @@ def toggle_animations(turn_on: bool):
 
 
 def get_show_taps_state():
-    cmd = 'get system show_touches'
+    cmd = "get system show_touches"
     return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
         print_error('Failed to get current state of "show user taps" setting')
         return _USER_PRINT_VALUE_UNKNOWN
 
     stdout = stdout.strip()
-    if stdout == 'null':
+    if stdout == "null":
         return _USER_PRINT_VALUE_OFF
     if int(stdout) == 1:
         return _USER_PRINT_VALUE_ON
@@ -799,12 +799,12 @@ def toggle_show_taps(turn_on: bool):
         value = 0
 
     # Source: https://stackoverflow.com/a/32621809/434196
-    cmd = 'put system show_touches %d' % value
+    cmd = "put system show_touches %d" % value
     execute_adb_shell_settings_command(cmd)
 
 
 def get_stay_awake_while_charging_state():
-    cmd = 'get global stay_on_while_plugged_in'
+    cmd = "get global stay_on_while_plugged_in"
     return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
         print_error('Failed to get "stay awake while plugged in" in the background setting')
@@ -828,42 +828,42 @@ def stay_awake_while_charging(turn_on: bool):
     else:
         value = 0
 
-    cmd1 = 'put global stay_on_while_plugged_in %d' % value
+    cmd1 = "put global stay_on_while_plugged_in %d" % value
     execute_adb_shell_settings_command_and_poke_activity_service(cmd1)
 
 
 def input_text(text):
     # Replace whitespaces to %s which gets translated by Android back to whitespaces.
-    cmd = 'input text %s' % text.replace(' ', '%s')
+    cmd = "input text %s" % text.replace(" ", "%s")
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to input text \"%s\"' % text)
+        print_error_and_exit('Failed to input text "%s"' % text)
 
 
 def press_back():
-    cmd = 'input keyevent 4'
+    cmd = "input keyevent 4"
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to press back')
+        print_error_and_exit("Failed to press back")
 
 
 def open_url(url):
     # Let's not do any URL encoding for now, if required, we will add that in the future.
     parsed_url = urlparse(url=url)
     if not parsed_url.scheme:
-        parsed_url2 = urlparse(url=url, scheme='http')
+        parsed_url2 = urlparse(url=url, scheme="http")
         url = parsed_url2.geturl()
-    cmd = 'am start -a android.intent.action.VIEW -d %s' % url
+    cmd = "am start -a android.intent.action.VIEW -d %s" % url
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to open url \"%s\"' % url)
+        print_error_and_exit('Failed to open url "%s"' % url)
 
 
 def list_permission_groups():
-    cmd = 'pm list permission-groups'
+    cmd = "pm list permission-groups"
     return_code, stdout, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to list permission groups')
+        print_error_and_exit("Failed to list permission groups")
     else:
         print_message(stdout)
 
@@ -872,12 +872,12 @@ def list_permissions(dangerous_only_permissions: bool):
     # -g is to group permissions by permission groups.
     if dangerous_only_permissions:
         # -d => dangerous only permissions
-        cmd = 'pm list permissions -g -d'
+        cmd = "pm list permissions -g -d"
     else:
-        cmd = 'pm list permissions -g'
+        cmd = "pm list permissions -g"
     return_code, stdout, stderr = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to list permissions: (stdout: %s, stderr: %s)' % (stdout, stderr))
+        print_error_and_exit("Failed to list permissions: (stdout: %s, stderr: %s)" % (stdout, stderr))
     else:
         print_message(stdout)
 
@@ -885,33 +885,33 @@ def list_permissions(dangerous_only_permissions: bool):
 # Creates a tmp file on Android device
 def _create_tmp_file(filename_prefix=None, filename_suffix=None):
     if filename_prefix is None:
-        filename_prefix = 'file'
+        filename_prefix = "file"
     if filename_suffix is None:
-        filename_suffix = 'tmp'
-    if filename_prefix.find('/') != -1:
+        filename_suffix = "tmp"
+    if filename_prefix.find("/") != -1:
         print_error_and_exit('Filename prefix "%s" contains illegal character: "/"' % filename_prefix)
-    if filename_suffix.find('/') != -1:
+    if filename_suffix.find("/") != -1:
         print_error_and_exit('Filename suffix "%s" contains illegal character: "/"' % filename_suffix)
 
-    tmp_dir = '/data/local/tmp'
+    tmp_dir = "/data/local/tmp"
 
-    filepath_on_device = '%s/%s-%d.%s' % (
+    filepath_on_device = "%s/%s-%d.%s" % (
         tmp_dir, filename_prefix, random.randint(1, 1000 * 1000 * 1000), filename_suffix)
     if _file_exists(filepath_on_device):
         # Retry if the file already exists
-        print_verbose('Tmp File %s already exists, trying a new random name' % filepath_on_device)
+        print_verbose("Tmp File %s already exists, trying a new random name" % filepath_on_device)
         return _create_tmp_file(filename_prefix, filename_suffix)
 
     # Create the file
-    return_code, stdout, stderr = execute_adb_shell_command2('touch %s' % filepath_on_device)
+    return_code, stdout, stderr = execute_adb_shell_command2("touch %s" % filepath_on_device)
     if return_code != 0:
-        print_error('Failed to create tmp file %s: (stdout: %s, stderr: %s)' % (filepath_on_device, stdout, stderr))
+        print_error("Failed to create tmp file %s: (stdout: %s, stderr: %s)" % (filepath_on_device, stdout, stderr))
         return None
 
     # Make the tmp file world-writable or else, run-as command might fail to write on it.
-    return_code, stdout, stderr = execute_adb_shell_command2('chmod 666 %s' % filepath_on_device)
+    return_code, stdout, stderr = execute_adb_shell_command2("chmod 666 %s" % filepath_on_device)
     if return_code != 0:
-        print_error('Failed to chmod tmp file %s: (stdout: %s, stderr: %s)' % (filepath_on_device, stdout, stderr))
+        print_error("Failed to chmod tmp file %s: (stdout: %s, stderr: %s)" % (filepath_on_device, stdout, stderr))
         return None
 
     return filepath_on_device
@@ -919,88 +919,88 @@ def _create_tmp_file(filename_prefix=None, filename_suffix=None):
 
 # Returns true if the file_path exists on the device, false if it does not exists or is inaccessible.
 def _file_exists(file_path):
-    exists_cmd = "\"ls %s 1>/dev/null 2>/dev/null && echo exists\"" % file_path
+    exists_cmd = '"ls %s 1>/dev/null 2>/dev/null && echo exists"' % file_path
     stdout = execute_file_related_adb_shell_command(exists_cmd, file_path)
-    return stdout is not None and stdout.find('exists') != -1
+    return stdout is not None and stdout.find("exists") != -1
 
 
 def _is_sqlite_database(file_path):
-    return file_path.endswith('.db')
+    return file_path.endswith(".db")
 
 
 # Returns a fully-qualified permission group name.
 def get_permission_group(args):
-    if args['contacts']:
-        return 'android.permission-group.CONTACTS'
-    elif args['phone']:
-        return 'android.permission-group.PHONE'
-    elif args['calendar']:
-        return 'android.permission-group.CALENDAR'
-    elif args['camera']:
-        return 'android.permission-group.CAMERA'
-    elif args['sensors']:
-        return 'android.permission-group.SENSORS'
-    elif args['location']:
-        return 'android.permission-group.LOCATION'
-    elif args['storage']:
-        return 'android.permission-group.STORAGE'
-    elif args['microphone']:
-        return 'android.permission-group.MICROPHONE'
-    elif args['notifications']:
-        return 'android.special-permission-group.NOTIFICATIONS'
-    elif args['sms']:
-        return 'android.permission-group.SMS'
+    if args["contacts"]:
+        return "android.permission-group.CONTACTS"
+    elif args["phone"]:
+        return "android.permission-group.PHONE"
+    elif args["calendar"]:
+        return "android.permission-group.CALENDAR"
+    elif args["camera"]:
+        return "android.permission-group.CAMERA"
+    elif args["sensors"]:
+        return "android.permission-group.SENSORS"
+    elif args["location"]:
+        return "android.permission-group.LOCATION"
+    elif args["storage"]:
+        return "android.permission-group.STORAGE"
+    elif args["microphone"]:
+        return "android.permission-group.MICROPHONE"
+    elif args["notifications"]:
+        return "android.special-permission-group.NOTIFICATIONS"
+    elif args["sms"]:
+        return "android.permission-group.SMS"
     else:
-        print_error_and_exit('Unexpected permission group: %s' % args)
+        print_error_and_exit("Unexpected permission group: %s" % args)
         return None
 
 
 # Android keeps emptying these groups so that granted permissions are denied
 # but the expectation of this tool is to do the right mapping
 def _get_hardcoded_permissions_for_group(permission_group) -> typing.List[str]:
-    if permission_group == 'android.permission-group.CONTACTS':
-        return ['android.permission.READ_CONTACTS', 'android.permission.WRITE_CONTACTS']
-    elif permission_group == 'android.permission-group.PHONE':
-        return ['android.permission.READ_PHONE_STATE', 'android.permission.READ_PHONE_NUMBERS',
-                'android.permission.CALL_PHONE', 'android.permission.ANSWER_PHONE_CALLS']
-    elif permission_group == 'android.permission-group.CALENDAR':
-        return ['android.permission.READ_CALENDAR', 'android.permission.WRITE_CALENDAR']
-    elif permission_group == 'android.permission-group.CAMERA':
-        return ['android.permission.CAMERA']
-    elif permission_group == 'android.permission-group.SENSORS':
-        return ['android.permission.BODY_SENSORS']
-    elif permission_group == 'android.permission-group.LOCATION':
-        return ['android.permission.ACCESS_FINE_LOCATION', 'android.permission.ACCESS_COARSE_LOCATION']
-    elif permission_group == 'android.permission-group.STORAGE':
-        return ['android.permission.READ_EXTERNAL_STORAGE', 'android.permission.WRITE_EXTERNAL_STORAGE']
-    elif permission_group == 'android.permission-group.MICROPHONE':
-        return ['android.permission.RECORD_AUDIO']
-    elif permission_group == 'android.special-permission-group.NOTIFICATIONS':
-        return ['android.permission.POST_NOTIFICATIONS']
-    elif permission_group == 'android.permission-group.SMS':
-        return ['android.permission.READ_SMS', 'android.permission.RECEIVE_SMS', 'android.permission.SEND_SMS']
+    if permission_group == "android.permission-group.CONTACTS":
+        return ["android.permission.READ_CONTACTS", "android.permission.WRITE_CONTACTS"]
+    elif permission_group == "android.permission-group.PHONE":
+        return ["android.permission.READ_PHONE_STATE", "android.permission.READ_PHONE_NUMBERS",
+                "android.permission.CALL_PHONE", "android.permission.ANSWER_PHONE_CALLS"]
+    elif permission_group == "android.permission-group.CALENDAR":
+        return ["android.permission.READ_CALENDAR", "android.permission.WRITE_CALENDAR"]
+    elif permission_group == "android.permission-group.CAMERA":
+        return ["android.permission.CAMERA"]
+    elif permission_group == "android.permission-group.SENSORS":
+        return ["android.permission.BODY_SENSORS"]
+    elif permission_group == "android.permission-group.LOCATION":
+        return ["android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"]
+    elif permission_group == "android.permission-group.STORAGE":
+        return ["android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"]
+    elif permission_group == "android.permission-group.MICROPHONE":
+        return ["android.permission.RECORD_AUDIO"]
+    elif permission_group == "android.special-permission-group.NOTIFICATIONS":
+        return ["android.permission.POST_NOTIFICATIONS"]
+    elif permission_group == "android.permission-group.SMS":
+        return ["android.permission.READ_SMS", "android.permission.RECEIVE_SMS", "android.permission.SEND_SMS"]
     else:
-        print_verbose('Unexpected permission group: %s' % permission_group)
+        print_verbose("Unexpected permission group: %s" % permission_group)
         return []
 
 
 # Pass the full-qualified permission group name to this method.
 def get_permissions_in_permission_group(permission_group):
     # List permissions by group
-    cmd = 'pm list permissions -g'
+    cmd = "pm list permissions -g"
     return_code, stdout, stderr = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to run command %s (stdout: %s, stderr: %s)' % (cmd, stdout, stderr))
+        print_error_and_exit("Failed to run command %s (stdout: %s, stderr: %s)" % (cmd, stdout, stderr))
         return None
 
     permission_output = stdout
     # Remove ungrouped permissions section completely.
-    if 'ungrouped:' in permission_output:
-        permission_output, _ = permission_output.split('ungrouped:')
-    splits = permission_output.split('group:')
+    if "ungrouped:" in permission_output:
+        permission_output, _ = permission_output.split("ungrouped:")
+    splits = permission_output.split("group:")
     for split in splits:
         if split.startswith(permission_group):
-            potential_permissions = split.split('\n')
+            potential_permissions = split.split("\n")
             # Ignore the first entry which is the group name
             potential_permissions = potential_permissions[1:]
             # Filter out empty lines.
@@ -1008,10 +1008,10 @@ def get_permissions_in_permission_group(permission_group):
                 lambda x: len(
                     x.strip()) > 0,
                 potential_permissions)
-            permissions = [x.replace('permission:', '') for x in permissions]
+            permissions = [x.replace("permission:", "") for x in permissions]
             permissions = list(set(permissions + _get_hardcoded_permissions_for_group(permission_group)))
             print_message(
-                'Permissions in %s group are %s' %
+                "Permissions in %s group are %s" %
                 (permission_group, permissions))
             return permissions
     return _get_hardcoded_permissions_for_group(permission_group)
@@ -1021,27 +1021,27 @@ def get_permissions_in_permission_group(permission_group):
 def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions):
     _error_if_min_version_less_than(23)
 
-    app_info_dump = execute_adb_shell_command('dumpsys package %s' % package_name)
-    permissions_formatted_dump = _get_permissions_info_above_api_23(app_info_dump).split('\n')
+    app_info_dump = execute_adb_shell_command("dumpsys package %s" % package_name)
+    permissions_formatted_dump = _get_permissions_info_above_api_23(app_info_dump).split("\n")
 
     if action_grant:
-        base_cmd = 'pm grant %s' % package_name
-        action_display_name = 'Granting'
+        base_cmd = "pm grant %s" % package_name
+        action_display_name = "Granting"
     else:
-        base_cmd = 'pm revoke %s' % package_name
-        action_display_name = 'Revoking'
+        base_cmd = "pm revoke %s" % package_name
+        action_display_name = "Revoking"
     num_permissions_granted = 0
     for permission in permissions:
         if permission not in permissions_formatted_dump:
-            print_message('Permission %s is not requested by %s, skipping' % (permission, package_name))
+            print_message("Permission %s is not requested by %s, skipping" % (permission, package_name))
             continue
-        if permission == 'android.permission.POST_NOTIFICATIONS':
+        if permission == "android.permission.POST_NOTIFICATIONS":
             _error_if_min_version_less_than(33)
         num_permissions_granted += 1
-        print_message('%s %s permission to %s' % (action_display_name, permission, package_name))
-        execute_adb_shell_command(base_cmd + ' ' + permission)
+        print_message("%s %s permission to %s" % (action_display_name, permission, package_name))
+        execute_adb_shell_command(base_cmd + " " + permission)
     if num_permissions_granted == 0:
-        print_error_and_exit('None of these permissions were granted to %s: %s' % (package_name, permissions))
+        print_error_and_exit("None of these permissions were granted to %s: %s" % (package_name, permissions))
 
 
 def _get_all_packages(pm_cmd):
@@ -1050,8 +1050,8 @@ def _get_all_packages(pm_cmd):
         print_error_and_exit('Command "%s" failed, something is wrong' % pm_cmd)
     packages = []
     if result:
-        for line in result.split('\n'):
-            _, package_name = line.split(':', 2)
+        for line in result.split("\n"):
+            _, package_name = line.split(":", 2)
             packages.append(package_name)
     return packages
 
@@ -1077,7 +1077,7 @@ def get_list_all_apps():
     >>> list_apps, err_msg, err = adb_e.get_list_all_apps()
     """
     # https://developer.android.com/studio/command-line/dumpsys
-    cmd = 'dumpsys package'
+    cmd = "dumpsys package"
     pattern_packages = re.compile(r"Package \[(.*?)]")
     return_code, result, err = execute_adb_shell_command2(cmd)
     if return_code != 0:
@@ -1098,7 +1098,7 @@ def print_list_all_apps():
     if err:
         print_error_and_exit(err_msg)
         return
-    print_message('\n'.join(all_apps))
+    print_message("\n".join(all_apps))
 
 
 def get_list_system_apps():
@@ -1112,7 +1112,7 @@ def get_list_system_apps():
     >>> adb_h.set_device_id("DEVICE_ID")
     >>> list_sys_apps = adb_e.get_list_system_apps()
     """
-    cmd = 'pm list packages -s'
+    cmd = "pm list packages -s"
     system_apps_packages = _get_all_packages(cmd)
     return system_apps_packages
 
@@ -1122,7 +1122,7 @@ def list_system_apps():
     :returns: None
     """
     packages = get_list_system_apps()
-    print('\n'.join(packages))
+    print("\n".join(packages))
 
 
 def get_list_non_system_apps():
@@ -1136,7 +1136,7 @@ def get_list_non_system_apps():
     >>> adb_h.set_device_id("DEVICE_ID")
     >>> list_sys_apps = adb_e.get_list_non_system_apps()
     """
-    cmd = 'pm list packages -3'
+    cmd = "pm list packages -3"
     return _get_all_packages(cmd)
 
 
@@ -1144,7 +1144,7 @@ def print_list_non_system_apps():
     """Print list of installed third party packages.
     :returns: None
     """
-    print('\n'.join(get_list_non_system_apps()))
+    print("\n".join(get_list_non_system_apps()))
 
 
 def get_list_debug_apps():
@@ -1158,7 +1158,7 @@ def get_list_debug_apps():
     >>> adb_h.set_device_id("DEVICE_ID")
     >>> list_debug_apps = adb_e.get_list_debug_apps()
     """
-    cmd = 'pm list packages'
+    cmd = "pm list packages"
     packages = _get_all_packages(cmd)
     debug_packages = []
 
@@ -1181,7 +1181,7 @@ def print_list_debug_apps():
         >>> adb_h.set_device_id("DEVICE_ID")
         >>> list_debug_apps = adb_e.adb_print_list_debug_apps()
     """
-    print('\n'.join(get_list_debug_apps()))
+    print("\n".join(get_list_debug_apps()))
 
 
 def _is_debug_package(app_name):
@@ -1202,7 +1202,7 @@ def list_allow_backup_apps():
         >>> adb_h.set_device_id("DEVICE_ID")
         >>> adb_e.list_allow_backup_apps()
     """
-    cmd = 'pm list packages'
+    cmd = "pm list packages"
     packages = _get_all_packages(cmd)
 
     method_to_call = _is_allow_backup_package
@@ -1224,7 +1224,7 @@ def print_allow_backup_apps():
         >>> adb_h.set_device_id("DEVICE_ID")
         >>> adb_e.print_allow_backup_apps()
     """
-    print('\n'.join(list_allow_backup_apps()))
+    print("\n".join(list_allow_backup_apps()))
 
 
 def _is_allow_backup_package(app_name):
@@ -1232,10 +1232,10 @@ def _is_allow_backup_package(app_name):
 
 
 def _package_contains_flag(app_name, flag_regex):
-    pm_cmd = 'dumpsys package %s' % app_name
-    grep_cmd = '(grep -c -E \'%s\' || true)' % flag_regex
+    pm_cmd = "dumpsys package %s" % app_name
+    grep_cmd = "(grep -c -E '%s' || true)" % flag_regex
     app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
-    if app_info_dump is None or app_info_dump.strip() == '0':
+    if app_info_dump is None or app_info_dump.strip() == "0":
         return app_name, False
     try:
         val = int(app_info_dump.strip())
@@ -1249,10 +1249,10 @@ def _package_contains_flag(app_name, flag_regex):
 
 # Source: https://developer.android.com/reference/android/app/usage/UsageStatsManager#STANDBY_BUCKET_ACTIVE
 _APP_STANDBY_BUCKETS = {
-    10: 'active',
-    20: 'working',
-    30: 'frequent',
-    40: 'rare',
+    10: "active",
+    20: "working",
+    30: "frequent",
+    40: "rare",
 }
 
 
@@ -1260,11 +1260,11 @@ _APP_STANDBY_BUCKETS = {
 @ensure_package_exists
 def get_standby_bucket(package_name):
     _error_if_min_version_less_than(28)
-    cmd = 'am get-standby-bucket %s' % package_name
+    cmd = "am get-standby-bucket %s" % package_name
     result = execute_adb_shell_command(cmd)
     if result is None:
         print_error_and_exit(_USER_PRINT_VALUE_UNKNOWN)
-    print_verbose('App standby bucket for \"%s\" is %s' % (
+    print_verbose('App standby bucket for "%s" is %s' % (
         package_name, _APP_STANDBY_BUCKETS.get(int(result), _USER_PRINT_VALUE_UNKNOWN)))
     print(_APP_STANDBY_BUCKETS.get(int(result), _USER_PRINT_VALUE_UNKNOWN))
 
@@ -1272,53 +1272,53 @@ def get_standby_bucket(package_name):
 @ensure_package_exists
 def set_standby_bucket(package_name, mode):
     _error_if_min_version_less_than(28)
-    cmd = 'am set-standby-bucket %s %s' % (package_name, mode)
+    cmd = "am set-standby-bucket %s %s" % (package_name, mode)
     result = execute_adb_shell_command(cmd)
     if result is not None:  # Expected
         print_error_and_exit(result)
 
 
 def calculate_standby_mode(args):
-    if args['active']:
-        return 'active'
-    elif args['working_set']:
-        return 'working_set'
-    elif args['frequent']:
-        return 'frequent'
-    elif args['rare']:
-        return 'rare'
+    if args["active"]:
+        return "active"
+    elif args["working_set"]:
+        return "working_set"
+    elif args["frequent"]:
+        return "frequent"
+    elif args["rare"]:
+        return "rare"
 
-    raise ValueError('Illegal argument: %s' % args)
+    raise ValueError("Illegal argument: %s" % args)
 
 
 # Source: https://developer.android.com/preview/features/power
 @ensure_package_exists
 def apply_or_remove_background_restriction(package_name, set_restriction):
     _error_if_min_version_less_than(28)
-    appops_cmd = 'cmd appops set %s RUN_ANY_IN_BACKGROUND %s' % (
-        package_name, 'ignore' if set_restriction else 'allow')
+    appops_cmd = "cmd appops set %s RUN_ANY_IN_BACKGROUND %s" % (
+        package_name, "ignore" if set_restriction else "allow")
     execute_adb_shell_command(appops_cmd)
 
 
 def list_directory(file_path, long_format, recursive, include_hidden_files):
-    cmd_prefix = 'ls'
+    cmd_prefix = "ls"
     if long_format:
-        cmd_prefix += ' -l'
+        cmd_prefix += " -l"
     if recursive:
-        cmd_prefix += ' -R'
+        cmd_prefix += " -R"
     if include_hidden_files:
-        cmd_prefix += ' -a'
-    cmd = '%s \"%s\"' % (cmd_prefix, file_path)
+        cmd_prefix += " -a"
+    cmd = '%s "%s"' % (cmd_prefix, file_path)
     print_message(execute_file_related_adb_shell_command(cmd, file_path))
 
 
 def delete_file(file_path, force, recursive):
-    cmd_prefix = 'rm'
+    cmd_prefix = "rm"
     if force:
-        cmd_prefix += ' -f'
+        cmd_prefix += " -f"
     if recursive:
-        cmd_prefix += ' -r'
-    cmd = '%s %s' % (cmd_prefix, file_path)
+        cmd_prefix += " -r"
+    cmd = "%s %s" % (cmd_prefix, file_path)
     print_message(execute_file_related_adb_shell_command(cmd, file_path))
 
 
@@ -1326,12 +1326,12 @@ def delete_file(file_path, force, recursive):
 # on a non-rooted device with both pkg1 and pkg2 being debuggable, this will fail. This can be improved by
 # first copying the file to /data/local/tmp but as of now, I don't think that's required.
 def move_file(src_path, dest_path, force):
-    cmd_prefix = 'mv'
+    cmd_prefix = "mv"
     if force:
-        cmd_prefix += '-f'
-    cmd = '%s %s %s' % (cmd_prefix, src_path, dest_path)
+        cmd_prefix += "-f"
+    cmd = "%s %s %s" % (cmd_prefix, src_path, dest_path)
     if get_package(src_path) and get_package(dest_path) and get_package(src_path) != get_package(dest_path):
-        print_error_and_exit('Cannot copy a file from one package into another, copy it via /data/local/tmp instead')
+        print_error_and_exit("Cannot copy a file from one package into another, copy it via /data/local/tmp instead")
         return
 
     file_path = None
@@ -1349,71 +1349,71 @@ def move_file(src_path, dest_path, force):
 # local_file_path can be None
 def pull_file(remote_file_path, local_file_path, copy_ancillary=False):
     if not _file_exists(remote_file_path):
-        print_error_and_exit('File %s does not exist' % remote_file_path)
+        print_error_and_exit("File %s does not exist" % remote_file_path)
 
     if local_file_path is None:
-        local_file_path = remote_file_path.split('/')[-1]
-        print_verbose('Local file path not provided, using \"%s\" for that' % local_file_path)
+        local_file_path = remote_file_path.split("/")[-1]
+        print_verbose('Local file path not provided, using "%s" for that' % local_file_path)
 
     remote_file_path_package = get_package(remote_file_path)
     if remote_file_path_package is None and not root_required_to_access_file(remote_file_path):
-        print_verbose('File %s is not inside a package, no temporary file required' % remote_file_path_package)
-        pull_cmd = 'pull %s %s' % (remote_file_path, local_file_path)
+        print_verbose("File %s is not inside a package, no temporary file required" % remote_file_path_package)
+        pull_cmd = "pull %s %s" % (remote_file_path, local_file_path)
         execute_adb_command2(pull_cmd)
     else:
         # First copy the files to sdcard, then pull them out, and then delete them from sdcard.
         tmp_file = _create_tmp_file()
-        cp_cmd = 'cp -r %s %s' % (remote_file_path, tmp_file)
+        cp_cmd = "cp -r %s %s" % (remote_file_path, tmp_file)
         execute_file_related_adb_shell_command(cp_cmd, remote_file_path)
-        pull_cmd = 'pull %s %s' % (tmp_file, local_file_path)
+        pull_cmd = "pull %s %s" % (tmp_file, local_file_path)
         execute_adb_command2(pull_cmd)
-        del_cmd = 'rm -r %s' % tmp_file
+        del_cmd = "rm -r %s" % tmp_file
         execute_adb_shell_command(del_cmd)
 
     if os.path.exists(local_file_path):
-        print_message('Copied remote file \"%s\" to local file \"%s\" (Size: %d bytes)' % (
+        print_message('Copied remote file "%s" to local file "%s" (Size: %d bytes)' % (
             remote_file_path,
             local_file_path,
             os.path.getsize(local_file_path)))
     else:
-        print_error_and_exit('Failed to copy remote file \"%s\" to local file \"%s\"' % (
+        print_error_and_exit('Failed to copy remote file "%s" to local file "%s"' % (
             remote_file_path,
             local_file_path))
 
     if _is_sqlite_database(remote_file_path):
         # Copy temporary Sqlite files
         # Source :https://ashishb.net/all/android-the-right-way-to-pull-sqlite-database-from-the-device/
-        for suffix in ['wal', 'journal', 'shm']:
-            tmp_db_file = '%s-%s' % (remote_file_path, suffix)
+        for suffix in ["wal", "journal", "shm"]:
+            tmp_db_file = "%s-%s" % (remote_file_path, suffix)
             if not _file_exists(tmp_db_file):
                 continue
             if copy_ancillary:
-                pull_file(tmp_db_file, '%s-%s' % (local_file_path, suffix), copy_ancillary=True)
+                pull_file(tmp_db_file, "%s-%s" % (local_file_path, suffix), copy_ancillary=True)
             else:
-                print_error('File \"%s\" has an ancillary file \"%s\" which should be copied.\nSee %s for details'
+                print_error('File "%s" has an ancillary file "%s" which should be copied.\nSee %s for details'
                             % (remote_file_path, tmp_db_file,
-                               'https://ashishb.net/all/android-the-right-way-to-pull-sqlite-database-from-the-device/'))
+                               "https://ashishb.net/all/android-the-right-way-to-pull-sqlite-database-from-the-device/"))
 
 
 # Limitation: It seems that pushing to a directory on some versions of Android fail silently.
 # It is safer to push to a full path containing the filename.
 def push_file(local_file_path, remote_file_path):
     if not os.path.exists(local_file_path):
-        print_error_and_exit('Local file %s does not exist' % local_file_path)
+        print_error_and_exit("Local file %s does not exist" % local_file_path)
     if os.path.isdir(local_file_path):
-        print_error_and_exit('This tool does not support pushing a directory yet: %s' % local_file_path)
+        print_error_and_exit("This tool does not support pushing a directory yet: %s" % local_file_path)
 
     # First push to tmp file in /data/local/tmp and then move that
     tmp_file = _create_tmp_file()
-    push_cmd = 'push %s %s' % (local_file_path, tmp_file)
+    push_cmd = "push %s %s" % (local_file_path, tmp_file)
     # "mv" from /data/local/tmp with run-as <app_id> does not always work even when the underlying
     # dir has mode set to 777. Therefore, do a two-step cp and rm.
-    cp_cmd = 'cp %s %s' % (tmp_file, remote_file_path)
-    rm_cmd = 'rm %s' % tmp_file
+    cp_cmd = "cp %s %s" % (tmp_file, remote_file_path)
+    rm_cmd = "rm %s" % tmp_file
 
     return_code, _, stderr = execute_adb_command2(push_cmd)
     if return_code != 0:
-        print_error_and_exit('Failed to push file, error: %s' % stderr)
+        print_error_and_exit("Failed to push file, error: %s" % stderr)
         return
 
     execute_file_related_adb_shell_command(cp_cmd, remote_file_path)
@@ -1421,8 +1421,8 @@ def push_file(local_file_path, remote_file_path):
 
 
 def cat_file(file_path):
-    cmd_prefix = 'cat'
-    cmd = '%s %s' % (cmd_prefix, file_path)
+    cmd_prefix = "cat"
+    cmd = "%s %s" % (cmd_prefix, file_path)
     cat_stdout = execute_file_related_adb_shell_command(cmd, file_path)
     # Don't print "None" for an empty file
     if cat_stdout:
@@ -1432,7 +1432,7 @@ def cat_file(file_path):
 # Source: https://stackoverflow.com/a/25398877
 @ensure_package_exists
 def launch_app(app_name):
-    adb_shell_cmd = 'monkey -p %s -c android.intent.category.LAUNCHER 1' % app_name
+    adb_shell_cmd = "monkey -p %s -c android.intent.category.LAUNCHER 1" % app_name
     execute_adb_shell_command(adb_shell_cmd)
 
 
@@ -1443,7 +1443,7 @@ def stop_app(app_name):
     if get_device_android_api_version() < 21:
         force_stop(app_name)
     else:
-        adb_shell_cmd = 'am kill %s' % app_name
+        adb_shell_cmd = "am kill %s" % app_name
         execute_adb_shell_command(adb_shell_cmd)
 
 
@@ -1458,54 +1458,54 @@ def _regex_extract(regex, data):
 # compared to this.
 @ensure_package_exists
 def print_app_info(app_name):
-    app_info_dump = execute_adb_shell_command('dumpsys package %s' % app_name)
-    version_code = _regex_extract('versionCode=(\\d+)?', app_info_dump)
-    version_name = _regex_extract('versionName=([\\d.]+)?', app_info_dump)
-    min_sdk_version = _regex_extract('minSdk=(\\d+)?', app_info_dump)
-    target_sdk_version = _regex_extract('targetSdk=(\\d+)?', app_info_dump)
-    max_sdk_version = _regex_extract('maxSdk=(\\d+)?', app_info_dump)
-    installer_package_name = _regex_extract('installerPackageName=(\\S+)?', app_info_dump)
+    app_info_dump = execute_adb_shell_command("dumpsys package %s" % app_name)
+    version_code = _regex_extract("versionCode=(\\d+)?", app_info_dump)
+    version_name = _regex_extract("versionName=([\\d.]+)?", app_info_dump)
+    min_sdk_version = _regex_extract("minSdk=(\\d+)?", app_info_dump)
+    target_sdk_version = _regex_extract("targetSdk=(\\d+)?", app_info_dump)
+    max_sdk_version = _regex_extract("maxSdk=(\\d+)?", app_info_dump)
+    installer_package_name = _regex_extract("installerPackageName=(\\S+)?", app_info_dump)
     is_debuggable = re.search(
         _REGEX_DEBUGGABLE,
         app_info_dump,
         re.IGNORECASE) is not None
 
-    msg = ''
-    msg += 'App name: %s\n' % app_name
-    msg += 'Version: %s\n' % version_name
-    msg += 'Version Code: %s\n' % version_code
-    msg += 'Is debuggable: %r\n' % is_debuggable
-    msg += 'Min SDK version: %s\n' % min_sdk_version
-    msg += 'Target SDK version: %s\n' % target_sdk_version
+    msg = ""
+    msg += "App name: %s\n" % app_name
+    msg += "Version: %s\n" % version_name
+    msg += "Version Code: %s\n" % version_code
+    msg += "Is debuggable: %r\n" % is_debuggable
+    msg += "Min SDK version: %s\n" % min_sdk_version
+    msg += "Target SDK version: %s\n" % target_sdk_version
     if max_sdk_version is not None:
-        msg += 'Max SDK version: %s\n' % max_sdk_version
+        msg += "Max SDK version: %s\n" % max_sdk_version
 
     if get_device_android_api_version() >= 23:
         msg += _get_permissions_info_above_api_23(app_info_dump)
     else:
         msg += _get_permissions_info_below_api_23(app_info_dump)
 
-    msg += 'Installer package name: %s\n' % installer_package_name
+    msg += "Installer package name: %s\n" % installer_package_name
     print_message(msg)
 
 
 # API < 23 have no runtime permissions
 def _get_permissions_info_below_api_23(app_info_dump):
-    install_time_permissions_regex = re.search(r'grantedPermissions:(.*)', app_info_dump,
+    install_time_permissions_regex = re.search(r"grantedPermissions:(.*)", app_info_dump,
                                                re.IGNORECASE | re.DOTALL)
     if install_time_permissions_regex is None:
         install_time_permissions_string = []
     else:
-        install_time_permissions_string = install_time_permissions_regex.group(1).split('\n')
+        install_time_permissions_string = install_time_permissions_regex.group(1).split("\n")
 
     install_time_granted_permissions = []
     install_time_permissions_string = filter(None, install_time_permissions_string)
     for permission_string in install_time_permissions_string:
         install_time_granted_permissions.append(permission_string)
 
-    permissions_info_msg = ''
+    permissions_info_msg = ""
     if install_time_granted_permissions:
-        permissions_info_msg += 'Install time granted permissions:\n%s\n\n' % '\n'.join(
+        permissions_info_msg += "Install time granted permissions:\n%s\n\n" % "\n".join(
             install_time_granted_permissions)
     return permissions_info_msg
 
@@ -1525,8 +1525,8 @@ def _get_permissions_info_above_api_23(app_info_dump: str):
             continue
         if permission in install_time_denied_permissions:
             continue
-        granted_pattern = '%s: granted=true' % permission
-        denied_pattern = '%s: granted=false' % permission
+        granted_pattern = "%s: granted=true" % permission
+        denied_pattern = "%s: granted=false" % permission
         if app_info_dump.find(granted_pattern) >= 0:
             runtime_granted_permissions.append(permission)
         elif app_info_dump.find(denied_pattern) >= 0:
@@ -1537,22 +1537,22 @@ def _get_permissions_info_above_api_23(app_info_dump: str):
         and p not in install_time_granted_permissions
         and p not in install_time_denied_permissions, requested_permissions))
 
-    permissions_info_msg = ''
-    permissions_info_msg += '\nPermissions:\n\n'
+    permissions_info_msg = ""
+    permissions_info_msg += "\nPermissions:\n\n"
     if install_time_granted_permissions:
-        permissions_info_msg += 'Install time granted permissions:\n%s\n\n' % '\n'.join(
+        permissions_info_msg += "Install time granted permissions:\n%s\n\n" % "\n".join(
             install_time_granted_permissions)
     if install_time_denied_permissions:
-        permissions_info_msg += 'Install time denied permissions:\n%s\n\n' % '\n'.join(
+        permissions_info_msg += "Install time denied permissions:\n%s\n\n" % "\n".join(
             install_time_denied_permissions)
     if runtime_granted_permissions:
-        permissions_info_msg += 'Runtime granted permissions:\n%s\n\n' % '\n'.join(
+        permissions_info_msg += "Runtime granted permissions:\n%s\n\n" % "\n".join(
             runtime_granted_permissions)
     if runtime_denied_permissions:
-        permissions_info_msg += 'Runtime denied permissions:\n%s\n\n' % '\n'.join(
+        permissions_info_msg += "Runtime denied permissions:\n%s\n\n" % "\n".join(
             runtime_denied_permissions)
     if runtime_not_granted_permissions:
-        permissions_info_msg += 'Runtime Permissions not granted and not yet requested:\n%s\n\n' % '\n'.join(
+        permissions_info_msg += "Runtime Permissions not granted and not yet requested:\n%s\n\n" % "\n".join(
             runtime_not_granted_permissions)
     return permissions_info_msg
 
@@ -1563,54 +1563,54 @@ def _get_install_time_granted_denied_permissions(
     # This will most likely remain empty
     denied_permissions = []
     for permission_string in install_time_permissions_string:
-        if permission_string.find('granted=true') >= 0:
-            permission, _ = permission_string.split(':')
+        if permission_string.find("granted=true") >= 0:
+            permission, _ = permission_string.split(":")
             granted_permissions.append(permission)
-        elif permission_string.find('granted=false') >= 0:
-            permission, _ = permission_string.split(':')
+        elif permission_string.find("granted=false") >= 0:
+            permission, _ = permission_string.split(":")
             denied_permissions.append(permission)
     return denied_permissions, granted_permissions
 
 
 def _extract_requested_permissions_above_api_23(app_info_dump: str) -> typing.Optional[typing.List[str]]:
     requested_permissions_regex = \
-        re.search(r'requested permissions:(.*?)install permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+        re.search(r"requested permissions:(.*?)install permissions:", app_info_dump, re.IGNORECASE | re.DOTALL)
     # Fallback
     if requested_permissions_regex is None:
         requested_permissions_regex = re.search(
-            r'requested permissions:(.*?)runtime permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+            r"requested permissions:(.*?)runtime permissions:", app_info_dump, re.IGNORECASE | re.DOTALL)
 
     if requested_permissions_regex is None:
         # No permissions requested by the app
         return []
     else:
-        requested_permissions = requested_permissions_regex.group(1).split('\n')
+        requested_permissions = requested_permissions_regex.group(1).split("\n")
         # Remove empty entries
         return list(filter(None, requested_permissions))
 
 
 def _extract_install_time_permissions_above_api_23(app_info_dump: str) -> typing.Optional[typing.List[str]]:
     install_time_permissions_regex = re.search(
-        r'install permissions:(.*?)runtime permissions:', app_info_dump, re.IGNORECASE | re.DOTALL)
+        r"install permissions:(.*?)runtime permissions:", app_info_dump, re.IGNORECASE | re.DOTALL)
     if install_time_permissions_regex is None:
         return []
     else:
-        install_time_permissions_string = install_time_permissions_regex.group(1).split('\n')
+        install_time_permissions_string = install_time_permissions_regex.group(1).split("\n")
         # Remove empty entries
         return list(filter(None, install_time_permissions_string))
 
 
 def _get_apk_path(app_name):
-    adb_shell_cmd = 'pm path %s' % app_name
+    adb_shell_cmd = "pm path %s" % app_name
     result = execute_adb_shell_command(adb_shell_cmd)
-    apk_path = result.split(':', 2)[1]
+    apk_path = result.split(":", 2)[1]
     return apk_path
 
 
 @ensure_package_exists
 def print_app_path(app_name):
     apk_path = _get_apk_path(app_name)
-    print_verbose('Path for %s is %s' % (app_name, apk_path))
+    print_verbose("Path for %s is %s" % (app_name, apk_path))
     print_message(apk_path)
 
 
@@ -1618,27 +1618,27 @@ def print_app_path(app_name):
 def print_app_signature(app_name):
     apk_path = _get_apk_path(app_name)
     # Copy apk to a temp file on the disk
-    with tempfile.NamedTemporaryFile(prefix=app_name, suffix='.apk') as tmp_apk_file:
+    with tempfile.NamedTemporaryFile(prefix=app_name, suffix=".apk") as tmp_apk_file:
         tmp_apk_file_name = tmp_apk_file.name
-        adb_cmd = 'pull %s %s' % (apk_path, tmp_apk_file_name)
+        adb_cmd = "pull %s %s" % (apk_path, tmp_apk_file_name)
         return_code, _, stderr = execute_adb_command2(adb_cmd)
         if return_code != 0:
-            print_error_and_exit('Failed to pull file %s, stderr: %s' % (apk_path, stderr))
+            print_error_and_exit("Failed to pull file %s, stderr: %s" % (apk_path, stderr))
             return
 
         dir_of_this_script = os.path.split(__file__)[0]
-        apk_signer_jar_path = os.path.join(dir_of_this_script, 'apksigner.jar')
+        apk_signer_jar_path = os.path.join(dir_of_this_script, "apksigner.jar")
         if not os.path.exists(apk_signer_jar_path):
-            print_error_and_exit('apksigner.jar is missing, your adb-enhanced installation is corrupted')
+            print_error_and_exit("apksigner.jar is missing, your adb-enhanced installation is corrupted")
 
-        print_signature_cmd = 'java -jar %s verify --print-certs %s' % (apk_signer_jar_path, tmp_apk_file_name)
-        print_verbose('Executing command %s' % print_signature_cmd)
+        print_signature_cmd = "java -jar %s verify --print-certs %s" % (apk_signer_jar_path, tmp_apk_file_name)
+        print_verbose("Executing command %s" % print_signature_cmd)
         with subprocess.Popen(print_signature_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
             for line in ps1.stdout:
-                line = line.decode('utf-8').strip()
+                line = line.decode("utf-8").strip()
                 print_message(line)
             for line in ps1.stderr:
-                line = line.decode('utf-8').strip()
+                line = line.decode("utf-8").strip()
                 print_error(line)
 
 
@@ -1646,20 +1646,20 @@ def print_app_signature(app_name):
 @ensure_package_exists
 def perform_app_backup(app_name, backup_tar_file):
     # TODO: Add a check to ensure that the screen is unlocked
-    password = '00'
-    print_verbose('Performing backup to backup.ab file')
+    password = "00"
+    print_verbose("Performing backup to backup.ab file")
     print_message(
-        'you might have to confirm the backup manually on your device\'s screen, enter \"%s\" as password...' % password)
+        'you might have to confirm the backup manually on your device\'s screen, enter "%s" as password...' % password)
 
     def backup_func():
         # Create backup.ab
-        adb_backup_cmd = 'backup -noapk %s' % app_name
+        adb_backup_cmd = "backup -noapk %s" % app_name
         execute_adb_command2(adb_backup_cmd)
 
     backup_thread = threading.Thread(target=backup_func)
     backup_thread.start()
-    while _get_top_activity_data()[1].find('com.android.backupconfirm') == -1:
-        print_verbose('Waiting for the backup activity to start')
+    while _get_top_activity_data()[1].find("com.android.backupconfirm") == -1:
+        print_verbose("Waiting for the backup activity to start")
         time.sleep(1)
     time.sleep(1)
 
@@ -1673,43 +1673,43 @@ def perform_app_backup(app_name, backup_tar_file):
 
     backup_thread.join(timeout=10)
     if backup_thread.is_alive():
-        print_error('Backup failed in first attempt, trying again...')
+        print_error("Backup failed in first attempt, trying again...")
         # _perform_tap(window_size_x - 200, window_size_y - 100)
         backup_thread.join(timeout=10)
         if backup_thread.is_alive():
-            print_error_and_exit('Backup failed')
+            print_error_and_exit("Backup failed")
 
     # Convert ".ab" to ".tar" using Android Backup Extractor (ABE)
     try:
         dir_of_this_script = os.path.split(__file__)[0]
-        abe_jar_path = os.path.join(dir_of_this_script, 'abe.jar')
+        abe_jar_path = os.path.join(dir_of_this_script, "abe.jar")
         if not os.path.exists(abe_jar_path):
-            print_error_and_exit('Abe.jar is missing, your adb-enhanced installation is corrupted')
-        abe_cmd = 'java -jar %s unpack backup.ab %s %s' % (abe_jar_path, backup_tar_file, password)
-        print_verbose('Executing command %s' % abe_cmd)
+            print_error_and_exit("Abe.jar is missing, your adb-enhanced installation is corrupted")
+        abe_cmd = "java -jar %s unpack backup.ab %s %s" % (abe_jar_path, backup_tar_file, password)
+        print_verbose("Executing command %s" % abe_cmd)
         with subprocess.Popen(abe_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
             ps.communicate()
             if ps.returncode == 0:
-                print_message('Successfully backed up data of app %s to %s' % (app_name, backup_tar_file))
+                print_message("Successfully backed up data of app %s to %s" % (app_name, backup_tar_file))
             else:
-                print_error('Failed to convert backup.ab to tar file. Please ensure that it is not password protected')
+                print_error("Failed to convert backup.ab to tar file. Please ensure that it is not password protected")
     finally:
-        print_verbose('Deleting backup.ab')
-        with subprocess.Popen('rm backup.ab', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps2:
+        print_verbose("Deleting backup.ab")
+        with subprocess.Popen("rm backup.ab", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps2:
             ps2.communicate()
 
 
 def perform_install(file_path):
-    print_verbose('Installing %s' % file_path)
+    print_verbose("Installing %s" % file_path)
     # -r: replace existing application
-    return_code, _, stderr = execute_adb_command2('install -r %s' % file_path)
+    return_code, _, stderr = execute_adb_command2("install -r %s" % file_path)
     if return_code != 0:
-        print_error('Failed to install %s, stderr: %s' % (file_path, stderr))
+        print_error("Failed to install %s, stderr: %s" % (file_path, stderr))
 
 
 @ensure_package_exists
 def perform_uninstall(app_name, first_user):
-    print_verbose('Uninstalling %s' % app_name)
+    print_verbose("Uninstalling %s" % app_name)
     cmd = ""
     if first_user:
         # For system apps, that cannot uninstalled,
@@ -1717,27 +1717,27 @@ def perform_uninstall(app_name, first_user):
         # since that would fail.
         # https://www.xda-developers.com/uninstall-carrier-oem-bloatware-without-root-access/
         cmd = "--user 0"
-    return_code, _, stderr = execute_adb_shell_command2('pm uninstall %s %s' % (cmd, app_name))
+    return_code, _, stderr = execute_adb_shell_command2("pm uninstall %s %s" % (cmd, app_name))
     if return_code == 0:
         return
 
     if not cmd:
         print_message("Uninstall failed, trying to uninstall for user 0...")
         cmd = "--user 0"
-        return_code, _, stderr = execute_adb_shell_command2('pm uninstall %s %s' % (cmd, app_name))
+        return_code, _, stderr = execute_adb_shell_command2("pm uninstall %s %s" % (cmd, app_name))
 
     if return_code != 0:
-        print_error('Failed to uninstall %s, stderr: %s' % (app_name, stderr))
+        print_error("Failed to uninstall %s, stderr: %s" % (app_name, stderr))
 
 
 def _get_window_size():
-    adb_cmd = 'shell wm size'
+    adb_cmd = "shell wm size"
     _, result, _ = execute_adb_command2(adb_cmd)
 
     if result is None:
         return -1, -1
 
-    regex_data = re.search(r'size: ([0-9]+)x([0-9]+)', result)
+    regex_data = re.search(r"size: ([0-9]+)x([0-9]+)", result)
     if regex_data is None:
         return -1, -1
 
@@ -1745,19 +1745,19 @@ def _get_window_size():
 
 
 def _perform_tap(x, y):
-    adb_shell_cmd = 'input tap %d %d' % (x, y)
+    adb_shell_cmd = "input tap %d %d" % (x, y)
     execute_adb_shell_command2(adb_shell_cmd)
 
 
 # Deprecated
 def execute_adb_shell_settings_command(settings_cmd, device_serial=None):
     _error_if_min_version_less_than(19, device_serial=device_serial)
-    return execute_adb_shell_command('settings %s' % settings_cmd, device_serial=device_serial)
+    return execute_adb_shell_command("settings %s" % settings_cmd, device_serial=device_serial)
 
 
 def execute_adb_shell_settings_command2(settings_cmd, device_serial=None):
     _error_if_min_version_less_than(19)
-    return execute_adb_shell_command2('settings %s' % settings_cmd, device_serial)
+    return execute_adb_shell_command2("settings %s" % settings_cmd, device_serial)
 
 
 def execute_adb_shell_settings_command_and_poke_activity_service(settings_cmd):
@@ -1779,41 +1779,41 @@ def _poke_activity_service():
 def _error_if_min_version_less_than(min_acceptable_version, device_serial=None):
     api_version = get_device_android_api_version(device_serial)
     if api_version < min_acceptable_version:
-        cmd = ' '.join(sys.argv[1:])
+        cmd = " ".join(sys.argv[1:])
         print_error_and_exit(
-            '\"%s\" can only be executed on API %d and above, your device version is %d' %
+            '"%s" can only be executed on API %d and above, your device version is %d' %
             (cmd, min_acceptable_version, api_version))
 
 
 def _is_emulator():
-    qemu = get_adb_shell_property('ro.kernel.qemu')
-    return qemu is not None and qemu.strip() == '1'
+    qemu = get_adb_shell_property("ro.kernel.qemu")
+    return qemu is not None and qemu.strip() == "1"
 
 
 def enable_wireless_debug():
     code, result, stderr = execute_adb_shell_command2("ip address")
     if code != 0:
-        print_error_and_exit('Failed to switch device to wireless debug mode, stderr: '
-                             '%s' % stderr)
+        print_error_and_exit("Failed to switch device to wireless debug mode, stderr: "
+                             "%s" % stderr)
 
     # Check, that phone connected to wlan
     matching = re.findall(r"inet ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*wlan0$",
                           result, re.MULTILINE)
     if matching is None or not matching:
-        print_error_and_exit('Failed to switch device to wireless debug mode')
+        print_error_and_exit("Failed to switch device to wireless debug mode")
 
     ip = matching[0]
 
     code, _, stderr = execute_adb_command2("tcpip 5555")
     if code != 0:
-        print_error_and_exit('Failed to switch device %s to wireless debug mode, '
-                             'stderr: %s' % (ip, stderr))
+        print_error_and_exit("Failed to switch device %s to wireless debug mode, "
+                             "stderr: %s" % (ip, stderr))
 
     code, _, stderr = execute_adb_command2("connect %s" % ip)
     if code != 0:
-        print_error_and_exit('Cannot enable wireless debugging. Error: %s' % stderr)
+        print_error_and_exit("Cannot enable wireless debugging. Error: %s" % stderr)
         return False
-    print_message('Connected via IP now you can disconnect the cable\nIP: %s' % ip)
+    print_message("Connected via IP now you can disconnect the cable\nIP: %s" % ip)
     return True
 
 
@@ -1821,32 +1821,32 @@ def disable_wireless_debug():
     device_serials = _get_device_serials()
 
     if not device_serials:
-        print_error_and_exit('No connected device found')
+        print_error_and_exit("No connected device found")
         return
 
     ip_list = []
     for device_serial in device_serials:
         ips = re.findall(r"([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}:[\d]{1,5})", device_serial, 0)
         if not ips:
-            print_verbose('Not a IP connect device, serial: %s' % device_serial)
+            print_verbose("Not a IP connect device, serial: %s" % device_serial)
             continue
         if len(ips) > 1:
-            print_error('Malformed device IP: %s' % device_serial)
-        print_verbose('Found an IP connected ADB session: %s' % ips[0])
+            print_error("Malformed device IP: %s" % device_serial)
+        print_verbose("Found an IP connected ADB session: %s" % ips[0])
         ip_list.append(ips[0])
 
     result = True
 
     for ip in ip_list:
-        code, _, stderr = execute_adb_command2('disconnect %s' % ip)
+        code, _, stderr = execute_adb_command2("disconnect %s" % ip)
         if code != 0:
-            print_error('Failed to disconnect %s: %s' % (ip, stderr))
+            print_error("Failed to disconnect %s: %s" % (ip, stderr))
             result = False
         else:
-            print_message('Disconnected %s' % ip)
+            print_message("Disconnected %s" % ip)
 
     if not result:
-        print_error_and_exit('')
+        print_error_and_exit("")
 
 
 def switch_screen(switch_type):
@@ -1874,7 +1874,7 @@ def switch_screen(switch_type):
 
 def get_dark_mode() -> str:
     _error_if_min_version_less_than(_MIN_API_FOR_DARK_MODE)
-    return_code, stdout, stderr = execute_adb_shell_settings_command2('get secure ui_night_mode')
+    return_code, stdout, stderr = execute_adb_shell_settings_command2("get secure ui_night_mode")
     if return_code != 0:
         print_error("Failed to get current UI mode: %s" % stderr)
         return _USER_PRINT_VALUE_UNKNOWN
@@ -1902,12 +1902,12 @@ def set_dark_mode(force: bool) -> None:
 
     if force:
         # Ref: https://twitter.com/petedoyle_/status/1502008461080490006
-        execute_adb_shell_command2('cmd uimode night yes')
+        execute_adb_shell_command2("cmd uimode night yes")
         # There are reports of the following command, it didn't work for me
         # even on a rooted device when ran as a super-user
         # execute_adb_shell_command2('setprop persist.hwui.force_dark true')
     else:
-        execute_adb_shell_command2('cmd uimode night no')
+        execute_adb_shell_command2("cmd uimode night no")
 
 
 def print_notifications():
@@ -1938,35 +1938,35 @@ def print_notifications():
                 i + 1 >= len(notification_records)
                 or output_for_this_notification.find(action_strings[0])
                 > output_for_this_notification.find(notification_records[i + 1])):
-            for actions in action_strings[0].split('\n'):
+            for actions in action_strings[0].split("\n"):
                 notification_actions += re.findall(r"\".*?\"", actions)
 
-        print_message('Package: %s' % notification_package)
+        print_message("Package: %s" % notification_package)
         if notification_title:
-            print_message('Title: %s' % notification_title)
-        if notification_text and notification_text != 'null':
-            print_message('Text: %s' % notification_text)
+            print_message("Title: %s" % notification_title)
+        if notification_text and notification_text != "null":
+            print_message("Text: %s" % notification_text)
         for action in notification_actions:
-            print_message('Action: %s' % action)
-        print_message('')
+            print_message("Action: %s" % action)
+        print_message("")
 
 
 # Alarm Enum
 class AlarmEnum(Enum):
-    TOP = 't'
-    PENDING = 'p'
-    HISTORY = 'h'
-    ALL = 'a'
+    TOP = "t"
+    PENDING = "p"
+    HISTORY = "h"
+    ALL = "a"
 
 
 def print_history_alarms(output_dump_alarm, padding):
     print("App Alarm history")
 
     pattern_pending_alarm = \
-        re.compile(r'(?<=App Alarm history:)'
-                   r'.*?(?=Past-due non-wakeup alarms)',
+        re.compile(r"(?<=App Alarm history:)"
+                   r".*?(?=Past-due non-wakeup alarms)",
                    re.DOTALL)
-    alarm_to_parse = re.sub(r' +', ' ',
+    alarm_to_parse = re.sub(r" +", " ",
                             re.search(pattern_pending_alarm, output_dump_alarm).
                             group(0)).split("\n")[1:-1]
 
@@ -1985,10 +1985,10 @@ def print_history_alarms(output_dump_alarm, padding):
 
 def print_top_alarms(output_dump_alarm, padding):
     print("Top Alarms:")
-    pattern_top_alarm = re.compile(r'(?<=Top Alarms:\n).*?(?=Alarm Stats:)',
+    pattern_top_alarm = re.compile(r"(?<=Top Alarms:\n).*?(?=Alarm Stats:)",
                                    re.DOTALL)
     alarm_to_parse = re.sub(
-        r' +', ' ',
+        r" +", " ",
         re.search(pattern_top_alarm, output_dump_alarm).group(0)).split("\n")
     temp_dict = {}
     for i, alarm_i in enumerate(alarm_to_parse):
@@ -1999,7 +1999,7 @@ def print_top_alarms(output_dump_alarm, padding):
     for key, value in temp_dict.items():
         # key example: +2m19s468ms running, 0 wakeups, 708 alarms: 1000:android
         # value example: *alarm*:com.android.server.action.NETWORK_STATS_POLL
-        temp = key.split(',')
+        temp = key.split(",")
         running_time = temp[0].split(" ")[0]
         nb_woke_up = temp[1].strip().split(" ")[0]
         nb_alarms = temp[2].strip().split(" ")[0]
@@ -2018,18 +2018,18 @@ def print_pending_alarms(output_dump_alarm, padding):
     print("Pending Alarms:")
     pattern_pending_alarm = \
         re.compile(
-            r'(?<=Pending alarm batches:)'
-            r'.*?(?=(Pending user blocked background alarms|Past-due non-wakeup alarms))',
+            r"(?<=Pending alarm batches:)"
+            r".*?(?=(Pending user blocked background alarms|Past-due non-wakeup alarms))",
             re.DOTALL)
     alarm_to_parse = re.sub(
-        r' +', ' ',
+        r" +", " ",
         re.search(pattern_pending_alarm, output_dump_alarm).group(0)).split("\n")[1:-1]
     for line in alarm_to_parse:
         line = line.strip()
         if not line.startswith("Batch"):
             continue
 
-        pattern_batch_info = re.compile(r'(?<=Batch\{).*?(?=\}:)',
+        pattern_batch_info = re.compile(r"(?<=Batch\{).*?(?=\}:)",
                                         re.DOTALL)
         info = re.search(pattern_batch_info, line).group(0).split(" ")
         print("%sID: %s" % (padding, info[0]))
@@ -2041,7 +2041,7 @@ def print_pending_alarms(output_dump_alarm, padding):
             print_verbose("%sflag: %s" % (padding * 2, info[4].split("=")[1]))
 
         if line.startswith(("RTC", "RTC_WAKEUP", "ELAPSED", "ELAPSED_WAKEUP")):
-            pattern_between_brackets = re.compile(r'(?<=\{).*?(?=\})',
+            pattern_between_brackets = re.compile(r"(?<=\{).*?(?=\})",
                                                   re.DOTALL)
             info = re.search(pattern_between_brackets, line).group(0).split(" ")
             print("%sAlarm #%s:" % (padding * 2, line.split("#")[1].split(":")[0]))
@@ -2091,25 +2091,25 @@ def alarm_manager(param):
 def toggle_location(turn_on):
     _error_if_min_version_less_than(_MIN_API_FOR_LOCATION)
     if turn_on:
-        cmd = 'put secure location_mode 3'
+        cmd = "put secure location_mode 3"
     else:
-        cmd = 'put secure location_mode 0'
+        cmd = "put secure location_mode 0"
     execute_adb_shell_settings_command(cmd)
 
 
 @ensure_package_exists
 def set_debug_app(app_name, wait_for_debugger, persistent):
-    cmd = 'am set-debug-app'
+    cmd = "am set-debug-app"
     if wait_for_debugger:
-        cmd += ' -w'
+        cmd += " -w"
     if persistent:
-        cmd += ' --persistent'
-    cmd += ' %s' % app_name
+        cmd += " --persistent"
+    cmd += " %s" % app_name
     execute_adb_shell_command2(cmd)
 
 
 def clear_debug_app():
-    cmd = 'am clear-debug-app'
+    cmd = "am clear-debug-app"
     execute_adb_shell_command2(cmd)
 
 
@@ -2117,10 +2117,10 @@ def clear_debug_app():
 # https://github.com/ashishb/adb-enhanced/runs/1799363523?check_suite_focus=true
 def is_permission_group_unavailable_after_api_29(permission_group):
     return permission_group in [
-        'android.permission-group.CONTACTS',
-        'android.permission-group.MICROPHONE',
-        'android.permission-group.LOCATION',
-        'android.permission-group.SMS',
+        "android.permission-group.CONTACTS",
+        "android.permission-group.MICROPHONE",
+        "android.permission-group.LOCATION",
+        "android.permission-group.SMS",
     ]
 
 
