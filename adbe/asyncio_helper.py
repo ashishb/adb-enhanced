@@ -1,8 +1,6 @@
 import asyncio
 import concurrent.futures
 
-# This code has to be in a separate file since it is conditionally loaded for Python 3.5 and later.
-
 
 # Executes method method_to_call for each argument in params_list and returns the result_list
 def execute_in_parallel(method_to_call, params_list):
@@ -21,8 +19,7 @@ def execute_in_parallel(method_to_call, params_list):
                     param) for param in params_list2
             ]
 
-            for result in await asyncio.gather(*futures):
-                result_list.append(result)
+            result_list.extend(await asyncio.gather(*futures))
 
     loop.run_until_complete(_list_debug_apps_async(params_list))
     return result_list
