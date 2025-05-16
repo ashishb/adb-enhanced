@@ -23,13 +23,13 @@ def get_adb_prefix() -> str:
     return _adb_prefix
 
 
-def set_adb_prefix(adb_prefix) -> None:
+def set_adb_prefix(adb_prefix: str) -> None:
     # pylint: disable=global-statement
     global _adb_prefix
     _adb_prefix = adb_prefix
 
 
-def get_adb_shell_property(property_name, device_serial=None) -> str | None:
+def get_adb_shell_property(property_name: str, device_serial=None) -> str | None:
     _, stdout, _ = execute_adb_shell_command2(f"getprop {property_name}", device_serial=device_serial)
     return stdout
 

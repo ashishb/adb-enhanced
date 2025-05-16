@@ -121,7 +121,7 @@ def main() -> None:
         _fail_with_python2_warning()
 
     args: dict[str, typing.Any] = docopt.docopt(USAGE_STRING, version=_get_version())
-    set_verbose(args["--verbose"])
+    set_verbose(enabled=args["--verbose"])
 
     _validate_options(args)
     options = _get_generic_options_from_args(args)
@@ -148,8 +148,8 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
     app_name = args["<app_name>"]
     return {
         # Airplane mode
-        ("airplane", "on"): lambda: adb_enhanced.handle_airplane(True),
-        ("airplane", "off"): lambda: adb_enhanced.handle_airplane(False),
+        ("airplane", "on"): lambda: adb_enhanced.handle_airplane(turn_on=True),
+        ("airplane", "off"): lambda: adb_enhanced.handle_airplane(turn_on=False),
 
         # Alarm
         ("alarm", "all"): lambda: adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.ALL),
@@ -158,8 +158,8 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         ("alarm", "top"): lambda: adb_enhanced.alarm_manager(adb_enhanced.AlarmEnum.TOP),
 
         # Animations
-        ("animations", "on"): lambda: adb_enhanced.toggle_animations(True),
-        ("animations", "off"): lambda: adb_enhanced.toggle_animations(False),
+        ("animations", "on"): lambda: adb_enhanced.toggle_animations(turn_on=True),
+        ("animations", "off"): lambda: adb_enhanced.toggle_animations(turn_on=False),
 
         # App-related misc
         ("app", "backup"): lambda: _perform_backup(app_name, args["<backup_tar_file_path>"]),
@@ -182,13 +182,13 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         # Battery-related
         ("battery", "level"): lambda: adb_enhanced.handle_battery_level(int(args["<percentage>"])),
         ("battery", "reset"): adb_enhanced.handle_battery_reset,
-        ("battery", "saver", "on"): lambda: adb_enhanced.handle_battery_saver(True),
-        ("battery", "saver", "off"): lambda: adb_enhanced.handle_battery_saver(False),
+        ("battery", "saver", "on"): lambda: adb_enhanced.handle_battery_saver(turn_on=True),
+        ("battery", "saver", "off"): lambda: adb_enhanced.handle_battery_saver(turn_on=False),
         ("cat",): lambda: adb_enhanced.cat_file(args["<file_path>"]),
 
         # Dark mode
-        ("dark", "mode", "on"): lambda: adb_enhanced.set_dark_mode(True),
-        ("dark", "mode", "off"): lambda: adb_enhanced.set_dark_mode(False),
+        ("dark", "mode", "on"): lambda: adb_enhanced.set_dark_mode(force=True),
+        ("dark", "mode", "off"): lambda: adb_enhanced.set_dark_mode(force=False),
 
         # List devices
         ("devices",): adb_enhanced.handle_list_devices,
@@ -206,18 +206,18 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         ("clear-data",): lambda: adb_enhanced.clear_disk_data(app_name),
 
         # Mobile Data
-        ("mobile-data", "saver", "on"): lambda: adb_enhanced.handle_mobile_data_saver(True),
-        ("mobile-data", "saver", "off"): lambda: adb_enhanced.handle_mobile_data_saver(False),
-        ("mobile-data", "on"): lambda: adb_enhanced.handle_mobile_data(True),
-        ("mobile-data", "off"): lambda: adb_enhanced.handle_mobile_data(False),
+        ("mobile-data", "saver", "on"): lambda: adb_enhanced.handle_mobile_data_saver(turn_on=True),
+        ("mobile-data", "saver", "off"): lambda: adb_enhanced.handle_mobile_data_saver(turn_on=False),
+        ("mobile-data", "on"): lambda: adb_enhanced.handle_mobile_data(turn_on=True),
+        ("mobile-data", "off"): lambda: adb_enhanced.handle_mobile_data(turn_on=False),
 
         # Layout
-        ("layout", "on"): lambda: adb_enhanced.handle_layout(True),
-        ("layout", "off"): lambda: adb_enhanced.handle_layout(False),
+        ("layout", "on"): lambda: adb_enhanced.handle_layout(turn_on=True),
+        ("layout", "off"): lambda: adb_enhanced.handle_layout(turn_on=False),
 
         # Location
-        ("location", "on"): lambda: adb_enhanced.toggle_location(True),
-        ("location", "off"): lambda: adb_enhanced.toggle_location(False),
+        ("location", "on"): lambda: adb_enhanced.toggle_location(turn_on=True),
+        ("location", "off"): lambda: adb_enhanced.toggle_location(turn_on=False),
         ("notifications", "list"): adb_enhanced.print_notifications,
 
         # Overdraw
@@ -229,16 +229,16 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         ("permissions", "grant"): lambda: _grant_revoke_permissions(app_name, args),
         ("permissions", "revoke"): lambda: _grant_revoke_permissions(app_name, args),
         ("permission-groups", "list", "all"): adb_enhanced.list_permission_groups,
-        ("permissions", "list", "all"): lambda: adb_enhanced.list_permissions(False),
-        ("permissions", "list", "dangerous"): lambda: adb_enhanced.list_permissions(True),
+        ("permissions", "list", "all"): lambda: adb_enhanced.list_permissions(dangerous_only_permissions=False),
+        ("permissions", "list", "dangerous"): lambda: adb_enhanced.list_permissions(dangerous_only_permissions=True),
 
         # Pull files
         ("pull",): lambda: adb_enhanced.pull_file(
-            args["<file_path_on_android>"], args["<file_path_on_machine>"], args["-a"]),
+            args["<file_path_on_android>"], args["<file_path_on_machine>"], copy_ancillary=args["-a"]),
         ("push",): lambda: adb_enhanced.push_file(
             args["<file_path_on_machine>"], args["<file_path_on_android>"]),
-        ("restrict-background", "true"): lambda: adb_enhanced.apply_or_remove_background_restriction(app_name, True),
-        ("restrict-background", "false"): lambda: adb_enhanced.apply_or_remove_background_restriction(app_name, False),
+        ("restrict-background", "true"): lambda: adb_enhanced.apply_or_remove_background_restriction(app_name, set_restriction=True),
+        ("restrict-background", "false"): lambda: adb_enhanced.apply_or_remove_background_restriction(app_name, set_restriction=False),
 
         # Rotate
         ("rotate", "portrait"): lambda: adb_enhanced.handle_rotate("portrait"),
@@ -247,29 +247,30 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         ("rotate", "right"): lambda: adb_enhanced.handle_rotate("right"),
 
         # RTL settings are not working as expected
-        ("rtl", "on"): lambda: adb_enhanced.force_rtl(True),
-        ("rtl", "off"): lambda: adb_enhanced.force_rtl(False),
+        ("rtl", "on"): lambda: adb_enhanced.force_rtl(turn_on=True),
+        ("rtl", "off"): lambda: adb_enhanced.force_rtl(turn_on=False),
 
         # Files related
         ("mv",): lambda: adb_enhanced.move_file(args["<src_path>"], args["<dest_path>"], args["-f"]),
         ("rm",): lambda: adb_enhanced.delete_file(args["<file_path>"], args["-f"], args["-R"] or args["-r"]),
         # Always include hidden files, -a is left for backward-compatibility but is a no-op now.
-        ("ls",): lambda: adb_enhanced.list_directory(args["<file_path>"], args["-l"], args["-R"] or args["-r"], True),
-
+        ("ls",): lambda: adb_enhanced.list_directory(
+            args["<file_path>"], long_format=args["-l"], recursive=args["-R"] or args["-r"],
+            include_hidden_files=True),
         # Screen
         ("screen", "on"): lambda: adb_enhanced.switch_screen(adb_enhanced.SCREEN_ON),
         ("screen", "off"): lambda: adb_enhanced.switch_screen(adb_enhanced.SCREEN_OFF),
         ("screen", "toggle"): lambda: adb_enhanced.switch_screen(adb_enhanced.SCREEN_TOGGLE),
-        ("stay-awake-while-charging", "on"): lambda: adb_enhanced.stay_awake_while_charging(True),
-        ("stay-awake-while-charging", "off"): lambda: adb_enhanced.stay_awake_while_charging(False),
+        ("stay-awake-while-charging", "on"): lambda: adb_enhanced.stay_awake_while_charging(turn_on=True),
+        ("stay-awake-while-charging", "off"): lambda: adb_enhanced.stay_awake_while_charging(turn_on=False),
 
         # Standby bucket
         ("standby-bucket", "get"): lambda: adb_enhanced.get_standby_bucket(app_name),
         ("standby-bucket", "set"): lambda: adb_enhanced.set_standby_bucket(
             app_name, adb_enhanced.calculate_standby_mode(args)),
         # Doze
-        ("doze", "on"): lambda: adb_enhanced.handle_doze(True),
-        ("doze", "off"): lambda: adb_enhanced.handle_doze(False),
+        ("doze", "on"): lambda: adb_enhanced.handle_doze(turn_on=True),
+        ("doze", "off"): lambda: adb_enhanced.handle_doze(turn_on=False),
 
         # App start
         ("start",): lambda: adb_enhanced.launch_app(app_name),
@@ -277,8 +278,8 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         ("restart",): lambda: (adb_enhanced.force_stop(app_name), adb_enhanced.launch_app(app_name)),
 
         # Wi-Fi
-        ("wifi", "on"): lambda: adb_enhanced.set_wifi(True),
-        ("wifi", "off"): lambda: adb_enhanced.set_wifi(False),
+        ("wifi", "on"): lambda: adb_enhanced.set_wifi(turn_on=True),
+        ("wifi", "off"): lambda: adb_enhanced.set_wifi(turn_on=False),
 
         # Wireless debugging
         ("wireless", "debugging", "enable"): adb_enhanced.enable_wireless_debug,
@@ -287,10 +288,10 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         ("force-stop",): lambda: adb_enhanced.force_stop(app_name),
 
         # Configure UI
-        ("dont-keep-activities", "on"): lambda: adb_enhanced.handle_dont_keep_activities_in_background(True),
-        ("dont-keep-activities", "off"): lambda: adb_enhanced.handle_dont_keep_activities_in_background(False),
-        ("show-taps", "on"): lambda: adb_enhanced.toggle_show_taps(True),
-        ("show-taps", "off"): lambda: adb_enhanced.toggle_show_taps(False),
+        ("dont-keep-activities", "on"): lambda: adb_enhanced.handle_dont_keep_activities_in_background(turn_on=True),
+        ("dont-keep-activities", "off"): lambda: adb_enhanced.handle_dont_keep_activities_in_background(turn_on=False),
+        ("show-taps", "on"): lambda: adb_enhanced.toggle_show_taps(turn_on=True),
+        ("show-taps", "off"): lambda: adb_enhanced.toggle_show_taps(turn_on=False),
 
         # Fetching info from UI
         ("dump-ui",): lambda: adb_enhanced.dump_ui(args["<xml_file>"]),
