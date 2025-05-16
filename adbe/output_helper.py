@@ -3,7 +3,7 @@ import sys
 __VERBOSE_MODE: bool = False
 
 
-def set_verbose(enabled: bool) -> None:
+def set_verbose(*, enabled: bool) -> None:
     global __VERBOSE_MODE
     __VERBOSE_MODE = enabled
 

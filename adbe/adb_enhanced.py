@@ -206,20 +206,22 @@ def get_current_rotation_direction() -> int:
     print_verbose(f"Return value is {direction}")
     if not direction or direction == "null":
         return 0  # default direction is 0, vertical straight
+
     try:
         return int(direction)
     except ValueError as e:
         print_error(f'Failed to get direction, error: "{e}"')
+        return 0
 
 
-def handle_layout(value: bool) -> None:
-    cmd = "setprop debug.layout true" if value else "setprop debug.layout false"
+def handle_layout(*, turn_on: bool) -> None:
+    cmd = "setprop debug.layout true" if turn_on else "setprop debug.layout false"
     execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
 # Source: https://stackoverflow.com/questions/10506591/turning-airplane-mode-on-via-adb
-def handle_airplane(turn_on: bool):
-    state = (1 if turn_on else 0)
+def handle_airplane(*, turn_on: bool):
+    state = 1 if turn_on else 0
     return_code, su_path, _ = execute_adb_shell_command2("which su")
     if not return_code and su_path and len(su_path):
         cmd = f"put global airplane_mode_on {state:d}"
@@ -252,8 +254,8 @@ def handle_airplane(turn_on: bool):
         if return_code_wifi != 0 or return_code_data != 0 or return_code_airplane != 0:
             print_error('Failed to put "Global" settings states. Proceeding anyway ...')
 
-        handle_mobile_data(False)
-        set_wifi(False)
+        handle_mobile_data(turn_on=False)
+        set_wifi(turn_on=False)
     else:
         return_code_wifi, last_wifi_state, _ = execute_adb_shell_settings_command2("get global adbe_wifi")
         return_code_data, last_data_state, _ = execute_adb_shell_settings_command2("get global adbe_data")
@@ -266,14 +268,14 @@ def handle_airplane(turn_on: bool):
             print_error("Failed to change airplane mode.")
 
         if last_data_state:
-            handle_mobile_data(last_data_state == "1")
+            handle_mobile_data(turn_on=last_data_state == "1")
         else:
-            handle_mobile_data(True)
+            handle_mobile_data(turn_on=True)
 
         if last_wifi_state:
-            set_wifi(last_wifi_state == "1")
+            set_wifi(turn_on=last_wifi_state == "1")
         else:
-            set_wifi(True)
+            set_wifi(turn_on=True)
     return None
 
 
@@ -300,7 +302,7 @@ def get_battery_saver_state() -> str:
 # Source:
 # https://stackoverflow.com/questions/28234502/programmatically-enable-disable-battery-saver-mode
 @partial(print_state_change_decorator, title="Battery saver", get_state_func=get_battery_saver_state)
-def handle_battery_saver(turn_on: bool) -> None:
+def handle_battery_saver(*, turn_on: bool) -> None:
     _error_if_min_version_less_than(19)
     cmd = "put global low_power 1" if turn_on else "put global low_power 0"
 
@@ -340,7 +342,7 @@ def handle_battery_reset() -> None:
 
 
 # https://developer.android.com/training/monitoring-device-state/doze-standby.html
-def handle_doze(turn_on: bool) -> None:
+def handle_doze(*, turn_on: bool) -> None:
     _error_if_min_version_less_than(23)
 
     enable_idle_mode_cmd = "dumpsys deviceidle enable"
@@ -583,7 +585,7 @@ def get_wifi_state() -> str:
 
 
 @partial(print_state_change_decorator, title="Wi-Fi", get_state_func=get_wifi_state)
-def set_wifi(turn_on: bool) -> None:
+def set_wifi(*, turn_on: bool) -> None:
     cmd = "svc wifi enable" if turn_on else "svc wifi disable"
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
@@ -593,14 +595,14 @@ def set_wifi(turn_on: bool) -> None:
 # Source:
 # https://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later
 @partial(print_state_change_decorator, title="Mobile data", get_state_func=get_mobile_data_state)
-def handle_mobile_data(turn_on: bool) -> None:
+def handle_mobile_data(*, turn_on: bool) -> None:
     cmd = "svc data enable" if turn_on else "svc data disable"
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
         print_error_and_exit("Failed to change mobile data setting")
 
 
-def force_rtl(turn_on: bool) -> None:
+def force_rtl(*, turn_on: bool) -> None:
     _error_if_min_version_less_than(19)
     cmd = "put global debug.force_rtl 1" if turn_on else "put global debug.force_rtl 0"
     execute_adb_shell_settings_command_and_poke_activity_service(cmd)
@@ -689,7 +691,7 @@ def get_mobile_data_saver_state():
 
 # https://developer.android.com/training/basics/network-ops/data-saver.html
 @partial(print_state_change_decorator, title="Mobile data saver", get_state_func=get_mobile_data_saver_state)
-def handle_mobile_data_saver(turn_on: bool) -> None:
+def handle_mobile_data_saver(*, turn_on: bool) -> None:
     cmd = "cmd netpolicy set restrict-background true" if turn_on else "cmd netpolicy set restrict-background false"
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
@@ -719,7 +721,7 @@ def get_dont_keep_activities_in_background_state():
 @partial(print_state_change_decorator,
          title="Don't keep activities",
          get_state_func=get_dont_keep_activities_in_background_state)
-def handle_dont_keep_activities_in_background(turn_on: bool) -> None:
+def handle_dont_keep_activities_in_background(*, turn_on: bool) -> None:
     # Till Api 25, the value was True/False, above API 25, 1/0 work. Source: manual testing
     use_true_false_as_value = get_device_android_api_version() <= 25
 
@@ -735,7 +737,7 @@ def handle_dont_keep_activities_in_background(turn_on: bool) -> None:
     execute_adb_shell_command_and_poke_activity_service(cmd2)
 
 
-def toggle_animations(turn_on: bool) -> None:
+def toggle_animations(*, turn_on: bool) -> None:
     value = 1 if turn_on else 0
 
     # Source: https://github.com/jaredsburrows/android-gif-example/blob/824c493285a2a2cf22f085662431cf0a7aa204b8/.travis.yml#L34
@@ -764,7 +766,7 @@ def get_show_taps_state():
 
 
 @partial(print_state_change_decorator, title="Show user taps", get_state_func=get_show_taps_state)
-def toggle_show_taps(turn_on: bool) -> None:
+def toggle_show_taps(*, turn_on: bool) -> None:
     value = 1 if turn_on else 0
 
     # Source: https://stackoverflow.com/a/32621809/434196
@@ -790,7 +792,7 @@ def get_stay_awake_while_charging_state():
 @partial(print_state_change_decorator,
          title="Stay awake while charging",
          get_state_func=get_stay_awake_while_charging_state)
-def stay_awake_while_charging(turn_on: bool) -> None:
+def stay_awake_while_charging(*, turn_on: bool) -> None:
     # 1 for USB charging, 2 for AC charging, 4 for wireless charging. Add them together to get 7.
     value = 7 if turn_on else 0
     cmd1 = f"put global stay_on_while_plugged_in {value:d}"
@@ -833,7 +835,7 @@ def list_permission_groups() -> None:
         print_message(stdout)
 
 
-def list_permissions(dangerous_only_permissions: bool) -> None:
+def list_permissions(*, dangerous_only_permissions: bool) -> None:
     # -g is to group permissions by permission groups.
     cmd = "pm list permissions -g -d" if dangerous_only_permissions else "pm list permissions -g"
     return_code, stdout, stderr = execute_adb_shell_command2(cmd)
@@ -1249,14 +1251,13 @@ def calculate_standby_mode(args) -> str:
 
 # Source: https://developer.android.com/preview/features/power
 @ensure_package_exists
-def apply_or_remove_background_restriction(package_name, set_restriction) -> None:
+def apply_or_remove_background_restriction(package_name: str, *, set_restriction: bool) -> None:
     _error_if_min_version_less_than(28)
-    appops_cmd = "cmd appops set {} RUN_ANY_IN_BACKGROUND {}".format(
-        package_name, "ignore" if set_restriction else "allow")
+    appops_cmd = f"cmd appops set {package_name} RUN_ANY_IN_BACKGROUND {'ignore' if set_restriction else 'allow'}"
     execute_adb_shell_command(appops_cmd)
 
 
-def list_directory(file_path, long_format, recursive, include_hidden_files) -> None:
+def list_directory(file_path: str, *, long_format: bool, recursive: bool, include_hidden_files: bool) -> None:
     cmd_prefix = "ls"
     if long_format:
         cmd_prefix += " -l"
@@ -1303,7 +1304,7 @@ def move_file(src_path, dest_path, force) -> None:
 
 # Copies from remote_file_path on Android to local_file_path on the disk
 # local_file_path can be None
-def pull_file(remote_file_path, local_file_path, copy_ancillary=False) -> None:
+def pull_file(remote_file_path: str, local_file_path: str, *, copy_ancillary=False) -> None:
     if not _file_exists(remote_file_path):
         print_error_and_exit(f"File {remote_file_path} does not exist")
 
@@ -1838,7 +1839,7 @@ def get_dark_mode() -> str:
 # This code worked for emulator on API 29.
 # It didn't work for unrooted device on API 30.
 # I am not sure if the problem is rooting or API version
-def set_dark_mode(force: bool) -> None:
+def set_dark_mode(*, force: bool) -> None:
     """
     :param force: if true, force dark mode, if false don't
     """
