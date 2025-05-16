@@ -171,19 +171,12 @@ def test_permissions_grant_revoke() -> None:
 
 
 # Cache the SDK version after first use
-_sdk_version = None
-
-
+@functools.lru_cache(maxsize=1)
 def _get_device_sdk_version():
-    global _sdk_version
-    # Return the cached value, if available
-    if _sdk_version is not None:
-        return _sdk_version
     stdout_data, _ = _assert_success("devices")
     regex_result = re.search(r"SDK version: ([0-9]+)", stdout_data)
     assert regex_result is not None
-    _sdk_version = int(regex_result.group(1))
-    return _sdk_version
+    return int(regex_result.group(1))
 
 
 def test_apps() -> None:
