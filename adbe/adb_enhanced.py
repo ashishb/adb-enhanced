@@ -278,6 +278,7 @@ def handle_airplane(turn_on: bool):
             set_wifi(last_wifi_state == "1")
         else:
             set_wifi(True)
+    return None
 
 
 def get_battery_saver_state() -> str:
@@ -297,8 +298,7 @@ def get_battery_saver_state() -> str:
         return _USER_PRINT_VALUE_UNKNOWN
     if state == 0:
         return _USER_PRINT_VALUE_OFF
-    else:
-        return _USER_PRINT_VALUE_ON
+    return _USER_PRINT_VALUE_ON
 
 
 # Source:
@@ -576,8 +576,7 @@ def get_mobile_data_state():
         return _USER_PRINT_VALUE_UNKNOWN
     if int(m.group(1)) == 0:
         return _USER_PRINT_VALUE_OFF
-    else:
-        return _USER_PRINT_VALUE_ON
+    return _USER_PRINT_VALUE_ON
 
 
 # Source: https://developer.android.com/reference/android/provider/Settings.Global#WIFI_ON
@@ -705,8 +704,7 @@ def get_mobile_data_saver_state():
     enabled = stdout.strip().find("enabled") != -1
     if enabled:
         return _USER_PRINT_VALUE_ON
-    else:
-        return _USER_PRINT_VALUE_OFF
+    return _USER_PRINT_VALUE_OFF
 
 
 # https://developer.android.com/training/basics/network-ops/data-saver.html
@@ -812,7 +810,7 @@ def get_stay_awake_while_charging_state():
     value = int(stdout.strip())
     if value == 0:
         return _USER_PRINT_VALUE_OFF
-    elif value == 7:
+    if value == 7:
         return _USER_PRINT_VALUE_ON
     return _USER_PRINT_VALUE_PARTIALLY_ON
 
@@ -932,27 +930,26 @@ def _is_sqlite_database(file_path):
 def get_permission_group(args):
     if args["contacts"]:
         return "android.permission-group.CONTACTS"
-    elif args["phone"]:
+    if args["phone"]:
         return "android.permission-group.PHONE"
-    elif args["calendar"]:
+    if args["calendar"]:
         return "android.permission-group.CALENDAR"
-    elif args["camera"]:
+    if args["camera"]:
         return "android.permission-group.CAMERA"
-    elif args["sensors"]:
+    if args["sensors"]:
         return "android.permission-group.SENSORS"
-    elif args["location"]:
+    if args["location"]:
         return "android.permission-group.LOCATION"
-    elif args["storage"]:
+    if args["storage"]:
         return "android.permission-group.STORAGE"
-    elif args["microphone"]:
+    if args["microphone"]:
         return "android.permission-group.MICROPHONE"
-    elif args["notifications"]:
+    if args["notifications"]:
         return "android.special-permission-group.NOTIFICATIONS"
-    elif args["sms"]:
+    if args["sms"]:
         return "android.permission-group.SMS"
-    else:
-        print_error_and_exit("Unexpected permission group: %s" % args)
-        return None
+    print_error_and_exit("Unexpected permission group: %s" % args)
+    return None
 
 
 # Android keeps emptying these groups so that granted permissions are denied
@@ -960,28 +957,27 @@ def get_permission_group(args):
 def _get_hardcoded_permissions_for_group(permission_group) -> typing.List[str]:
     if permission_group == "android.permission-group.CONTACTS":
         return ["android.permission.READ_CONTACTS", "android.permission.WRITE_CONTACTS"]
-    elif permission_group == "android.permission-group.PHONE":
+    if permission_group == "android.permission-group.PHONE":
         return ["android.permission.READ_PHONE_STATE", "android.permission.READ_PHONE_NUMBERS",
                 "android.permission.CALL_PHONE", "android.permission.ANSWER_PHONE_CALLS"]
-    elif permission_group == "android.permission-group.CALENDAR":
+    if permission_group == "android.permission-group.CALENDAR":
         return ["android.permission.READ_CALENDAR", "android.permission.WRITE_CALENDAR"]
-    elif permission_group == "android.permission-group.CAMERA":
+    if permission_group == "android.permission-group.CAMERA":
         return ["android.permission.CAMERA"]
-    elif permission_group == "android.permission-group.SENSORS":
+    if permission_group == "android.permission-group.SENSORS":
         return ["android.permission.BODY_SENSORS"]
-    elif permission_group == "android.permission-group.LOCATION":
+    if permission_group == "android.permission-group.LOCATION":
         return ["android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"]
-    elif permission_group == "android.permission-group.STORAGE":
+    if permission_group == "android.permission-group.STORAGE":
         return ["android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"]
-    elif permission_group == "android.permission-group.MICROPHONE":
+    if permission_group == "android.permission-group.MICROPHONE":
         return ["android.permission.RECORD_AUDIO"]
-    elif permission_group == "android.special-permission-group.NOTIFICATIONS":
+    if permission_group == "android.special-permission-group.NOTIFICATIONS":
         return ["android.permission.POST_NOTIFICATIONS"]
-    elif permission_group == "android.permission-group.SMS":
+    if permission_group == "android.permission-group.SMS":
         return ["android.permission.READ_SMS", "android.permission.RECEIVE_SMS", "android.permission.SEND_SMS"]
-    else:
-        print_verbose("Unexpected permission group: %s" % permission_group)
-        return []
+    print_verbose("Unexpected permission group: %s" % permission_group)
+    return []
 
 
 # Pass the full-qualified permission group name to this method.
@@ -1113,8 +1109,7 @@ def get_list_system_apps():
     >>> list_sys_apps = adb_e.get_list_system_apps()
     """
     cmd = "pm list packages -s"
-    system_apps_packages = _get_all_packages(cmd)
-    return system_apps_packages
+    return _get_all_packages(cmd)
 
 
 def list_system_apps():
@@ -1281,11 +1276,11 @@ def set_standby_bucket(package_name, mode):
 def calculate_standby_mode(args):
     if args["active"]:
         return "active"
-    elif args["working_set"]:
+    if args["working_set"]:
         return "working_set"
-    elif args["frequent"]:
+    if args["frequent"]:
         return "frequent"
-    elif args["rare"]:
+    if args["rare"]:
         return "rare"
 
     raise ValueError("Illegal argument: %s" % args)
@@ -1581,10 +1576,9 @@ def _extract_requested_permissions_above_api_23(app_info_dump: str) -> typing.Op
     if requested_permissions_regex is None:
         # No permissions requested by the app
         return []
-    else:
-        requested_permissions = requested_permissions_regex.group(1).split("\n")
-        # Remove empty entries
-        return list(filter(None, requested_permissions))
+    requested_permissions = requested_permissions_regex.group(1).split("\n")
+    # Remove empty entries
+    return list(filter(None, requested_permissions))
 
 
 def _extract_install_time_permissions_above_api_23(app_info_dump: str) -> typing.Optional[typing.List[str]]:
@@ -1592,17 +1586,15 @@ def _extract_install_time_permissions_above_api_23(app_info_dump: str) -> typing
         r"install permissions:(.*?)runtime permissions:", app_info_dump, re.IGNORECASE | re.DOTALL)
     if install_time_permissions_regex is None:
         return []
-    else:
-        install_time_permissions_string = install_time_permissions_regex.group(1).split("\n")
-        # Remove empty entries
-        return list(filter(None, install_time_permissions_string))
+    install_time_permissions_string = install_time_permissions_regex.group(1).split("\n")
+    # Remove empty entries
+    return list(filter(None, install_time_permissions_string))
 
 
 def _get_apk_path(app_name):
     adb_shell_cmd = "pm path %s" % app_name
     result = execute_adb_shell_command(adb_shell_cmd)
-    apk_path = result.split(":", 2)[1]
-    return apk_path
+    return result.split(":", 2)[1]
 
 
 @ensure_package_exists
@@ -1881,12 +1873,11 @@ def get_dark_mode() -> str:
     val = int(stdout)
     if val == 2:
         return _USER_PRINT_VALUE_ON
-    elif val == 1:
+    if val == 1:
         return _USER_PRINT_VALUE_OFF
-    elif val == 0:
+    if val == 0:
         return _USER_PRINT_VALUE_AUTO
-    else:
-        return "Unknown: %d" % val
+    return "Unknown: %d" % val
 
 
 # This code worked for emulator on API 29.
