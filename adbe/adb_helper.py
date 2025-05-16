@@ -1,3 +1,4 @@
+import dataclasses
 import functools
 import subprocess
 
@@ -10,6 +11,13 @@ except ImportError:
     from output_helper import print_error, print_error_and_exit, print_verbose
 
 
+@dataclasses.dataclass
+class _Settings:
+    adb_prefix: str = "adb"
+
+
+__settings = _Settings()
+
 _adb_prefix = "adb"
 _IGNORED_LINES = [
     "WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.",
@@ -20,13 +28,11 @@ _MIN_VERSION_ABOVE_WHICH_ADB_SHELL_RETURNS_CORRECT_EXIT_CODE = 24
 
 
 def get_adb_prefix() -> str:
-    return _adb_prefix
+    return __settings.adb_prefix
 
 
 def set_adb_prefix(adb_prefix: str) -> None:
-    # pylint: disable=global-statement
-    global _adb_prefix
-    _adb_prefix = adb_prefix
+    __settings.adb_prefix = adb_prefix
 
 
 def get_adb_shell_property(property_name: str, device_serial=None) -> str | None:
