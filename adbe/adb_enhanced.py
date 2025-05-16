@@ -214,10 +214,7 @@ def get_current_rotation_direction() -> int:
 
 
 def handle_layout(value: bool):
-    if value:
-        cmd = "setprop debug.layout true"
-    else:
-        cmd = "setprop debug.layout false"
+    cmd = "setprop debug.layout true" if value else "setprop debug.layout false"
     execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
@@ -306,10 +303,7 @@ def get_battery_saver_state() -> str:
 @partial(print_state_change_decorator, title="Battery saver", get_state_func=get_battery_saver_state)
 def handle_battery_saver(turn_on: bool):
     _error_if_min_version_less_than(19)
-    if turn_on:
-        cmd = "put global low_power 1"
-    else:
-        cmd = "put global low_power 0"
+    cmd = "put global low_power 1" if turn_on else "put global low_power 0"
 
     if turn_on:
         return_code, _, _ = execute_adb_shell_command2(get_battery_unplug_cmd())
@@ -435,7 +429,7 @@ def handle_list_devices():
         _print_device_info(device_serial)
 
 
-def _get_device_serials() -> [str]:
+def _get_device_serials() -> list[str]:
     cmd = "devices -l"
     return_code, stdout, stderr = execute_adb_command2(cmd)
     if return_code != 0:
@@ -475,16 +469,17 @@ def _print_device_info(device_serial=None):
     model = get_adb_shell_property("ro.product.model", device_serial=device_serial)
     # This worked on 4.4.3 API 19 Moto E
     display_name = get_adb_shell_property("ro.product.display", device_serial=device_serial)
+
     # First fallback: undocumented
-    if not display_name or display_name == "null":
+    if ((not display_name or display_name == "null")
+            and get_device_android_api_version(device_serial=device_serial) >= 19):
         # This works on 4.4.4 API 19 Galaxy Grand Prime
-        if get_device_android_api_version(device_serial=device_serial) >= 19:
-            display_name = execute_adb_shell_settings_command("get system device_name", device_serial=device_serial)
+        display_name = execute_adb_shell_settings_command("get system device_name", device_serial=device_serial)
+
     # Second fallback, documented to work on API 25 and above
     # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#DEVICE_NAME
-    if not display_name or display_name == "null":
-        if get_device_android_api_version(device_serial=device_serial) >= 25:
-            display_name = execute_adb_shell_settings_command("get global device_name", device_serial=device_serial)
+    if (not display_name or display_name == "null") and get_device_android_api_version(device_serial=device_serial) >= 25:
+        display_name = execute_adb_shell_settings_command("get global device_name", device_serial=device_serial)
 
     # ABI info
     abi = get_adb_shell_property("ro.product.cpu.abi", device_serial=device_serial)
@@ -595,10 +590,7 @@ def get_wifi_state() -> str:
 
 @partial(print_state_change_decorator, title="Wi-Fi", get_state_func=get_wifi_state)
 def set_wifi(turn_on: bool):
-    if turn_on:
-        cmd = "svc wifi enable"
-    else:
-        cmd = "svc wifi disable"
+    cmd = "svc wifi enable" if turn_on else "svc wifi disable"
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
         print_error_and_exit("Failed to change Wi-Fi setting")
@@ -608,10 +600,7 @@ def set_wifi(turn_on: bool):
 # https://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later
 @partial(print_state_change_decorator, title="Mobile data", get_state_func=get_mobile_data_state)
 def handle_mobile_data(turn_on: bool):
-    if turn_on:
-        cmd = "svc data enable"
-    else:
-        cmd = "svc data disable"
+    cmd = "svc data enable" if turn_on else "svc data disable"
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
         print_error_and_exit("Failed to change mobile data setting")
@@ -619,10 +608,7 @@ def handle_mobile_data(turn_on: bool):
 
 def force_rtl(turn_on: bool):
     _error_if_min_version_less_than(19)
-    if turn_on:
-        cmd = "put global debug.force_rtl 1"
-    else:
-        cmd = "put global debug.force_rtl 0"
+    cmd = "put global debug.force_rtl 1" if turn_on else "put global debug.force_rtl 0"
     execute_adb_shell_settings_command_and_poke_activity_service(cmd)
 
 
@@ -710,10 +696,7 @@ def get_mobile_data_saver_state():
 # https://developer.android.com/training/basics/network-ops/data-saver.html
 @partial(print_state_change_decorator, title="Mobile data saver", get_state_func=get_mobile_data_saver_state)
 def handle_mobile_data_saver(turn_on: bool):
-    if turn_on:
-        cmd = "cmd netpolicy set restrict-background true"
-    else:
-        cmd = "cmd netpolicy set restrict-background false"
+    cmd = "cmd netpolicy set restrict-background true" if turn_on else "cmd netpolicy set restrict-background false"
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
         print_error_and_exit("Failed to modify data saver mode setting")
@@ -759,10 +742,7 @@ def handle_dont_keep_activities_in_background(turn_on: bool):
 
 
 def toggle_animations(turn_on: bool):
-    if turn_on:
-        value = 1
-    else:
-        value = 0
+    value = 1 if turn_on else 0
 
     # Source: https://github.com/jaredsburrows/android-gif-example/blob/824c493285a2a2cf22f085662431cf0a7aa204b8/.travis.yml#L34
     cmd1 = "put global window_animation_scale %d" % value
@@ -791,10 +771,7 @@ def get_show_taps_state():
 
 @partial(print_state_change_decorator, title="Show user taps", get_state_func=get_show_taps_state)
 def toggle_show_taps(turn_on: bool):
-    if turn_on:
-        value = 1
-    else:
-        value = 0
+    value = 1 if turn_on else 0
 
     # Source: https://stackoverflow.com/a/32621809/434196
     cmd = "put system show_touches %d" % value
@@ -820,12 +797,8 @@ def get_stay_awake_while_charging_state():
          title="Stay awake while charging",
          get_state_func=get_stay_awake_while_charging_state)
 def stay_awake_while_charging(turn_on: bool):
-    if turn_on:
-        # 1 for USB charging, 2 for AC charging, 4 for wireless charging. Or them together to get 7.
-        value = 7
-    else:
-        value = 0
-
+    # 1 for USB charging, 2 for AC charging, 4 for wireless charging. Add them together to get 7.
+    value = 7 if turn_on else 0
     cmd1 = "put global stay_on_while_plugged_in %d" % value
     execute_adb_shell_settings_command_and_poke_activity_service(cmd1)
 
@@ -868,11 +841,7 @@ def list_permission_groups():
 
 def list_permissions(dangerous_only_permissions: bool):
     # -g is to group permissions by permission groups.
-    if dangerous_only_permissions:
-        # -d => dangerous only permissions
-        cmd = "pm list permissions -g -d"
-    else:
-        cmd = "pm list permissions -g"
+    cmd = "pm list permissions -g -d" if dangerous_only_permissions else "pm list permissions -g"
     return_code, stdout, stderr = execute_adb_shell_command2(cmd)
     if return_code != 0:
         print_error_and_exit("Failed to list permissions: (stdout: %s, stderr: %s)" % (stdout, stderr))
@@ -1488,10 +1457,7 @@ def print_app_info(app_name):
 def _get_permissions_info_below_api_23(app_info_dump):
     install_time_permissions_regex = re.search(r"grantedPermissions:(.*)", app_info_dump,
                                                re.IGNORECASE | re.DOTALL)
-    if install_time_permissions_regex is None:
-        install_time_permissions_string = []
-    else:
-        install_time_permissions_string = install_time_permissions_regex.group(1).split("\n")
+    install_time_permissions_string = [] if install_time_permissions_regex is None else install_time_permissions_regex.group(1).split("\n")
 
     install_time_permissions_string = filter(None, install_time_permissions_string)
     install_time_granted_permissions = list(install_time_permissions_string)
@@ -1912,15 +1878,9 @@ def print_notifications():
             output_for_this_notification = output_for_this_notification.split(notification_records[i + 1])[0]
         notification_package = re.findall(r"pkg=(\S*)", notification_record)[0]
         titles = re.findall(r"android.title=(.*)", output_for_this_notification)
-        if len(titles) > 0:
-            notification_title = titles[0]
-        else:
-            notification_title = None
+        notification_title = titles[0] if len(titles) > 0 else None
         texts = re.findall(r"android.text=(.*)", output_for_this_notification)
-        if len(texts) > 0:
-            notification_text = texts[0]
-        else:
-            notification_text = None
+        notification_text = texts[0] if len(texts) > 0 else None
         notification_actions = []
         action_strings = re.findall(r"actions=\{(.*?)\n\}", output_for_this_notification, re.MULTILINE | re.DOTALL)
         if len(action_strings) > 0 and (
@@ -2079,10 +2039,7 @@ def alarm_manager(param):
 
 def toggle_location(turn_on):
     _error_if_min_version_less_than(_MIN_API_FOR_LOCATION)
-    if turn_on:
-        cmd = "put secure location_mode 3"
-    else:
-        cmd = "put secure location_mode 0"
+    cmd = "put secure location_mode 3" if turn_on else "put secure location_mode 0"
     execute_adb_shell_settings_command(cmd)
 
 

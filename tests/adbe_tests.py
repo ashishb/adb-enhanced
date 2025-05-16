@@ -54,10 +54,7 @@ def test_binary(testpythoninstallation):
 
 
 def test_rotate():
-    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
-        check = _assert_success
-    else:
-        check = _assert_fail
+    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
 
     check("rotate landscape")
     check("rotate portrait")
@@ -87,10 +84,7 @@ def test_layout():
 
 
 def test_airplane():
-    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
-        check = _assert_success
-    else:
-        check = _assert_fail
+    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
 
     check("airplane on")
     check("airplane off")
@@ -100,10 +94,7 @@ def test_battery_sub_cmds():
     _assert_fail("battery level -1")
     _assert_fail("battery level 104")
 
-    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
-        check = _assert_success
-    else:
-        check = _assert_fail
+    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
 
     check("battery level 10")
     check("battery saver on")
@@ -112,20 +103,14 @@ def test_battery_sub_cmds():
 
 
 def test_dark_mode():
-    if _get_device_sdk_version() >= _DARK_MODE_ANDROID_VERSION:
-        check = _assert_success
-    else:
-        check = _assert_fail
+    check = _assert_success if _get_device_sdk_version() >= _DARK_MODE_ANDROID_VERSION else _assert_fail
 
     check("dark mode on")
     check("dark mode off")
 
 
 def test_doze():
-    if _get_device_sdk_version() >= _DOZE_MODE_ANDROID_VERSION:
-        check = _assert_success
-    else:
-        check = _assert_fail
+    check = _assert_success if _get_device_sdk_version() >= _DOZE_MODE_ANDROID_VERSION else _assert_fail
 
     check("doze on")
     check("doze off")
@@ -139,20 +124,14 @@ def test_mobile_data():
 
 
 def test_rtl():
-    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
-        check = _assert_success
-    else:
-        check = _assert_fail
+    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
 
     check("rtl on")
     check("rtl off")
 
 
 def test_animations():
-    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
-        check = _assert_success
-    else:
-        check = _assert_fail
+    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
 
     check("animations on")
     check("animations off")
@@ -395,10 +374,7 @@ def test_take_screenshot():
 
 
 def test_keep_activities():
-    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
-        check = _assert_success
-    else:
-        check = _assert_fail
+    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
 
     check("dont-keep-activities on")
     check("dont-keep-activities off")
@@ -409,10 +385,7 @@ def test_ls():
 
 
 def test_stay_awake_while_charging():
-    if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION:
-        check = _assert_success
-    else:
-        check = _assert_fail
+    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
 
     check("stay-awake-while-charging on")
     # This causes Circle CI to hang.
@@ -457,10 +430,7 @@ def test_notifications():
 
 
 def test_location():
-    if _get_device_sdk_version() >= _LOCATION_CHANGE_ANDROID_VERSION:
-        check = _assert_success
-    else:
-        check = _assert_fail
+    check = _assert_success if _get_device_sdk_version() >= _LOCATION_CHANGE_ANDROID_VERSION else _assert_fail
     check("location on")
     check("location off")
 
