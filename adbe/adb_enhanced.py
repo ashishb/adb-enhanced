@@ -1498,10 +1498,8 @@ def _get_permissions_info_below_api_23(app_info_dump):
     else:
         install_time_permissions_string = install_time_permissions_regex.group(1).split("\n")
 
-    install_time_granted_permissions = []
     install_time_permissions_string = filter(None, install_time_permissions_string)
-    for permission_string in install_time_permissions_string:
-        install_time_granted_permissions.append(permission_string)
+    install_time_granted_permissions = list(install_time_permissions_string)
 
     permissions_info_msg = ""
     if install_time_granted_permissions:
