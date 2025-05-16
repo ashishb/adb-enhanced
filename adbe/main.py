@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import pathlib
 import sys
 import typing
+from pathlib import Path
 
 import docopt
 
@@ -351,8 +351,8 @@ def _get_generic_options_from_args(args):
 
 def _get_version():
     dir_of_this_script = os.path.split(__file__)[0]
-    version_file_path = os.path.join(dir_of_this_script, _VERSION_FILE_NAME)
-    return pathlib.Path(version_file_path).read_text(encoding="UTF-8").strip()
+    version_file_path = Path(dir_of_this_script) / _VERSION_FILE_NAME
+    return Path(version_file_path).read_text(encoding="UTF-8").strip()
 
 
 def _using_python2():

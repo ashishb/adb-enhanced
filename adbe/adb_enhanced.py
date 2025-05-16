@@ -12,6 +12,7 @@ import time
 import typing
 from enum import Enum
 from functools import partial, wraps
+from pathlib import Path
 from urllib.parse import urlparse
 
 import psutil
@@ -1334,15 +1335,12 @@ def pull_file(remote_file_path, local_file_path, copy_ancillary=False):
         del_cmd = "rm -r %s" % tmp_file
         execute_adb_shell_command(del_cmd)
 
-    if os.path.exists(local_file_path):
+    if Path(local_file_path).exists():
         print_message('Copied remote file "%s" to local file "%s" (Size: %d bytes)' % (
-            remote_file_path,
-            local_file_path,
-            os.path.getsize(local_file_path)))
+            remote_file_path, local_file_path, Path(local_file_path).stat().st_size))
     else:
         print_error_and_exit('Failed to copy remote file "%s" to local file "%s"' % (
-            remote_file_path,
-            local_file_path))
+            remote_file_path, local_file_path))
 
     if _is_sqlite_database(remote_file_path):
         # Copy temporary Sqlite files
@@ -1362,9 +1360,9 @@ def pull_file(remote_file_path, local_file_path, copy_ancillary=False):
 # Limitation: It seems that pushing to a directory on some versions of Android fail silently.
 # It is safer to push to a full path containing the filename.
 def push_file(local_file_path, remote_file_path):
-    if not os.path.exists(local_file_path):
+    if not Path(local_file_path).exists():
         print_error_and_exit("Local file %s does not exist" % local_file_path)
-    if os.path.isdir(local_file_path):
+    if Path(local_file_path).is_dir():
         print_error_and_exit("This tool does not support pushing a directory yet: %s" % local_file_path)
 
     # First push to tmp file in /data/local/tmp and then move that
@@ -1583,8 +1581,8 @@ def print_app_signature(app_name):
             return
 
         dir_of_this_script = os.path.split(__file__)[0]
-        apk_signer_jar_path = os.path.join(dir_of_this_script, "apksigner.jar")
-        if not os.path.exists(apk_signer_jar_path):
+        apk_signer_jar_path = Path(dir_of_this_script) / "apksigner.jar"
+        if not Path(apk_signer_jar_path).exists():
             print_error_and_exit("apksigner.jar is missing, your adb-enhanced installation is corrupted")
 
         print_signature_cmd = "java -jar %s verify --print-certs %s" % (apk_signer_jar_path, tmp_apk_file_name)
@@ -1638,8 +1636,8 @@ def perform_app_backup(app_name, backup_tar_file):
     # Convert ".ab" to ".tar" using Android Backup Extractor (ABE)
     try:
         dir_of_this_script = os.path.split(__file__)[0]
-        abe_jar_path = os.path.join(dir_of_this_script, "abe.jar")
-        if not os.path.exists(abe_jar_path):
+        abe_jar_path = Path(dir_of_this_script) / "abe.jar"
+        if not Path(abe_jar_path).exists():
             print_error_and_exit("Abe.jar is missing, your adb-enhanced installation is corrupted")
         abe_cmd = "java -jar %s unpack backup.ab %s %s" % (abe_jar_path, backup_tar_file, password)
         print_verbose("Executing command %s" % abe_cmd)
