@@ -1,11 +1,19 @@
+import dataclasses
+import functools
 import sys
 
-__VERBOSE_MODE: bool = False
+
+@dataclasses.dataclass
+class _Settings:
+    """Settings for the output helper."""
+    verbose: bool = False
+
+
+__settings = _Settings()
 
 
 def set_verbose(*, enabled: bool) -> None:
-    global __VERBOSE_MODE
-    __VERBOSE_MODE = enabled
+    __settings.verbose = enabled
 
 
 def print_message(message: str) -> None:
@@ -25,12 +33,13 @@ def print_error(error_string: str) -> None:
 
 
 def print_verbose(message: str) -> None:
-    if __VERBOSE_MODE and _is_interactive_terminal():
+    if __settings.verbose and _is_interactive_terminal():
         print(f"{BashColors.WARNING}{message}{BashColors.ENDC}")
     else:
         print(message)
 
 
+@functools.lru_cache
 def _is_interactive_terminal() -> bool:
     return sys.stdout.isatty()
 
