@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import os
-import random
 import re
+import secrets
 import signal
 import subprocess
 import sys
@@ -859,7 +859,7 @@ def _create_tmp_file(filename_prefix=None, filename_suffix=None):
     tmp_dir = "/data/local/tmp"
 
     filepath_on_device = (
-        f"{tmp_dir}/{filename_prefix}-{random.randint(1, 1000 * 1000 * 1000):d}.{filename_suffix}")
+        f"{tmp_dir}/{filename_prefix}-{secrets.randbelow(1000 * 1000 * 1000):d}.{filename_suffix}")
     if _file_exists(filepath_on_device):
         # Retry if the file already exists
         print_verbose(f"Tmp File {filepath_on_device} already exists, trying a new random name")
@@ -919,36 +919,54 @@ def get_permission_group(args) -> str | None:
 
 # Android keeps emptying these groups so that granted permissions are denied
 # but the expectation of this tool is to do the right mapping
-def _get_hardcoded_permissions_for_group(permission_group) -> list[str]:
-    match permission_group:
-        case "android.permission-group.CONTACTS":
-            return ["android.permission.READ_CONTACTS", "android.permission.WRITE_CONTACTS"]
-        case "android.permission-group.PHONE":
-            return [
-                "android.permission.READ_PHONE_STATE",
-                "android.permission.READ_PHONE_NUMBERS",
-                "android.permission.CALL_PHONE",
-                "android.permission.ANSWER_PHONE_CALLS"
-            ]
-        case "android.permission-group.CALENDAR":
-            return ["android.permission.READ_CALENDAR", "android.permission.WRITE_CALENDAR"]
-        case "android.permission-group.CAMERA":
-            return ["android.permission.CAMERA"]
-        case "android.permission-group.SENSORS":
-            return ["android.permission.BODY_SENSORS"]
-        case "android.permission-group.LOCATION":
-            return ["android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"]
-        case "android.permission-group.STORAGE":
-            return ["android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"]
-        case "android.permission-group.MICROPHONE":
-            return ["android.permission.RECORD_AUDIO"]
-        case "android.special-permission-group.NOTIFICATIONS":
-            return ["android.permission.POST_NOTIFICATIONS"]
-        case "android.permission-group.SMS":
-            return ["android.permission.READ_SMS", "android.permission.RECEIVE_SMS", "android.permission.SEND_SMS"]
-        case _:
-            print_verbose(f"Unexpected permission group: {permission_group}")
-            return []  # Default case if no match found
+def _get_hardcoded_permissions_for_group(permission_group: str) -> list[str]:
+    result_map = {
+        "android.permission-group.CONTACTS": [
+            "android.permission.READ_CONTACTS",
+            "android.permission.WRITE_CONTACTS",
+        ],
+        "android.permission-group.PHONE": [
+            "android.permission.READ_PHONE_STATE",
+            "android.permission.READ_PHONE_NUMBERS",
+            "android.permission.CALL_PHONE",
+            "android.permission.ANSWER_PHONE_CALLS",
+        ],
+        "android.permission-group.CALENDAR": [
+            "android.permission.READ_CALENDAR",
+            "android.permission.WRITE_CALENDAR",
+        ],
+        "android.permission-group.CAMERA": [
+            "android.permission.CAMERA",
+        ],
+        "android.permission-group.SENSORS": [
+            "android.permission.BODY_SENSORS",
+        ],
+        "android.permission-group.LOCATION": [
+            "android.permission.ACCESS_FINE_LOCATION",
+            "android.permission.ACCESS_COARSE_LOCATION",
+        ],
+        "android.permission-group.STORAGE": [
+            "android.permission.READ_EXTERNAL_STORAGE",
+            "android.permission.WRITE_EXTERNAL_STORAGE",
+        ],
+        "android.permission-group.MICROPHONE": [
+            "android.permission.RECORD_AUDIO",
+        ],
+        "android.special-permission-group.NOTIFICATIONS": [
+            "android.permission.POST_NOTIFICATIONS",
+        ],
+        "android.permission-group.SMS": [
+            "android.permission.READ_SMS",
+            "android.permission.RECEIVE_SMS",
+            "android.permission.SEND_SMS",
+        ],
+    }
+
+    result = result_map.get(permission_group, [])
+    if not result:
+        print_error(f"Unexpected permission group: {permission_group}")
+
+    return result
 
 
 # Pass the full-qualified permission group name to this method.
