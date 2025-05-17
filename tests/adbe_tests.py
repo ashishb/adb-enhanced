@@ -4,7 +4,9 @@ import re
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -30,12 +32,12 @@ _TEST_PYTHON_INSTALLATION = False
 
 
 # Source: https://gist.github.com/jasongrout/3804691
-def run_once(f):
+def run_once(f: Callable) -> Callable[[tuple[Any, ...], dict[str, Any]], Any | None]:
     """Runs a function (successfully) only once.
     The running can be reset by setting the `has_run` attribute to False
     """
     @functools.wraps(f)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Callable | None:
         if not wrapper.has_run:
             result = f(*args, **kwargs)
             wrapper.has_run = True
@@ -46,7 +48,7 @@ def run_once(f):
 
 
 # This method will be invoked only if testpythoninstallation is passed
-def test_binary(testpythoninstallation) -> None:
+def test_binary(testpythoninstallation: bool) -> None:
     global _TEST_PYTHON_INSTALLATION
     if testpythoninstallation:
         _TEST_PYTHON_INSTALLATION = True
@@ -172,7 +174,7 @@ def test_permissions_grant_revoke() -> None:
 
 # Cache the SDK version after first use
 @functools.lru_cache(maxsize=1)
-def _get_device_sdk_version():
+def _get_device_sdk_version() -> int:
     stdout_data, _ = _assert_success("devices")
     regex_result = re.search(r"SDK version: ([0-9]+)", stdout_data)
     assert regex_result is not None
@@ -432,19 +434,19 @@ def test_debug_app() -> None:
     _assert_success("debug-app clear")
 
 
-def _assert_fail(sub_cmd):
+def _assert_fail(sub_cmd: str) -> tuple[str, str]:
     exit_code, stdout_data, stderr_data = _execute(sub_cmd)
     assert exit_code == 1, f'Command "{sub_cmd}" failed with stdout: "{stdout_data}" and stderr: "{stderr_data}"'
     return stdout_data, stderr_data
 
 
-def _assert_success(sub_cmd):
+def _assert_success(sub_cmd: str) -> tuple[str, str]:
     exit_code, stdout_data, stderr_data = _execute(sub_cmd)
     assert exit_code == 0, f'Command "{sub_cmd}" failed with stdout: "{stdout_data}" and stderr: "{stderr_data}"'
     return stdout_data, stderr_data
 
 
-def _execute(sub_cmd):
+def _execute(sub_cmd: str) -> tuple[int, str, str]:
     print(f"Executing cmd: {sub_cmd}")
     if _TEST_PYTHON_INSTALLATION:
         cmd = "adbe"
@@ -464,7 +466,7 @@ def _execute(sub_cmd):
     return exit_code, stdout_data, stderr_data
 
 
-def _delete_local_file(local_file_path) -> None:
+def _delete_local_file(local_file_path: str) -> None:
     cmd = f"rm {local_file_path}"
     with subprocess.Popen(cmd,
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
