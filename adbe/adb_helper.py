@@ -35,18 +35,21 @@ def set_adb_prefix(adb_prefix: str) -> None:
     __settings.adb_prefix = adb_prefix
 
 
-def get_adb_shell_property(property_name: str, device_serial=None) -> str | None:
+def get_adb_shell_property(property_name: str, device_serial: str | None = None) -> str | None:
     _, stdout, _ = execute_adb_shell_command2(f"getprop {property_name}", device_serial=device_serial)
     return stdout
 
 
-def execute_adb_shell_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None):
+def execute_adb_shell_command2(
+        adb_cmd: str, piped_into_cmd: bool | None = None, ignore_stderr: bool = False,
+        device_serial: str | None = None) -> tuple[int, str | None, str]:
     return execute_adb_command2(f"shell {adb_cmd}", piped_into_cmd=piped_into_cmd,
                                 ignore_stderr=ignore_stderr, device_serial=device_serial)
 
 
-def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None) -> \
-        tuple[int, str | None, str]:
+def execute_adb_command2(
+        adb_cmd: str, piped_into_cmd: bool | None = None, ignore_stderr: bool = False,
+        device_serial: str | None = None) -> tuple[int, str | None, str]:
     """
     :param adb_cmd: command to run inside the adb shell (so, don't prefix it with "adb")
     :param piped_into_cmd: command to pipe the output of this command into
@@ -106,7 +109,8 @@ def execute_adb_command2(adb_cmd, piped_into_cmd=None, ignore_stderr=False, devi
     return None
 
 
-def execute_adb_shell_command(adb_cmd, piped_into_cmd=None, ignore_stderr=False, device_serial=None) -> str:
+def execute_adb_shell_command(adb_cmd: str, piped_into_cmd: bool | None = None, ignore_stderr: bool = False,
+                              device_serial: str | None = None) -> str:
     _, stdout, _ = execute_adb_command2(
         f"shell {adb_cmd}", piped_into_cmd, ignore_stderr, device_serial=device_serial)
     return stdout
@@ -153,7 +157,7 @@ def execute_file_related_adb_shell_command(
 # Gets the package name given a file path.
 # E.g. if the file is in /data/data/com.foo/.../file1 then package is com.foo
 # Or if the file is in /data/user/0/com.foo/.../file1 then package is com.foo
-def get_package(file_path) -> str | None:
+def get_package(file_path: str) -> str | None:
     if not file_path:
         return None
 
@@ -172,18 +176,18 @@ def get_package(file_path) -> str | None:
 
 # adb shell getprop ro.build.version.sdk
 @functools.lru_cache(maxsize=10)
-def get_device_android_api_version(device_serial=None) -> int:
+def get_device_android_api_version(device_serial: str | None = None) -> int:
     version_string = get_adb_shell_property("ro.build.version.sdk", device_serial=device_serial)
     if version_string is None:
         print_error_and_exit("Unable to get Android device version, is it still connected?")
     return int(version_string)
 
 
-def root_required_to_access_file(remote_file_path) -> bool:
+def root_required_to_access_file(remote_file_path: str) -> bool:
     return not (not remote_file_path or remote_file_path.startswith(("/data/local/tmp", "/sdcard")))
 
 
-def _check_for_adb_not_found_error(stderr_data) -> None:
+def _check_for_adb_not_found_error(stderr_data: str) -> None:
     if not stderr_data:
         return
     stderr_data = stderr_data.strip()
@@ -193,9 +197,10 @@ def _check_for_adb_not_found_error(stderr_data) -> None:
         print_error_and_exit(message)
 
 
-def _check_for_more_than_one_device_error(stderr_data) -> None:
+def _check_for_more_than_one_device_error(stderr_data: str) -> None:
     if not stderr_data:
         return
+
     for line in stderr_data.split("\n"):
         line = line.strip()
         if line:
@@ -208,9 +213,10 @@ def _check_for_more_than_one_device_error(stderr_data) -> None:
             print_error_and_exit(message)
 
 
-def _check_for_device_not_found_error(stderr_data) -> None:
+def _check_for_device_not_found_error(stderr_data: str) -> None:
     if not stderr_data:
         return
+
     for line in stderr_data.split("\n"):
         line = line.strip()
         if line:
@@ -219,11 +225,11 @@ def _check_for_device_not_found_error(stderr_data) -> None:
             print_error_and_exit(line)
 
 
-def toggle_screen():
+def toggle_screen() -> tuple[int, str | None, str]:
     return execute_adb_shell_command2("input keyevent KEYCODE_POWER")
 
 
-def set_device_id(device_id) -> None:
+def set_device_id(device_id: str) -> None:
     """
     Make :param device_id: as main device to use
     Primary use-case: scripting
@@ -235,7 +241,7 @@ def set_device_id(device_id) -> None:
         if " " in old_device:
             # Case: device ID is not the last argument
             old_device = old_adb_prefix.split("-s")[1].split(" ")[0]
-        print_verbose(f"Switching from  {old_device} to  {device_id}")
+        print_verbose(f"Switching from {old_device} to {device_id}")
         old_adb_prefix.replace(old_device, device_id)
 
     print_verbose(f"Setting device ID to {device_id}")
