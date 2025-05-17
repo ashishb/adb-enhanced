@@ -100,7 +100,7 @@ def ensure_package_exists(func):
     return func_wrapper
 
 
-def _package_exists(package_name):
+def _package_exists(package_name: str) -> bool:
     cmd = f"pm path {package_name}"
     return_code, response, _ = execute_adb_shell_command2(cmd)
     return return_code == 0 and response is not None and len(response.strip()) != 0
@@ -142,7 +142,7 @@ def handle_gfx(value) -> None:
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
 # https://plus.google.com/+AladinQ/posts/dpidzto1b8B
-def handle_overdraw(value) -> None:
+def handle_overdraw(value: str) -> None:
     version = get_device_android_api_version()
 
     if version < 19:
@@ -221,7 +221,7 @@ def handle_layout(*, turn_on: bool) -> None:
 
 
 # Source: https://stackoverflow.com/questions/10506591/turning-airplane-mode-on-via-adb
-def handle_airplane(*, turn_on: bool):
+def handle_airplane(*, turn_on: bool) -> str | None:
     state = 1 if turn_on else 0
     return_code, su_path, _ = execute_adb_shell_command2("which su")
     if not return_code and su_path and len(su_path):
@@ -411,7 +411,7 @@ def handle_get_jank(app_name: str) -> None:
             force_stop(app_name)
 
 
-def _is_app_running(app_name: str):
+def _is_app_running(app_name: str) -> bool:
     return_code, result, _ = execute_adb_shell_command2("ps -o NAME")
     if return_code != 0 or not result:
         return False
@@ -496,7 +496,7 @@ def print_top_activity() -> None:
         print_message(f"Activity name: {activity_name}")
 
 
-def _get_top_activity_data():
+def _get_top_activity_data() -> tuple[None, None] | tuple:
     cmd = "dumpsys window windows"
     return_code, output, _ = execute_adb_shell_command2(cmd)
     if return_code != 0 and not output:
@@ -555,7 +555,7 @@ def clear_disk_data(app_name: str) -> None:
         print_error_and_exit(f'Failed to clear data of "{app_name}"')
 
 
-def get_mobile_data_state():
+def get_mobile_data_state() -> str:
     # Using "adb shell dumpsys telephony.registry | ag mDataConnectionState"
     cmd = "dumpsys telephony.registry"
     return_code, stdout, _ = execute_adb_shell_command2(cmd)
@@ -678,7 +678,7 @@ def dump_screenrecord(filepath) -> None:
     screen_record_file_path_on_device = _start_recording()
 
 
-def get_mobile_data_saver_state():
+def get_mobile_data_saver_state() -> str:
     cmd = "cmd netpolicy get restrict-background"
     return_code, stdout, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
@@ -699,7 +699,7 @@ def handle_mobile_data_saver(*, turn_on: bool) -> None:
         print_error_and_exit("Failed to modify data saver mode setting")
 
 
-def get_dont_keep_activities_in_background_state():
+def get_dont_keep_activities_in_background_state() -> str:
     cmd = "get global always_finish_activities"
     return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
@@ -751,7 +751,7 @@ def toggle_animations(*, turn_on: bool) -> None:
     execute_adb_shell_settings_command(cmd3)
 
 
-def get_show_taps_state():
+def get_show_taps_state() -> str:
     cmd = "get system show_touches"
     return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
@@ -775,7 +775,7 @@ def toggle_show_taps(*, turn_on: bool) -> None:
     execute_adb_shell_settings_command(cmd)
 
 
-def get_stay_awake_while_charging_state():
+def get_stay_awake_while_charging_state() -> str:
     cmd = "get global stay_on_while_plugged_in"
     return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
@@ -847,7 +847,7 @@ def list_permissions(*, dangerous_only_permissions: bool) -> None:
 
 
 # Creates a tmp file on Android device
-def _create_tmp_file(filename_prefix=None, filename_suffix=None):
+def _create_tmp_file(filename_prefix=None, filename_suffix=None) -> str | None:
     if filename_prefix is None:
         filename_prefix = "file"
     if filename_suffix is None:
@@ -882,7 +882,7 @@ def _create_tmp_file(filename_prefix=None, filename_suffix=None):
 
 
 # Returns true if the file_path exists on the device, false if it does not exists or is inaccessible.
-def _file_exists(file_path):
+def _file_exists(file_path) -> bool:
     exists_cmd = f'"ls {file_path} 1>/dev/null 2>/dev/null && echo exists"'
     stdout = execute_file_related_adb_shell_command(exists_cmd, file_path)
     return stdout is not None and stdout.find("exists") != -1
@@ -968,7 +968,7 @@ def _get_hardcoded_permissions_for_group(permission_group: str) -> list[str]:
 
 
 # Pass the full-qualified permission group name to this method.
-def get_permissions_in_permission_group(permission_group):
+def get_permissions_in_permission_group(permission_group) -> list[str] | list | None:
     # List permissions by group
     cmd = "pm list permissions -g"
     return_code, stdout, stderr = execute_adb_shell_command2(cmd)
@@ -1026,7 +1026,7 @@ def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions)
         print_error_and_exit(f"None of these permissions were granted to {package_name}: {permissions}")
 
 
-def _get_all_packages(pm_cmd):
+def _get_all_packages(pm_cmd) -> list:
     return_code, result, _ = execute_adb_shell_command2(pm_cmd)
     if return_code != 0:
         print_error_and_exit(f'Command "{pm_cmd}" failed, something is wrong')
@@ -1044,7 +1044,7 @@ def _get_all_packages(pm_cmd):
 # For now, we can live with this discrepancy but in the longer run we want to fix those
 # other functions as well
 # https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
-def get_list_all_apps():
+def get_list_all_apps() -> tuple | tuple[None, str, bytes | str]:
     """This function return a list of installed applications, error message and command
     execution error
     :returns: tuple(all_apps, err_msg, error)
@@ -1083,7 +1083,7 @@ def print_list_all_apps() -> None:
     print_message("\n".join(all_apps))
 
 
-def get_list_system_apps():
+def get_list_system_apps() -> list:
     """This function return a list of installed system applications
     :returns: system_apps_packages
         WHERE
@@ -1106,7 +1106,7 @@ def list_system_apps() -> None:
     print("\n".join(packages))
 
 
-def get_list_non_system_apps():
+def get_list_non_system_apps() -> list:
     """Return a list of installed third party applications.
     :returns: third_party_pkgs
         WHERE
@@ -1128,7 +1128,7 @@ def print_list_non_system_apps() -> None:
     print("\n".join(get_list_non_system_apps()))
 
 
-def get_list_debug_apps():
+def get_list_debug_apps() -> list:
     """Return a list of installed debug applications.
     :returns: debug_packages
         WHERE
@@ -1174,7 +1174,7 @@ def _is_debug_package(app_name: str) -> tuple[str | None, bool]:
     return _package_contains_flag(app_name, _REGEX_DEBUGGABLE)
 
 
-def list_allow_backup_apps():
+def list_allow_backup_apps() -> list:
     """Return list of applications that can be backed up (flag backup set to true)
         :returns: list[str] packages that have backup flag set to true
         :Example:
@@ -1208,7 +1208,7 @@ def print_allow_backup_apps() -> None:
     print("\n".join(list_allow_backup_apps()))
 
 
-def _is_allow_backup_package(app_name: str):
+def _is_allow_backup_package(app_name: str) -> tuple[str | None, bool]:
     return _package_contains_flag(app_name, _REGEX_BACKUP_ALLOWED)
 
 
@@ -1239,7 +1239,7 @@ _APP_STANDBY_BUCKETS = {
 
 # Source: https://developer.android.com/preview/features/power#buckets
 @ensure_package_exists
-def get_standby_bucket(package_name) -> None:
+def get_standby_bucket(package_name: str) -> None:
     _error_if_min_version_less_than(28)
     cmd = f"am get-standby-bucket {package_name}"
     result = execute_adb_shell_command(cmd)
