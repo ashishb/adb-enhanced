@@ -306,7 +306,7 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
     }
 
 
-def _grant_revoke_permissions(app_name, args) -> None:
+def _grant_revoke_permissions(app_name: str, args: dict[str, typing.Any]) -> None:
     permission_group = adb_enhanced.get_permission_group(args)
     permissions = adb_enhanced.get_permissions_in_permission_group(permission_group)
     if not permissions and \
@@ -326,7 +326,7 @@ def _perform_backup(app_name: str, backup_tar_file_path: str | None) -> None:
     adb_enhanced.perform_app_backup(app_name, backup_tar_file_path)
 
 
-def _validate_options(args) -> None:
+def _validate_options(args: dict[str, typing.Any]) -> None:
     count = 0
     if args["--emulator"]:
         count += 1
@@ -338,24 +338,24 @@ def _validate_options(args) -> None:
         print_error_and_exit("Only one out of -e, -d, or -s can be provided")
 
 
-def _get_generic_options_from_args(args):
+def _get_generic_options_from_args(args: dict[str, typing.Any]) -> str:
     options = ""
     if args["--emulator"]:
         options += "-e "
     if args["--device"]:
         options += "-d "
     if args["--serial"]:
-        options += "-s {} ".format(args["--serial"])
+        options += f'-s {args["--serial"]} '
     return options
 
 
-def _get_version():
+def _get_version() -> str:
     dir_of_this_script = os.path.split(__file__)[0]
     version_file_path = Path(dir_of_this_script) / _VERSION_FILE_NAME
     return Path(version_file_path).read_text(encoding="UTF-8").strip()
 
 
-def _using_python2():
+def _using_python2() -> bool:
     return sys.version_info < (3, 0)
 
 

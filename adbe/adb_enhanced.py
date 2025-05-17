@@ -12,6 +12,7 @@ import time
 from enum import Enum
 from functools import partial, wraps
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 import psutil
@@ -892,7 +893,7 @@ def _is_sqlite_database(file_path: str) -> bool:
 
 
 # Returns a fully-qualified permission group name.
-def get_permission_group(args) -> str | None:
+def get_permission_group(args: dict[str, Any]) -> str | None:
     result_map = {
         "contacts": "android.permission-group.CONTACTS",
         "phone": "android.permission-group.PHONE",
