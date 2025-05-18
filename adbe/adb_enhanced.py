@@ -9,10 +9,11 @@ import sys
 import tempfile
 import threading
 import time
+from collections.abc import Callable
 from enum import Enum
 from functools import partial, wraps
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import urlparse
 
 import psutil
@@ -92,8 +93,8 @@ SCREEN_TOGGLE = 3
 # A decorator to ensure package exists
 # Note: This decorator assumes that the decorated func gets package_name as
 # the first parameter
-def ensure_package_exists(func):
-    def func_wrapper(package_name, *args, **kwargs):
+def ensure_package_exists(func: Callable) -> Callable:
+    def func_wrapper(package_name: str, *args: Any, **kwargs: Any) -> Any:
         if not _package_exists(package_name):
             print_error_and_exit(f"Package {package_name} does not exist")
         return func(package_name, *args, **kwargs)
@@ -106,16 +107,16 @@ def _package_exists(package_name: str) -> bool:
     return return_code == 0 and response is not None and len(response.strip()) != 0
 
 
-def print_state_change_decorator(fun, title, get_state_func):
+def print_state_change_decorator(fun: Callable, title: str, get_state_func: Callable[[], str | bool | int]) -> Callable:
     # magic sauce to lift the name and doc of the function
     @wraps(fun)
-    def ret_fun(*args, **kwargs):
+    def ret_fun(*args: Any, **kwargs: Any) -> Any:
         # Get state before execution
         current_state = get_state_func()
         # Call the function
         returned_value = fun(*args, **kwargs)
         # Get state after execution
-        # sleep before getting the new value or we might get a stale value in some cases
+        # sleep before getting the new value, or we might get a stale value in some cases
         # like mobile-data on/off
         time.sleep(1)
         new_state = get_state_func()
@@ -126,7 +127,7 @@ def print_state_change_decorator(fun, title, get_state_func):
 
 # Source:
 # https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
-def handle_gfx(value) -> None:
+def handle_gfx(value: Literal["on", "off", "lines"]) -> None:
     if value == "on":
         cmd = "setprop debug.hwui.profile visual_bars"
     elif value == "off":
@@ -496,7 +497,7 @@ def print_top_activity() -> None:
         print_message(f"Activity name: {activity_name}")
 
 
-def _get_top_activity_data() -> tuple[None, None] | tuple:
+def _get_top_activity_data() -> tuple[None, None]:
     cmd = "dumpsys window windows"
     return_code, output, _ = execute_adb_shell_command2(cmd)
     if return_code != 0 and not output:
@@ -516,7 +517,7 @@ def _get_top_activity_data() -> tuple[None, None] | tuple:
     return None, None
 
 
-def dump_ui(xml_file) -> None:
+def dump_ui(xml_file: str) -> None:
     tmp_file = _create_tmp_file("dump-ui", "xml")
     cmd1 = f"uiautomator dump {tmp_file}"
     cmd2 = f"pull {tmp_file} {xml_file}"
@@ -609,7 +610,7 @@ def force_rtl(*, turn_on: bool) -> None:
     execute_adb_shell_settings_command_and_poke_activity_service(cmd)
 
 
-def dump_screenshot(filepath) -> None:
+def dump_screenshot(filepath: str) -> None:
     screenshot_file_path_on_device = _create_tmp_file("screenshot", "png")
     dump_cmd = f"screencap -p {screenshot_file_path_on_device} "
     return_code, stdout, stderr = execute_adb_shell_command2(dump_cmd)
@@ -622,7 +623,7 @@ def dump_screenshot(filepath) -> None:
     execute_adb_shell_command2(del_cmd)
 
 
-def dump_screenrecord(filepath) -> None:
+def dump_screenrecord(filepath: str) -> None:
     _error_if_min_version_less_than(19)
     api_version = get_device_android_api_version()
 
@@ -667,7 +668,7 @@ def dump_screenrecord(filepath) -> None:
         # And exit
         sys.exit(0)
 
-    def signal_handler(_sig, _frame) -> None:
+    def signal_handler(_sig: int, _frame: Any) -> None:
         # Restore the original handler for Ctrl-C
         signal.signal(signal.SIGINT, original_sigint_handler)
         _handle_recording_ended(screen_record_file_path_on_device)
@@ -800,7 +801,7 @@ def stay_awake_while_charging(*, turn_on: bool) -> None:
     execute_adb_shell_settings_command_and_poke_activity_service(cmd1)
 
 
-def input_text(text) -> None:
+def input_text(text: str) -> None:
     # Replace whitespaces to %s which gets translated by Android back to whitespaces.
     cmd = "input text {}".format(text.replace(" ", "%s"))
     return_code, _, _ = execute_adb_shell_command2(cmd)
@@ -815,7 +816,7 @@ def press_back() -> None:
         print_error_and_exit("Failed to press back")
 
 
-def open_url(url) -> None:
+def open_url(url: str) -> None:
     # Let's not do any URL encoding for now, if required, we will add that in the future.
     parsed_url = urlparse(url=url)
     if not parsed_url.scheme:
@@ -847,7 +848,7 @@ def list_permissions(*, dangerous_only_permissions: bool) -> None:
 
 
 # Creates a tmp file on Android device
-def _create_tmp_file(filename_prefix=None, filename_suffix=None) -> str | None:
+def _create_tmp_file(filename_prefix: str | None = None, filename_suffix: str | None = None) -> str | None:
     if filename_prefix is None:
         filename_prefix = "file"
     if filename_suffix is None:
@@ -882,7 +883,7 @@ def _create_tmp_file(filename_prefix=None, filename_suffix=None) -> str | None:
 
 
 # Returns true if the file_path exists on the device, false if it does not exists or is inaccessible.
-def _file_exists(file_path) -> bool:
+def _file_exists(file_path: str) -> bool:
     exists_cmd = f'"ls {file_path} 1>/dev/null 2>/dev/null && echo exists"'
     stdout = execute_file_related_adb_shell_command(exists_cmd, file_path)
     return stdout is not None and stdout.find("exists") != -1
@@ -968,7 +969,7 @@ def _get_hardcoded_permissions_for_group(permission_group: str) -> list[str]:
 
 
 # Pass the full-qualified permission group name to this method.
-def get_permissions_in_permission_group(permission_group) -> list[str] | list | None:
+def get_permissions_in_permission_group(permission_group: str) -> list[str] | list | None:
     # List permissions by group
     cmd = "pm list permissions -g"
     return_code, stdout, stderr = execute_adb_shell_command2(cmd)
@@ -1000,7 +1001,7 @@ def get_permissions_in_permission_group(permission_group) -> list[str] | list | 
 
 
 @ensure_package_exists
-def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions) -> None:
+def grant_or_revoke_runtime_permissions(package_name: str, action_grant: bool, permissions: list[str]) -> None:
     _error_if_min_version_less_than(23)
 
     app_info_dump = execute_adb_shell_command(f"dumpsys package {package_name}")
@@ -1026,7 +1027,7 @@ def grant_or_revoke_runtime_permissions(package_name, action_grant, permissions)
         print_error_and_exit(f"None of these permissions were granted to {package_name}: {permissions}")
 
 
-def _get_all_packages(pm_cmd) -> list:
+def _get_all_packages(pm_cmd: str) -> list:
     return_code, result, _ = execute_adb_shell_command2(pm_cmd)
     if return_code != 0:
         print_error_and_exit(f'Command "{pm_cmd}" failed, something is wrong')
@@ -1250,7 +1251,7 @@ def get_standby_bucket(package_name: str) -> None:
 
 
 @ensure_package_exists
-def set_standby_bucket(package_name, mode) -> None:
+def set_standby_bucket(package_name: str, mode: str) -> None:
     _error_if_min_version_less_than(28)
     cmd = f"am set-standby-bucket {package_name} {mode}"
     result = execute_adb_shell_command(cmd)
@@ -1258,7 +1259,7 @@ def set_standby_bucket(package_name, mode) -> None:
         print_error_and_exit(result)
 
 
-def calculate_standby_mode(args) -> str:
+def calculate_standby_mode(args: dict[str, Any]) -> str:
     if args["active"]:
         return "active"
     if args["working_set"]:
