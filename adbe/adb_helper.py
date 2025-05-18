@@ -109,7 +109,7 @@ def execute_adb_command2(
     return None
 
 
-def execute_adb_shell_command(adb_cmd: str, piped_into_cmd: bool | None = None, ignore_stderr: bool = False,
+def execute_adb_shell_command(adb_cmd: str, piped_into_cmd: str | None = None, ignore_stderr: bool = False,
                               device_serial: str | None = None) -> str:
     _, stdout, _ = execute_adb_command2(
         f"shell {adb_cmd}", piped_into_cmd, ignore_stderr, device_serial=device_serial)
