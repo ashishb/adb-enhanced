@@ -457,7 +457,7 @@ def _get_device_serials() -> list[str]:
             print_error(
                 f'Unlock Device "{device_serial}" and give USB debugging access to '
                 "this PC/Laptop by unlocking and reconnecting "
-                f'the device. More info about this device: "{ " ".join(device_info.split()[1:])}"\n')
+                f'the device. More info about this device: "{" ".join(device_info.split()[1:])}"\n')
         else:
             device_serials.append(device_serial)
     return device_serials
