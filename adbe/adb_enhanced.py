@@ -454,11 +454,10 @@ def _get_device_serials() -> list[str]:
             continue
         device_serial = device_info.split()[0]
         if "unauthorized" in device_info:
-            device_info = " ".join(device_info.split()[1:])
             print_error(
                 f'Unlock Device "{device_serial}" and give USB debugging access to '
                 "this PC/Laptop by unlocking and reconnecting "
-                f'the device. More info about this device: "{device_info}"\n')
+                f'the device. More info about this device: "{" ".join(device_info.split()[1:])}"\n')
         else:
             device_serials.append(device_serial)
     return device_serials
@@ -503,8 +502,7 @@ def _get_top_activity_data() -> tuple[None, None]:
     if return_code != 0 and not output:
         print_error_and_exit("Device returned no response, is it still connected?")
     for line in output.split("\n"):
-        line = line.strip()
-        regex_result = re.search(r"ActivityRecord{.* (\S+)/(\S+)", line)
+        regex_result = re.search(r"ActivityRecord{.* (\S+)/(\S+)", line.strip())
         if regex_result is None:
             continue
         app_name, activity_name = regex_result.group(1), regex_result.group(2)
@@ -1001,18 +999,20 @@ def get_permissions_in_permission_group(permission_group: str) -> list[str] | li
 
 
 @ensure_package_exists
-def grant_or_revoke_runtime_permissions(package_name: str, action_grant: bool, permissions: list[str]) -> None:
+def grant_or_revoke_runtime_permissions(package_name: str, action_type: Literal["grant", "revoke"], permissions: list[str]) -> None:
     _error_if_min_version_less_than(23)
 
     app_info_dump = execute_adb_shell_command(f"dumpsys package {package_name}")
     permissions_formatted_dump = _get_permissions_info_above_api_23(app_info_dump).split("\n")
 
-    if action_grant:
+    if action_type == "grant":
         base_cmd = f"pm grant {package_name}"
-        action_display_name = "Granting"
-    else:
+    elif action_type == "revoke":
         base_cmd = f"pm revoke {package_name}"
-        action_display_name = "Revoking"
+    else:
+        print_error_and_exit(f"Invalid action type: {action_type}")
+        return
+
     num_permissions_granted = 0
     for permission in permissions:
         if permission not in permissions_formatted_dump:
@@ -1021,7 +1021,7 @@ def grant_or_revoke_runtime_permissions(package_name: str, action_grant: bool, p
         if permission == "android.permission.POST_NOTIFICATIONS":
             _error_if_min_version_less_than(33)
         num_permissions_granted += 1
-        print_message(f"{action_display_name} {permission} permission to {package_name}")
+        print_message(f"{action_type} {permission} permission to {package_name}")
         execute_adb_shell_command(base_cmd + " " + permission)
     if num_permissions_granted == 0:
         print_error_and_exit(f"None of these permissions were granted to {package_name}: {permissions}")
@@ -1604,11 +1604,9 @@ def print_app_signature(app_name: str) -> None:
         print_verbose(f"Executing command {print_signature_cmd}")
         with subprocess.Popen(print_signature_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
             for line in ps1.stdout:
-                line = line.decode("utf-8").strip()
-                print_message(line)
+                print_message(line.decode("utf-8").strip())
             for line in ps1.stderr:
-                line = line.decode("utf-8").strip()
-                print_error(line)
+                print_error(line.decode("utf-8").strip())
 
 
 # Uses abe.jar taken from https://sourceforge.net/projects/adbextractor/
