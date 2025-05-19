@@ -317,7 +317,7 @@ def _grant_revoke_permissions(app_name: str, args: dict[str, typing.Any]) -> Non
     elif not permissions:
         print_error_and_exit(f"No permissions found in permissions group: {permission_group}")
     adb_enhanced.grant_or_revoke_runtime_permissions(
-        app_name, args["grant"], permissions)
+        app_name, action_type="grant" if args["grant"] else "revoke", permissions=permissions)
 
 
 def _perform_backup(app_name: str, backup_tar_file_path: str | None) -> None:
