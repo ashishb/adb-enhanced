@@ -2086,3 +2086,27 @@ def print_state_change_info(state_name: str, old_state: str | int | bool, new_st
         print_message(f'"{state_name}" state changed from "{old_state}" -> "{new_state}"')
     else:
         print_message(f'"{state_name}" state unchanged ({old_state})')
+
+
+def print_display_size() -> None:
+    # Ref: https://developer.android.com/training/multiscreen/screendensities
+    cmd = "shell wm density"
+    return_code, stdout, stderr = execute_adb_command2(cmd)
+    assert return_code == 0, f"Failed to get display size, stderr: {stderr}"
+    display_size = re.search(r"Physical density: (\d+)", stdout)
+    if display_size is None:
+        print_error_and_exit("Failed to get display size")
+
+    display_size = int(display_size.group(1))
+    if display_size < 120:
+        print_message("Display size is ldpi (120 dpi)")
+    elif display_size < 160:
+        print_message("Display size is mdpi (160 dpi)")
+    elif display_size < 240:
+        print_message("Display size is hdpi (240 dpi)")
+    elif display_size < 320:
+        print_message("Display size is xhdpi (320 dpi)")
+    elif display_size < 480:
+        print_message("Display size is xxhdpi (480 dpi)")
+    else:
+        print_message("Display size is xxxhdpi (640 dpi)")

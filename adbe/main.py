@@ -41,6 +41,7 @@ Usage:
     adbe [options] dark mode (on | off)
     adbe [options] debug-app (set [-w] [-p] <app_name> | clear)
     adbe [options] devices
+    adbe [options] display size
     adbe [options] (enable | disable) wireless debugging
     adbe [options] dont-keep-activities (on | off)
     adbe [options] doze (on | off)
@@ -192,6 +193,10 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
 
         # List devices
         ("devices",): adb_enhanced.handle_list_devices,
+
+        # Display size related
+        # https://developer.android.com/training/multiscreen/screendensities
+        ("display", "size"): adb_enhanced.print_display_size,
 
         # GFX
         ("gfx", "on"): lambda: adb_enhanced.handle_gfx("on"),
