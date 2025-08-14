@@ -12,6 +12,13 @@ except ImportError:
 
 
 @dataclasses.dataclass
+class CommandResult:
+    return_code: int
+    stdout: str | None
+    stderr: str | None
+
+
+@dataclasses.dataclass
 class _Settings:
     adb_prefix: str = "adb"
 
@@ -36,20 +43,33 @@ def set_adb_prefix(adb_prefix: str) -> None:
 
 
 def get_adb_shell_property(property_name: str, device_serial: str | None = None) -> str | None:
-    _, stdout, _ = execute_adb_shell_command2(f"getprop {property_name}", device_serial=device_serial)
-    return stdout
+    result = execute_adb_shell_command3(f"getprop {property_name}", device_serial=device_serial)
+    if result.return_code != 0:
+        print_error(f"Unable to get property {property_name} from device, return code: {result.return_code}")
+        return None
+
+    return result.stdout
 
 
-def execute_adb_shell_command2(
+def execute_adb_shell_command3(
         adb_cmd: str, piped_into_cmd: bool | None = None, ignore_stderr: bool = False,
-        device_serial: str | None = None) -> tuple[int, str | None, str]:
+        device_serial: str | None = None) -> CommandResult:
     return execute_adb_command2(f"shell {adb_cmd}", piped_into_cmd=piped_into_cmd,
                                 ignore_stderr=ignore_stderr, device_serial=device_serial)
 
 
-def execute_adb_command2(
+# Deprecated function, use execute_adb_shell_command3 instead
+def execute_adb_shell_command2(
         adb_cmd: str, piped_into_cmd: bool | None = None, ignore_stderr: bool = False,
         device_serial: str | None = None) -> tuple[int, str | None, str]:
+    result = execute_adb_shell_command3(
+        adb_cmd, piped_into_cmd=piped_into_cmd, ignore_stderr=ignore_stderr, device_serial=device_serial)
+    return result.return_code, result.stdout, result.stderr
+
+
+def execute_adb_command2(
+        adb_cmd: str, piped_into_cmd: bool | None = None, ignore_stderr: bool = False,
+        device_serial: str | None = None) -> CommandResult:
     """
     :param adb_cmd: command to run inside the adb shell (so, don't prefix it with "adb")
     :param piped_into_cmd: command to pipe the output of this command into
@@ -69,10 +89,12 @@ def execute_adb_command2(
     with subprocess.Popen(final_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
         stdout_data, stderr_data = ps1.communicate()
         return_code = ps1.returncode
+
     try:
         stdout_data = stdout_data.decode("utf-8")
     except UnicodeDecodeError:
         print_error("Unable to decode data as UTF-8, defaulting to printing the binary data")
+
     stderr_data = stderr_data.decode("utf-8")
 
     _check_for_adb_not_found_error(stderr_data)
@@ -82,13 +104,13 @@ def execute_adb_command2(
         print_error(stderr_data)
 
     if not stdout_data:
-        return return_code, None, stderr_data
+        return CommandResult(return_code=return_code, stdout=None, stderr=stderr_data)
 
     # stdout_data is not None
     if isinstance(stdout_data, bytes):
         print_verbose(f'Result is "{stdout_data}"')
-        return return_code, stdout_data, stderr_data
-    # str for Python 3, this used to be unicode type for python 2
+        return CommandResult(return_code=return_code, stdout=stdout_data, stderr=stderr_data)
+
     if isinstance(stdout_data, str):
         output = ""
         first_line = True
@@ -104,16 +126,18 @@ def execute_adb_command2(
             else:
                 output += "\n" + line
         print_verbose(f'Result is "{output}"')
-        return return_code, output, stderr_data
+        return CommandResult(return_code=return_code, stdout=output, stderr=stderr_data)
+
     print_error_and_exit(f"stdout_data is weird type: {type(stdout_data)}")
-    return None
+    return CommandResult(return_code=return_code, stdout=None, stderr="")
 
 
+# Deprecated function, use execute_adb_shell_command3 instead
 def execute_adb_shell_command(adb_cmd: str, piped_into_cmd: str | None = None, ignore_stderr: bool = False,
                               device_serial: str | None = None) -> str:
-    _, stdout, _ = execute_adb_command2(
+    result = execute_adb_command2(
         f"shell {adb_cmd}", piped_into_cmd, ignore_stderr, device_serial=device_serial)
-    return stdout
+    return result.stdout
 
 
 def execute_file_related_adb_shell_command(
@@ -137,19 +161,21 @@ def execute_file_related_adb_shell_command(
         print_verbose(f'Attempt {attempt_count}/{len(adb_cmds_prefix)}: "{adb_cmd_prefix}"')
         attempt_count += 1
         adb_cmd = f"{adb_cmd_prefix} {adb_shell_cmd}"
-        return_code, stdout, stderr = execute_adb_command2(
+        result = execute_adb_command2(
             adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
 
-        if stderr.find(file_not_found_message) >= 0:
+        if result.stderr.find(file_not_found_message) >= 0:
             print_error(f"File not found: {file_path}")
-            return stderr
-        if stderr.find(is_a_directory_message) >= 0:
+            return result.stderr
+        if result.stderr.find(is_a_directory_message) >= 0:
             print_error(f"{file_path} is a directory")
-            return stderr
+            return result.stderr
 
         api_version = get_device_android_api_version()
-        if api_version >= _MIN_VERSION_ABOVE_WHICH_ADB_SHELL_RETURNS_CORRECT_EXIT_CODE and return_code == 0:
-            return stdout
+        if api_version >= _MIN_VERSION_ABOVE_WHICH_ADB_SHELL_RETURNS_CORRECT_EXIT_CODE and result.return_code == 0:
+            return result.stdout
+
+        stdout = result.stdout
 
     return stdout
 

@@ -27,6 +27,7 @@ try:
         execute_adb_command2,
         execute_adb_shell_command,
         execute_adb_shell_command2,
+        execute_adb_shell_command3,
         execute_file_related_adb_shell_command,
         get_adb_shell_property,
         get_device_android_api_version,
@@ -49,6 +50,7 @@ except ModuleNotFoundError:
         execute_adb_command2,
         execute_adb_shell_command,
         execute_adb_shell_command2,
+        execute_adb_shell_command3,
         execute_file_related_adb_shell_command,
         get_adb_shell_property,
         get_device_android_api_version,
@@ -432,13 +434,12 @@ def handle_list_devices() -> None:
 
 def _get_device_serials() -> list[str]:
     cmd = "devices -l"
-    return_code, stdout, stderr = execute_adb_command2(cmd)
-    if return_code != 0:
-        print_error_and_exit(f"Failed to execute command {cmd}, error: {stderr} ")
+    result = execute_adb_command2(cmd)
+    assert result.return_code == 0, f"Failed to execute command {cmd}, error: {result.stderr}"
 
     device_serials = []
     # Skip the first line, it says "List of devices attached"
-    device_infos = stdout.split("\n")[1:]
+    device_infos = result.stdout.split("\n")[1:]
 
     if len(device_infos) == 0 or (
             len(device_infos) == 1 and len(device_infos[0]) == 0):
@@ -522,18 +523,16 @@ def dump_ui(xml_file: str) -> None:
     cmd3 = f"rm {tmp_file}"
 
     print_verbose(f"Writing UI to {tmp_file}")
-    return_code, _, stderr = execute_adb_shell_command2(cmd1)
-    if return_code != 0:
-        print_error_and_exit(f'Failed to execute "{cmd1}", stderr: "{stderr}"')
+    result = execute_adb_shell_command3(cmd1)
+    assert result.return_code == 0, f"Failed to execute command {cmd1}, error: {result.stderr}"
 
     print_verbose(f"Pulling file {xml_file}")
-    return_code, _, stderr = execute_adb_command2(cmd2)
+    result = execute_adb_command2(cmd2)
+    assert result.return_code == 0, f"Failed to execute command {cmd2}, error: {result.stderr}"
     print_verbose(f"Deleting file {tmp_file}")
-    execute_adb_shell_command2(cmd3)
-    if return_code != 0:
-        print_error_and_exit(f"Failed to fetch file {tmp_file}")
-    else:
-        print_message(f'XML UI dumped to {xml_file}, you might want to format it using "xmllint --format {xml_file}"')
+    result = execute_adb_shell_command3(cmd3)
+    assert result.return_code == 0, f"Failed to execute command {cmd3}, error: {result.stderr}"
+    print_message(f'XML UI dumped to {xml_file}, you might want to format it using "xmllint --format {xml_file}"')
 
 
 @ensure_package_exists
@@ -611,14 +610,14 @@ def force_rtl(*, turn_on: bool) -> None:
 def dump_screenshot(filepath: str) -> None:
     screenshot_file_path_on_device = _create_tmp_file("screenshot", "png")
     dump_cmd = f"screencap -p {screenshot_file_path_on_device} "
-    return_code, stdout, stderr = execute_adb_shell_command2(dump_cmd)
-    if return_code != 0:
-        print_error_and_exit(
-            f"Failed to capture the screenshot: (stdout: {stdout}, stderr: {stderr})")
+    result = execute_adb_shell_command3(dump_cmd)
+    assert result.return_code == 0, f"Failed to capture screenshot, error: {result.stderr}"
     pull_cmd = f"pull {screenshot_file_path_on_device} {filepath}"
-    execute_adb_command2(pull_cmd)
+    result = execute_adb_command2(pull_cmd)
+    assert result.return_code == 0, f"Failed to pull screenshot file, error: {result.stderr}"
     del_cmd = f"rm {screenshot_file_path_on_device}"
-    execute_adb_shell_command2(del_cmd)
+    result = execute_adb_shell_command3(del_cmd)
+    assert result.return_code == 0, f"Failed to delete screenshot file from device, error: {result.stderr}"
 
 
 def dump_screenrecord(filepath: str) -> None:
@@ -632,12 +631,10 @@ def dump_screenrecord(filepath: str) -> None:
 
     original_sigint_handler = None
 
-    def _start_recording() -> str:
+    def _start_recording(screen_record_file_path: str) -> None:
         print_message("Recording video, press Ctrl+C to end...")
-        tmp_file_path = _create_tmp_file("screenrecord", "mp4")
-        dump_cmd = f"screenrecord --verbose {tmp_file_path} "
+        dump_cmd = f"screenrecord --verbose {screen_record_file_path} "
         execute_adb_shell_command2(dump_cmd)
-        return tmp_file_path
 
     def _pull_and_delete_file_from_device(screen_record_file_path: str) -> None:
         print_message(f"Saving recording to {filepath}")
@@ -674,7 +671,8 @@ def dump_screenrecord(filepath: str) -> None:
     original_sigint_handler = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, signal_handler)
 
-    screen_record_file_path_on_device = _start_recording()
+    screen_record_file_path_on_device = _create_tmp_file("screenrecord", "mp4")
+    _start_recording(screen_record_file_path_on_device)
 
 
 def get_mobile_data_saver_state() -> str:
@@ -1388,9 +1386,9 @@ def push_file(local_file_path: str, remote_file_path: str) -> None:
     cp_cmd = f"cp {tmp_file} {remote_file_path}"
     rm_cmd = f"rm {tmp_file}"
 
-    return_code, _, stderr = execute_adb_command2(push_cmd)
-    if return_code != 0:
-        print_error_and_exit(f"Failed to push file, error: {stderr}")
+    result = execute_adb_command2(push_cmd)
+    if result.return_code != 0:
+        print_error_and_exit(f"Failed to push file, error: {result.stderr}")
         return
 
     execute_file_related_adb_shell_command(cp_cmd, remote_file_path)
@@ -1590,9 +1588,9 @@ def print_app_signature(app_name: str) -> None:
     with tempfile.NamedTemporaryFile(prefix=app_name, suffix=".apk") as tmp_apk_file:
         tmp_apk_file_name = tmp_apk_file.name
         adb_cmd = f"pull {apk_path} {tmp_apk_file_name}"
-        return_code, _, stderr = execute_adb_command2(adb_cmd)
-        if return_code != 0:
-            print_error_and_exit(f"Failed to pull file {apk_path}, stderr: {stderr}")
+        result = execute_adb_command2(adb_cmd)
+        if result.return_code != 0:
+            print_error_and_exit(f"Failed to pull file {apk_path}, stderr: {result.stderr}")
             return
 
         dir_of_this_script = os.path.split(__file__)[0]
@@ -1669,9 +1667,9 @@ def perform_app_backup(app_name: str, backup_tar_file: str) -> None:
 def perform_install(file_path: str) -> None:
     print_verbose(f"Installing {file_path}")
     # -r: replace existing application
-    return_code, _, stderr = execute_adb_command2(f"install -r {file_path}")
-    if return_code != 0:
-        print_error(f"Failed to install {file_path}, stderr: {stderr}")
+    result = execute_adb_command2(f"install -r {file_path}")
+    if result.return_code != 0:
+        print_error(f"Failed to install {file_path}, stderr: {result.stderr}")
 
 
 @ensure_package_exists
@@ -1697,23 +1695,9 @@ def perform_uninstall(app_name: str, first_user: bool) -> None:
         print_error(f"Failed to uninstall {app_name}, stderr: {stderr}")
 
 
-def _get_window_size() -> tuple[int, int]:
-    adb_cmd = "shell wm size"
-    _, result, _ = execute_adb_command2(adb_cmd)
-
-    if result is None:
-        return -1, -1
-
-    regex_data = re.search(r"size: ([0-9]+)x([0-9]+)", result)
-    if regex_data is None:
-        return -1, -1
-
-    return int(regex_data.group(1)), int(regex_data.group(2))
-
-
 def _perform_tap(x: int, y: int) -> None:
     adb_shell_cmd = f"input tap {x:d} {y:d}"
-    execute_adb_shell_command2(adb_shell_cmd)
+    execute_adb_shell_command3(adb_shell_cmd)
 
 
 # Deprecated
@@ -1771,14 +1755,14 @@ def enable_wireless_debug() -> bool:
 
     ip = matching[0]
 
-    code, _, stderr = execute_adb_command2("tcpip 5555")
-    if code != 0:
+    result = execute_adb_command2("tcpip 5555")
+    if result.return_code != 0:
         print_error_and_exit(f"Failed to switch device {ip} to wireless debug mode, "
-                             f"stderr: {stderr}")
+                             f"stderr: {result.stderr}")
 
-    code, _, stderr = execute_adb_command2(f"connect {ip}")
-    if code != 0:
-        print_error_and_exit(f"Cannot enable wireless debugging. Error: {stderr}")
+    result = execute_adb_command2(f"connect {ip}")
+    if result.return_code != 0:
+        print_error_and_exit(f"Cannot enable wireless debugging. Error: {result.stderr}")
         return False
     print_message(f"Connected via IP now you can disconnect the cable\nIP: {ip}")
     return True
@@ -1805,9 +1789,9 @@ def disable_wireless_debug() -> None:
     result = True
 
     for ip in ip_list:
-        code, _, stderr = execute_adb_command2(f"disconnect {ip}")
-        if code != 0:
-            print_error(f"Failed to disconnect {ip}: {stderr}")
+        result = execute_adb_command2(f"disconnect {ip}")
+        if result.return_code != 0:
+            print_error(f"Failed to disconnect {ip}: {result.stderr}")
             result = False
         else:
             print_message(f"Disconnected {ip}")
@@ -2090,10 +2074,10 @@ def print_state_change_info(state_name: str, old_state: str | int | bool, new_st
 
 def print_display_size() -> None:
     # Ref: https://developer.android.com/training/multiscreen/screendensities
-    cmd = "shell wm density"
-    return_code, stdout, stderr = execute_adb_command2(cmd)
-    assert return_code == 0, f"Failed to get display size, stderr: {stderr}"
-    display_size = re.search(r"Physical density: (\d+)", stdout)
+    cmd = "wm density"
+    result = execute_adb_shell_command3(cmd)
+    assert result.return_code == 0, f"Failed to get display size, stderr: {result.stderr}"
+    display_size = re.search(r"Physical density: (\d+)", result.stdout)
     if display_size is None:
         print_error_and_exit("Failed to get display size")
 
