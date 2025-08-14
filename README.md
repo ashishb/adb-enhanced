@@ -216,7 +216,10 @@ adbe [options] battery saver (on | off)
 adbe [options] cat <file_path>
 adbe [options] clear-data <app_name>
 adbe [options] dark mode (on | off)
+adbe [options] debug-app (set [-w] [-p] <app_name> | clear)
 adbe [options] devices
+adbe [options] display size
+adbe [options] display size (ldpi | mdpi | hdpi | xhdpi | xxhdpi | xxxhdpi)
 adbe [options] (enable | disable) wireless debugging
 adbe [options] dont-keep-activities (on | off)
 adbe [options] doze (on | off)

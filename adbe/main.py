@@ -42,6 +42,7 @@ Usage:
     adbe [options] debug-app (set [-w] [-p] <app_name> | clear)
     adbe [options] devices
     adbe [options] display size
+    adbe [options] display size (ldpi | mdpi | hdpi | xhdpi | xxhdpi | xxxhdpi)
     adbe [options] (enable | disable) wireless debugging
     adbe [options] dont-keep-activities (on | off)
     adbe [options] doze (on | off)
@@ -196,6 +197,12 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
 
         # Display size related
         # https://developer.android.com/training/multiscreen/screendensities
+        ("display", "size", "ldpi"): lambda: adb_enhanced.set_display_size(120),
+        ("display", "size", "mdpi"): lambda: adb_enhanced.set_display_size(160),
+        ("display", "size", "hdpi"): lambda: adb_enhanced.set_display_size(240),
+        ("display", "size", "xhdpi"): lambda: adb_enhanced.set_display_size(320),
+        ("display", "size", "xxhdpi"): lambda: adb_enhanced.set_display_size(480),
+        ("display", "size", "xxxhdpi"): lambda: adb_enhanced.set_display_size(640),
         ("display", "size"): adb_enhanced.print_display_size,
 
         # GFX

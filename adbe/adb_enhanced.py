@@ -2102,3 +2102,16 @@ def print_display_size() -> None:
         print_message("Display size is xxhdpi (480 dpi)")
     else:
         print_message("Display size is xxxhdpi (640 dpi)")
+
+
+def set_display_size(size: int) -> None:
+    """
+    Set the display size to the given value.
+    :param size: The display size in dpi.
+    """
+    cmd = f"wm density {size:d}"
+    result = execute_adb_shell_command3(cmd)
+    if result.return_code != 0:
+        print_error_and_exit(f"Failed to set display size, stderr: {result.stderr}")
+
+    print_verbose(f"Display size set to {size:d} dpi")
