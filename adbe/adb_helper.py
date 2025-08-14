@@ -52,7 +52,7 @@ def get_adb_shell_property(property_name: str, device_serial: str | None = None)
 
 
 def execute_adb_shell_command3(
-        adb_cmd: str, piped_into_cmd: bool | None = None, ignore_stderr: bool = False,
+        adb_cmd: str, piped_into_cmd: str | None = None, ignore_stderr: bool = False,
         device_serial: str | None = None) -> CommandResult:
     return execute_adb_command2(f"shell {adb_cmd}", piped_into_cmd=piped_into_cmd,
                                 ignore_stderr=ignore_stderr, device_serial=device_serial)
@@ -60,7 +60,7 @@ def execute_adb_shell_command3(
 
 # Deprecated function, use execute_adb_shell_command3 instead
 def execute_adb_shell_command2(
-        adb_cmd: str, piped_into_cmd: bool | None = None, ignore_stderr: bool = False,
+        adb_cmd: str, piped_into_cmd: str | None = None, ignore_stderr: bool = False,
         device_serial: str | None = None) -> tuple[int, str | None, str]:
     result = execute_adb_shell_command3(
         adb_cmd, piped_into_cmd=piped_into_cmd, ignore_stderr=ignore_stderr, device_serial=device_serial)
@@ -68,7 +68,7 @@ def execute_adb_shell_command2(
 
 
 def execute_adb_command2(
-        adb_cmd: str, piped_into_cmd: bool | None = None, ignore_stderr: bool = False,
+        adb_cmd: str, piped_into_cmd: str | None = None, ignore_stderr: bool = False,
         device_serial: str | None = None) -> CommandResult:
     """
     :param adb_cmd: command to run inside the adb shell (so, don't prefix it with "adb")
@@ -130,14 +130,6 @@ def execute_adb_command2(
 
     print_error_and_exit(f"stdout_data is weird type: {type(stdout_data)}")
     return CommandResult(return_code=return_code, stdout=None, stderr="")
-
-
-# Deprecated function, use execute_adb_shell_command3 instead
-def execute_adb_shell_command(adb_cmd: str, piped_into_cmd: str | None = None, ignore_stderr: bool = False,
-                              device_serial: str | None = None) -> str:
-    result = execute_adb_command2(
-        f"shell {adb_cmd}", piped_into_cmd, ignore_stderr, device_serial=device_serial)
-    return result.stdout
 
 
 def execute_file_related_adb_shell_command(

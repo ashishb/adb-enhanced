@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import dataclasses
 import os
 import re
 import secrets
@@ -26,7 +26,6 @@ try:
     from adbe.adb_helper import (
         CommandResult,
         execute_adb_command2,
-        execute_adb_shell_command,
         execute_adb_shell_command2,
         execute_adb_shell_command3,
         execute_file_related_adb_shell_command,
@@ -50,7 +49,6 @@ except ModuleNotFoundError:
     from adb_helper import (
         CommandResult,
         execute_adb_command2,
-        execute_adb_shell_command,
         execute_adb_shell_command2,
         execute_adb_shell_command3,
         execute_file_related_adb_shell_command,
@@ -142,7 +140,7 @@ def handle_gfx(value: Literal["on", "off", "lines"]) -> None:
         print_error_and_exit(f"Unexpected value for gfx {value}")
         return
 
-    execute_adb_shell_command_and_poke_activity_service(cmd)
+    _execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
@@ -172,7 +170,7 @@ def handle_overdraw(value: str) -> None:
         print_error_and_exit(f"Unexpected value for overdraw {value}")
         return
 
-    execute_adb_shell_command_and_poke_activity_service(cmd)
+    _execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
 # Perform screen rotation. Accepts four direction types - left, right, portrait, and landscape.
@@ -222,7 +220,7 @@ def get_current_rotation_direction() -> int:
 
 def handle_layout(*, turn_on: bool) -> None:
     cmd = "setprop debug.layout true" if turn_on else "setprop debug.layout false"
-    execute_adb_shell_command_and_poke_activity_service(cmd)
+    _execute_adb_shell_command_and_poke_activity_service(cmd)
 
 
 # Source: https://stackoverflow.com/questions/10506591/turning-airplane-mode-on-via-adb
@@ -491,15 +489,23 @@ def _print_device_info(device_serial: str | None = None) -> None:
         f"Serial ID: {device_serial}\nManufacturer: {manufacturer}\nModel: {model} ({display_name})\nRelease: {release}\nSDK version: {sdk}\nCPU: {abi}\n")
 
 
+@dataclasses.dataclass
+class _TopActivityData:
+    app_name: str
+    activity_name: str
+
+
 def print_top_activity() -> None:
-    app_name, activity_name = _get_top_activity_data()
+    activity_data = _get_top_activity_data()
+    app_name = activity_data.app_name
+    activity_name = activity_data.activity_name
     if app_name:
         print_message(f"Application name: {app_name}")
     if activity_name:
         print_message(f"Activity name: {activity_name}")
 
 
-def _get_top_activity_data() -> tuple[None, None]:
+def _get_top_activity_data() -> _TopActivityData | None:
     cmd = "dumpsys window windows"
     return_code, output, _ = execute_adb_shell_command2(cmd)
     if return_code != 0 and not output:
@@ -512,10 +518,10 @@ def _get_top_activity_data() -> tuple[None, None]:
         # If activity name is a shorthand then complete it.
         if activity_name.startswith("."):
             activity_name = f"{app_name}{activity_name}"
-        return app_name, activity_name
+        return _TopActivityData(app_name=app_name, activity_name=activity_name)
 
     print_error("Unable to extract activity name")
-    return None, None
+    return None
 
 
 def dump_ui(xml_file: str) -> None:
@@ -606,7 +612,7 @@ def handle_mobile_data(*, turn_on: bool) -> None:
 def force_rtl(*, turn_on: bool) -> None:
     _error_if_min_version_less_than(19)
     cmd = "put global debug.force_rtl 1" if turn_on else "put global debug.force_rtl 0"
-    execute_adb_shell_settings_command_and_poke_activity_service(cmd)
+    _execute_adb_shell_settings_command_and_poke_activity_service(cmd)
 
 
 def dump_screenshot(filepath: str) -> None:
@@ -734,7 +740,7 @@ def handle_dont_keep_activities_in_background(*, turn_on: bool) -> None:
         cmd1 = f"put global always_finish_activities {value}"
         cmd2 = "service call activity 43 i32 0"
     _execute_adb_shell_settings_command3(cmd1)
-    execute_adb_shell_command_and_poke_activity_service(cmd2)
+    _execute_adb_shell_command_and_poke_activity_service(cmd2)
 
 
 def toggle_animations(*, turn_on: bool) -> None:
@@ -795,8 +801,8 @@ def get_stay_awake_while_charging_state() -> str:
 def stay_awake_while_charging(*, turn_on: bool) -> None:
     # 1 for USB charging, 2 for AC charging, 4 for wireless charging. Add them together to get 7.
     value = 7 if turn_on else 0
-    cmd1 = f"put global stay_on_while_plugged_in {value:d}"
-    execute_adb_shell_settings_command_and_poke_activity_service(cmd1)
+    cmd = f"put global stay_on_while_plugged_in {value:d}"
+    _execute_adb_shell_settings_command_and_poke_activity_service(cmd)
 
 
 def input_text(text: str) -> None:
@@ -1002,7 +1008,7 @@ def get_permissions_in_permission_group(permission_group: str) -> list[str] | li
 def grant_or_revoke_runtime_permissions(package_name: str, action_type: Literal["grant", "revoke"], permissions: list[str]) -> None:
     _error_if_min_version_less_than(23)
 
-    app_info_dump = execute_adb_shell_command(f"dumpsys package {package_name}")
+    app_info_dump = execute_adb_shell_command3(f"dumpsys package {package_name}").stdout
     permissions_formatted_dump = _get_permissions_info_above_api_23(app_info_dump).split("\n")
 
     if action_type == "grant":
@@ -1022,7 +1028,7 @@ def grant_or_revoke_runtime_permissions(package_name: str, action_type: Literal[
             _error_if_min_version_less_than(33)
         num_permissions_granted += 1
         print_message(f"{action_type} {permission} permission to {package_name}")
-        execute_adb_shell_command(base_cmd + " " + permission)
+        execute_adb_shell_command3(base_cmd + " " + permission)
     if num_permissions_granted == 0:
         print_error_and_exit(f"None of these permissions were granted to {package_name}: {permissions}")
 
@@ -1216,7 +1222,7 @@ def _is_allow_backup_package(app_name: str) -> tuple[str | None, bool]:
 def _package_contains_flag(app_name: str, flag_regex: str) -> tuple[str | None, bool]:
     pm_cmd = f"dumpsys package {app_name}"
     grep_cmd = f"(grep -c -E '{flag_regex}' || true)"
-    app_info_dump = execute_adb_shell_command(pm_cmd, piped_into_cmd=grep_cmd)
+    app_info_dump = execute_adb_shell_command3(pm_cmd, piped_into_cmd=grep_cmd).stdout
     if app_info_dump is None or app_info_dump.strip() == "0":
         return app_name, False
     try:
@@ -1243,7 +1249,7 @@ _APP_STANDBY_BUCKETS = {
 def get_standby_bucket(package_name: str) -> None:
     _error_if_min_version_less_than(28)
     cmd = f"am get-standby-bucket {package_name}"
-    result = execute_adb_shell_command(cmd)
+    result = execute_adb_shell_command3(cmd).stdout
     if result is None:
         print_error_and_exit(_USER_PRINT_VALUE_UNKNOWN)
     print_verbose(f'App standby bucket for "{package_name}" is {_APP_STANDBY_BUCKETS.get(int(result), _USER_PRINT_VALUE_UNKNOWN)}')
@@ -1254,7 +1260,7 @@ def get_standby_bucket(package_name: str) -> None:
 def set_standby_bucket(package_name: str, mode: str) -> None:
     _error_if_min_version_less_than(28)
     cmd = f"am set-standby-bucket {package_name} {mode}"
-    result = execute_adb_shell_command(cmd)
+    result = execute_adb_shell_command3(cmd).stdout
     if result is not None:  # Expected
         print_error_and_exit(result)
 
@@ -1277,7 +1283,7 @@ def calculate_standby_mode(args: dict[str, Any]) -> str:
 def apply_or_remove_background_restriction(package_name: str, *, set_restriction: bool) -> None:
     _error_if_min_version_less_than(28)
     appops_cmd = f"cmd appops set {package_name} RUN_ANY_IN_BACKGROUND {'ignore' if set_restriction else 'allow'}"
-    execute_adb_shell_command(appops_cmd)
+    execute_adb_shell_command3(appops_cmd)
 
 
 def list_directory(file_path: str, *, long_format: bool, recursive: bool, include_hidden_files: bool) -> None:
@@ -1348,7 +1354,7 @@ def pull_file(remote_file_path: str, local_file_path: str, *, copy_ancillary: bo
         pull_cmd = f"pull {tmp_file} {local_file_path}"
         execute_adb_command2(pull_cmd)
         del_cmd = f"rm -r {tmp_file}"
-        execute_adb_shell_command(del_cmd)
+        execute_adb_shell_command3(del_cmd)
 
     if Path(local_file_path).exists():
         print_message(
@@ -1394,7 +1400,7 @@ def push_file(local_file_path: str, remote_file_path: str) -> None:
         return
 
     execute_file_related_adb_shell_command(cp_cmd, remote_file_path)
-    execute_adb_shell_command(rm_cmd)
+    execute_adb_shell_command3(rm_cmd)
 
 
 def cat_file(file_path: str) -> None:
@@ -1410,7 +1416,7 @@ def cat_file(file_path: str) -> None:
 @ensure_package_exists
 def launch_app(app_name: str) -> None:
     adb_shell_cmd = f"monkey -p {app_name} -c android.intent.category.LAUNCHER 1"
-    execute_adb_shell_command(adb_shell_cmd)
+    execute_adb_shell_command3(adb_shell_cmd)
 
 
 @ensure_package_exists
@@ -1421,7 +1427,7 @@ def stop_app(app_name: str) -> None:
         force_stop(app_name)
     else:
         adb_shell_cmd = f"am kill {app_name}"
-        execute_adb_shell_command(adb_shell_cmd)
+        execute_adb_shell_command3(adb_shell_cmd)
 
 
 def _regex_extract(regex: str, data: str) -> str | None:
@@ -1435,7 +1441,7 @@ def _regex_extract(regex: str, data: str) -> str | None:
 # compared to this.
 @ensure_package_exists
 def print_app_info(app_name: str) -> None:
-    app_info_dump = execute_adb_shell_command(f"dumpsys package {app_name}")
+    app_info_dump = execute_adb_shell_command3(f"dumpsys package {app_name}").stdout
     version_code = _regex_extract("versionCode=(\\d+)?", app_info_dump)
     version_name = _regex_extract("versionName=([\\d.]+)?", app_info_dump)
     min_sdk_version = _regex_extract("minSdk=(\\d+)?", app_info_dump)
@@ -1572,8 +1578,8 @@ def _extract_install_time_permissions_above_api_23(app_info_dump: str) -> list[s
 
 def _get_apk_path(app_name: str) -> str:
     adb_shell_cmd = f"pm path {app_name}"
-    result = execute_adb_shell_command(adb_shell_cmd)
-    return result.split(":", 2)[1]
+    result = execute_adb_shell_command3(adb_shell_cmd)
+    return result.stdout.split(":", 2)[1]
 
 
 @ensure_package_exists
@@ -1713,20 +1719,20 @@ def _execute_adb_shell_settings_command3(settings_cmd: str, device_serial: str |
     return execute_adb_shell_command3(f"settings {settings_cmd}", device_serial)
 
 
-def execute_adb_shell_settings_command_and_poke_activity_service(settings_cmd: str) -> str:
+def _execute_adb_shell_settings_command_and_poke_activity_service(settings_cmd: str) -> str:
     return_value = _execute_adb_shell_settings_command3(settings_cmd).stdout
     _poke_activity_service()
     return return_value
 
 
-def execute_adb_shell_command_and_poke_activity_service(adb_cmd: str) -> str:
-    return_value = execute_adb_shell_command(adb_cmd)
+def _execute_adb_shell_command_and_poke_activity_service(adb_cmd: str) -> str:
+    result = execute_adb_shell_command3(adb_cmd)
     _poke_activity_service()
-    return return_value
+    return result.stdout
 
 
-def _poke_activity_service() -> str:
-    return execute_adb_shell_command(get_update_activity_service_cmd())
+def _poke_activity_service() -> CommandResult:
+    return execute_adb_shell_command3(get_update_activity_service_cmd())
 
 
 def _error_if_min_version_less_than(min_acceptable_version: int, device_serial: str | None = None) -> None:
