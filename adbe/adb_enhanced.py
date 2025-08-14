@@ -24,6 +24,7 @@ try:
     # asyncio was introduced in version 3.5
     from adbe import asyncio_helper
     from adbe.adb_helper import (
+        CommandResult,
         execute_adb_command2,
         execute_adb_shell_command,
         execute_adb_shell_command2,
@@ -47,6 +48,7 @@ except ModuleNotFoundError:
     # noinspection PyUnresolvedReferences
     import asyncio_helper
     from adb_helper import (
+        CommandResult,
         execute_adb_command2,
         execute_adb_shell_command,
         execute_adb_shell_command2,
@@ -105,8 +107,8 @@ def ensure_package_exists(func: Callable) -> Callable:
 
 def _package_exists(package_name: str) -> bool:
     cmd = f"pm path {package_name}"
-    return_code, response, _ = execute_adb_shell_command2(cmd)
-    return return_code == 0 and response is not None and len(response.strip()) != 0
+    result = execute_adb_shell_command3(cmd)
+    return result.return_code == 0 and result.stdout is not None and len(result.stdout.strip()) != 0
 
 
 def print_state_change_decorator(fun: Callable, title: str, get_state_func: Callable[[], str | bool | int]) -> Callable:
@@ -178,7 +180,7 @@ def handle_overdraw(value: str) -> None:
 # https://stackoverflow.com/questions/25864385/changing-android-device-orientation-with-adb
 def handle_rotate(direction: str) -> None:
     disable_acceleration = "put system accelerometer_rotation 0"
-    execute_adb_shell_settings_command(disable_acceleration)
+    _execute_adb_shell_settings_command3(disable_acceleration)
 
     if direction == "portrait":
         new_direction = 0
@@ -201,12 +203,12 @@ def handle_rotate(direction: str) -> None:
         return
 
     cmd = f"put system user_rotation {new_direction}"
-    execute_adb_shell_settings_command(cmd)
+    _execute_adb_shell_settings_command3(cmd)
 
 
 def get_current_rotation_direction() -> int:
     cmd = "get system user_rotation"
-    direction = execute_adb_shell_settings_command(cmd)
+    direction = _execute_adb_shell_settings_command3(cmd).stdout
     print_verbose(f"Return value is {direction}")
     if not direction or direction == "null":
         return 0  # default direction is 0, vertical straight
@@ -233,14 +235,14 @@ def handle_airplane(*, turn_on: bool) -> str | None:
         # This is a protected intent which would require root to run
         # https://developer.android.com/reference/android/content/Intent.html#ACTION_AIRPLANE_MODE_CHANGED
         broadcast_change_cmd = f"su root {broadcast_change_cmd}"
-        execute_adb_shell_settings_command2(cmd)
+        _execute_adb_shell_settings_command2(cmd)
         return_code, _, _ = execute_adb_shell_command2(broadcast_change_cmd)
         if return_code != 0:
             print_error_and_exit("Failed to change airplane mode")
         return _USER_PRINT_VALUE_UNKNOWN
 
-    return_code_wifi, output_wifi, _ = execute_adb_shell_settings_command2("get global wifi_on")
-    return_code_data, output_data, _ = execute_adb_shell_settings_command2("get global mobile_data")
+    return_code_wifi, output_wifi, _ = _execute_adb_shell_settings_command2("get global wifi_on")
+    return_code_data, output_data, _ = _execute_adb_shell_settings_command2("get global mobile_data")
 
     if return_code_wifi != 0:
         print_error("Failed to get wifi state")
@@ -251,9 +253,9 @@ def handle_airplane(*, turn_on: bool) -> str | None:
         return _USER_PRINT_VALUE_UNKNOWN
 
     if turn_on:
-        return_code_wifi, _, _ = execute_adb_shell_settings_command2(f"put global adbe_wifi {output_wifi}")
-        return_code_data, _, _ = execute_adb_shell_settings_command2(f"put global adbe_data {output_data}")
-        return_code_airplane, _, _ = execute_adb_shell_settings_command2("put global airplane_mode_on 1")
+        return_code_wifi, _, _ = _execute_adb_shell_settings_command2(f"put global adbe_wifi {output_wifi}")
+        return_code_data, _, _ = _execute_adb_shell_settings_command2(f"put global adbe_data {output_data}")
+        return_code_airplane, _, _ = _execute_adb_shell_settings_command2("put global airplane_mode_on 1")
 
         if return_code_wifi != 0 or return_code_data != 0 or return_code_airplane != 0:
             print_error('Failed to put "Global" settings states. Proceeding anyway ...')
@@ -261,9 +263,9 @@ def handle_airplane(*, turn_on: bool) -> str | None:
         handle_mobile_data(turn_on=False)
         set_wifi(turn_on=False)
     else:
-        return_code_wifi, last_wifi_state, _ = execute_adb_shell_settings_command2("get global adbe_wifi")
-        return_code_data, last_data_state, _ = execute_adb_shell_settings_command2("get global adbe_data")
-        return_code_airplane, _, _ = execute_adb_shell_settings_command2("put global airplane_mode_on 0")
+        return_code_wifi, last_wifi_state, _ = _execute_adb_shell_settings_command2("get global adbe_wifi")
+        return_code_data, last_data_state, _ = _execute_adb_shell_settings_command2("get global adbe_data")
+        return_code_airplane, _, _ = _execute_adb_shell_settings_command2("put global airplane_mode_on 0")
 
         if return_code_wifi != 0 or return_code_data != 0:
             print_error('Failed to get "Global" settings states. Enabling mobile-data and Wifi ...')
@@ -286,7 +288,7 @@ def handle_airplane(*, turn_on: bool) -> str | None:
 def get_battery_saver_state() -> str:
     _error_if_min_version_less_than(19)
     cmd = "get global low_power"
-    return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
+    return_code, stdout, _ = _execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
         print_error("Failed to get battery saver state")
         return _USER_PRINT_VALUE_UNKNOWN
@@ -318,7 +320,7 @@ def handle_battery_saver(*, turn_on: bool) -> None:
         if return_code != 0:
             print_error_and_exit("Failed to put battery in discharge mode")
 
-    return_code, _, _ = execute_adb_shell_settings_command2(cmd)
+    return_code, _, _ = _execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
         print_error_and_exit("Failed to modify battery saver mode")
 
@@ -331,9 +333,9 @@ def handle_battery_level(level: int) -> None:
         print_error_and_exit(f"Battery percentage {level:d} is outside the valid range of 0 to 100")
     cmd = f"dumpsys battery set level {level:d}"
 
-    execute_adb_shell_command2(get_battery_unplug_cmd())
-    execute_adb_shell_command2(get_battery_discharging_cmd())
-    execute_adb_shell_command2(cmd)
+    execute_adb_shell_command3(get_battery_unplug_cmd())
+    execute_adb_shell_command3(get_battery_discharging_cmd())
+    execute_adb_shell_command3(cmd)
 
 
 # Source:
@@ -342,7 +344,7 @@ def handle_battery_reset() -> None:
     # The battery related commands fail silently on API 16. I am not sure about 17 and 18.
     _error_if_min_version_less_than(19)
     cmd = get_battery_reset_cmd()
-    execute_adb_shell_command2(cmd)
+    execute_adb_shell_command3(cmd)
 
 
 # https://developer.android.com/training/monitoring-device-state/doze-standby.html
@@ -353,15 +355,15 @@ def handle_doze(*, turn_on: bool) -> None:
     if turn_on:
         # Source: https://stackoverflow.com/a/42440619
         cmd = "dumpsys deviceidle force-idle"
-        execute_adb_shell_command2(get_battery_unplug_cmd())
-        execute_adb_shell_command2(get_battery_discharging_cmd())
-        execute_adb_shell_command2(enable_idle_mode_cmd)
-        execute_adb_shell_command2(cmd)
+        execute_adb_shell_command3(get_battery_unplug_cmd())
+        execute_adb_shell_command3(get_battery_discharging_cmd())
+        execute_adb_shell_command3(enable_idle_mode_cmd)
+        execute_adb_shell_command3(cmd)
     else:
         cmd = "dumpsys deviceidle unforce"
-        execute_adb_shell_command2(get_battery_reset_cmd())
-        execute_adb_shell_command2(enable_idle_mode_cmd)
-        execute_adb_shell_command2(cmd)
+        execute_adb_shell_command3(get_battery_reset_cmd())
+        execute_adb_shell_command3(enable_idle_mode_cmd)
+        execute_adb_shell_command3(cmd)
 
 
 # Source: https://github.com/dhelleberg/android-scripts/blob/master/src/devtools.groovy
@@ -474,12 +476,12 @@ def _print_device_info(device_serial: str | None = None) -> None:
     if ((not display_name or display_name == "null")
             and get_device_android_api_version(device_serial=device_serial) >= 19):
         # This works on 4.4.4 API 19 Galaxy Grand Prime
-        display_name = execute_adb_shell_settings_command("get system device_name", device_serial=device_serial)
+        display_name = _execute_adb_shell_settings_command3("get system device_name", device_serial=device_serial).stdout
 
     # Second fallback, documented to work on API 25 and above
     # Source: https://developer.android.com/reference/android/provider/Settings.Global.html#DEVICE_NAME
     if (not display_name or display_name == "null") and get_device_android_api_version(device_serial=device_serial) >= 25:
-        display_name = execute_adb_shell_settings_command("get global device_name", device_serial=device_serial)
+        display_name = _execute_adb_shell_settings_command3("get global device_name", device_serial=device_serial).stdout
 
     # ABI info
     abi = get_adb_shell_property("ro.product.cpu.abi", device_serial=device_serial)
@@ -573,7 +575,7 @@ def get_mobile_data_state() -> str:
 def get_wifi_state() -> str:
     _error_if_min_version_less_than(17)
 
-    return_code, stdout, _ = execute_adb_shell_settings_command2("get global wifi_on")
+    return_code, stdout, _ = _execute_adb_shell_settings_command2("get global wifi_on")
     if return_code != 0:
         print_error("Failed to get global Wi-Fi setting")
         return _USER_PRINT_VALUE_UNKNOWN
@@ -634,14 +636,14 @@ def dump_screenrecord(filepath: str) -> None:
     def _start_recording(screen_record_file_path: str) -> None:
         print_message("Recording video, press Ctrl+C to end...")
         dump_cmd = f"screenrecord --verbose {screen_record_file_path} "
-        execute_adb_shell_command2(dump_cmd)
+        execute_adb_shell_command3(dump_cmd)
 
     def _pull_and_delete_file_from_device(screen_record_file_path: str) -> None:
         print_message(f"Saving recording to {filepath}")
         pull_cmd = f"pull {screen_record_file_path} {filepath}"
         execute_adb_command2(pull_cmd)
         del_cmd = f"rm {screen_record_file_path}"
-        execute_adb_shell_command2(del_cmd)
+        execute_adb_shell_command3(del_cmd)
 
     def _kill_all_child_processes() -> None:
         current_process = psutil.Process()
@@ -698,7 +700,7 @@ def handle_mobile_data_saver(*, turn_on: bool) -> None:
 
 def get_dont_keep_activities_in_background_state() -> str:
     cmd = "get global always_finish_activities"
-    return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
+    return_code, stdout, _ = _execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
         print_error("Failed to get don't keep activities in the background setting")
         return _USER_PRINT_VALUE_UNKNOWN
@@ -731,7 +733,7 @@ def handle_dont_keep_activities_in_background(*, turn_on: bool) -> None:
         value = "false" if use_true_false_as_value else "0"
         cmd1 = f"put global always_finish_activities {value}"
         cmd2 = "service call activity 43 i32 0"
-    execute_adb_shell_settings_command(cmd1)
+    _execute_adb_shell_settings_command3(cmd1)
     execute_adb_shell_command_and_poke_activity_service(cmd2)
 
 
@@ -743,14 +745,14 @@ def toggle_animations(*, turn_on: bool) -> None:
     cmd2 = f"put global transition_animation_scale {value:d}"
     cmd3 = f"put global animator_duration_scale {value:d}"
 
-    execute_adb_shell_settings_command(cmd1)
-    execute_adb_shell_settings_command(cmd2)
-    execute_adb_shell_settings_command(cmd3)
+    _execute_adb_shell_settings_command3(cmd1)
+    _execute_adb_shell_settings_command3(cmd2)
+    _execute_adb_shell_settings_command3(cmd3)
 
 
 def get_show_taps_state() -> str:
     cmd = "get system show_touches"
-    return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
+    return_code, stdout, _ = _execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
         print_error('Failed to get current state of "show user taps" setting')
         return _USER_PRINT_VALUE_UNKNOWN
@@ -769,12 +771,12 @@ def toggle_show_taps(*, turn_on: bool) -> None:
 
     # Source: https://stackoverflow.com/a/32621809/434196
     cmd = f"put system show_touches {value:d}"
-    execute_adb_shell_settings_command(cmd)
+    _execute_adb_shell_settings_command3(cmd)
 
 
 def get_stay_awake_while_charging_state() -> str:
     cmd = "get global stay_on_while_plugged_in"
-    return_code, stdout, _ = execute_adb_shell_settings_command2(cmd)
+    return_code, stdout, _ = _execute_adb_shell_settings_command2(cmd)
     if return_code != 0:
         print_error('Failed to get "stay awake while plugged in" in the background setting')
         return _USER_PRINT_VALUE_UNKNOWN
@@ -1700,19 +1702,19 @@ def _perform_tap(x: int, y: int) -> None:
     execute_adb_shell_command3(adb_shell_cmd)
 
 
-# Deprecated
-def execute_adb_shell_settings_command(settings_cmd: str, device_serial: str | None = None) -> str:
-    _error_if_min_version_less_than(19, device_serial=device_serial)
-    return execute_adb_shell_command(f"settings {settings_cmd}", device_serial=device_serial)
+# Deprecated use execute_adb_shell_settings_command3
+def _execute_adb_shell_settings_command2(settings_cmd: str, device_serial: str | None = None) -> tuple[int, str | None, str]:
+    result = _execute_adb_shell_settings_command3(settings_cmd, device_serial)
+    return result.return_code, result.stdout, result.stderr
 
 
-def execute_adb_shell_settings_command2(settings_cmd: str, device_serial: str | None = None) -> tuple[int, str | None, str]:
+def _execute_adb_shell_settings_command3(settings_cmd: str, device_serial: str | None = None) -> CommandResult:
     _error_if_min_version_less_than(19)
-    return execute_adb_shell_command2(f"settings {settings_cmd}", device_serial)
+    return execute_adb_shell_command3(f"settings {settings_cmd}", device_serial)
 
 
 def execute_adb_shell_settings_command_and_poke_activity_service(settings_cmd: str) -> str:
-    return_value = execute_adb_shell_settings_command(settings_cmd)
+    return_value = _execute_adb_shell_settings_command3(settings_cmd).stdout
     _poke_activity_service()
     return return_value
 
@@ -1802,30 +1804,30 @@ def disable_wireless_debug() -> None:
 
 def switch_screen(switch_type: int) -> str | None:
     if switch_type == SCREEN_TOGGLE:
-        c, o, e = toggle_screen()
+        result = toggle_screen()
 
-        if c != 0:
-            print_error_and_exit(f"Something gone wrong on screen control operation. Error: {e}")
-        return o
+        if result.return_code != 0:
+            print_error_and_exit(f"Something gone wrong on screen control operation. Error: {result.stderr}")
+        return result.stdout
 
-    c, o, e = execute_adb_shell_command2("dumpsys display")
-    if c != 0:
-        print_error_and_exit(f"Something gone wrong on screen control operation. Error: {e}")
+    result = execute_adb_shell_command3("dumpsys display")
+    if result.return_code != 0:
+        print_error_and_exit(f"Something gone wrong on screen control operation. Error: {result.stderr}")
 
-    state = re.findall(r"^\s*mScreenState=(\w*)$", o, re.MULTILINE)[0]
+    state = re.findall(r"^\s*mScreenState=(\w*)$", result.stdout, re.MULTILINE)[0]
 
     if (state == "ON" and switch_type == SCREEN_OFF) or \
             (state in {"OFF", "DOZE"} and switch_type == SCREEN_ON):
-        c, o, e = toggle_screen()
-        if c != 0:
-            print_error_and_exit(f"Something gone wrong on screen control operation. Error: {e}")
+        result = toggle_screen()
+        if result.return_code != 0:
+            print_error_and_exit(f"Something gone wrong on screen control operation. Error: {result.stderr}")
 
-    return o
+    return result.stdout
 
 
 def get_dark_mode() -> str:
     _error_if_min_version_less_than(_MIN_API_FOR_DARK_MODE)
-    return_code, stdout, stderr = execute_adb_shell_settings_command2("get secure ui_night_mode")
+    return_code, stdout, stderr = _execute_adb_shell_settings_command2("get secure ui_night_mode")
     if return_code != 0:
         print_error(f"Failed to get current UI mode: {stderr}")
         return _USER_PRINT_VALUE_UNKNOWN
@@ -1852,12 +1854,12 @@ def set_dark_mode(*, force: bool) -> None:
 
     if force:
         # Ref: https://twitter.com/petedoyle_/status/1502008461080490006
-        execute_adb_shell_command2("cmd uimode night yes")
+        execute_adb_shell_command3("cmd uimode night yes")
         # There are reports of the following command, it didn't work for me
         # even on a rooted device when ran as a super-user
         # execute_adb_shell_command2('setprop persist.hwui.force_dark true')
     else:
-        execute_adb_shell_command2("cmd uimode night no")
+        execute_adb_shell_command3("cmd uimode night no")
 
 
 def print_notifications() -> None:
@@ -1927,7 +1929,7 @@ def print_history_alarms(output_dump_alarm: str, padding: int) -> None:
             print(f"{padding * 2}history: {history}")
 
 
-def print_top_alarms(output_dump_alarm: str, padding: int) -> None:
+def print_top_alarms(output_dump_alarm: str, padding: str) -> None:
     print("Top Alarms:")
     pattern_top_alarm = re.compile(r"(?<=Top Alarms:\n).*?(?=Alarm Stats:)",
                                    re.DOTALL)
@@ -2001,9 +2003,9 @@ def alarm_manager(param: AlarmEnum) -> None:
     api_version = get_device_android_api_version()
     err_msg_api = "Your Android version (API 28 and bellow) does not support listing pending alarm"
 
-    c, o, e = execute_adb_shell_command2(cmd)
-    if c != 0:
-        print_error_and_exit(f"Something gone wrong on dumping alarms. Error: {e}")
+    result = execute_adb_shell_command3(cmd)
+    if result.return_code != 0:
+        print_error_and_exit(f"Something gone wrong on dumping alarms. Error: {result.stderr}")
         return
 
     if not isinstance(param, AlarmEnum):
@@ -2017,17 +2019,17 @@ def alarm_manager(param: AlarmEnum) -> None:
         padding = "\t"
 
     if param == AlarmEnum.TOP or run_all == 1:
-        print_top_alarms(o, padding)
+        print_top_alarms(result.stdout, padding)
 
     if param == AlarmEnum.PENDING or run_all == 1:
         if api_version > 28:
-            print_pending_alarms(o, padding)
+            print_pending_alarms(result.stdout, padding)
         else:
             print_error(err_msg_api)
 
     if param == AlarmEnum.HISTORY or run_all == 1:
         if api_version > 28:
-            print_history_alarms(o, padding)
+            print_history_alarms(result.stdout, padding)
         else:
             print_error(err_msg_api)
 
@@ -2035,7 +2037,7 @@ def alarm_manager(param: AlarmEnum) -> None:
 def toggle_location(turn_on: bool) -> None:
     _error_if_min_version_less_than(_MIN_API_FOR_LOCATION)
     cmd = "put secure location_mode 3" if turn_on else "put secure location_mode 0"
-    execute_adb_shell_settings_command(cmd)
+    _execute_adb_shell_settings_command3(cmd)
 
 
 @ensure_package_exists
@@ -2046,12 +2048,12 @@ def set_debug_app(app_name: str, wait_for_debugger: bool, persistent: bool) -> N
     if persistent:
         cmd += " --persistent"
     cmd += f" {app_name}"
-    execute_adb_shell_command2(cmd)
+    execute_adb_shell_command3(cmd)
 
 
 def clear_debug_app() -> None:
     cmd = "am clear-debug-app"
-    execute_adb_shell_command2(cmd)
+    execute_adb_shell_command3(cmd)
 
 
 # This permissions group seems to have been removed in API 29 and beyond.

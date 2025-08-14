@@ -251,8 +251,8 @@ def _check_for_device_not_found_error(stderr_data: str) -> None:
             print_error_and_exit(line)
 
 
-def toggle_screen() -> tuple[int, str | None, str]:
-    return execute_adb_shell_command2("input keyevent KEYCODE_POWER")
+def toggle_screen() -> CommandResult:
+    return execute_adb_shell_command3("input keyevent KEYCODE_POWER")
 
 
 def set_device_id(device_id: str) -> None:
