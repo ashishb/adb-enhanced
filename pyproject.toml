@@ -9,7 +9,7 @@ classifiers=[
     "Operating System :: Android",
 ]
 keywords=["Android ADB developer"]
-version = "2.6.0"
+version = "2.7.0"  # For now, this is duplicated in adbe/version.txt as well
 description = "ADB-Enhanced is a Swiss army knife for Android testing and development"
 readme = "README.md"
 license = "Apache-2.0"
