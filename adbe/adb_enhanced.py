@@ -123,7 +123,7 @@ def print_state_change_decorator(fun: Callable, title: str, get_state_func: Call
         # like mobile-data on/off
         time.sleep(1)
         new_state = get_state_func()
-        print_state_change_info(title, current_state, new_state)
+        print_state_change_info(title, old_state=current_state, new_state=new_state)
         return returned_value
     return ret_fun
 
@@ -1299,7 +1299,7 @@ def list_directory(file_path: str, *, long_format: bool, recursive: bool, includ
     print_message(execute_file_related_adb_shell_command(cmd, file_path))
 
 
-def delete_file(file_path: str, force: bool, recursive: bool) -> None:
+def delete_file(file_path: str, *, force: bool, recursive: bool) -> None:
     cmd_prefix = "rm"
     if force:
         cmd_prefix += " -f"
@@ -1312,7 +1312,7 @@ def delete_file(file_path: str, force: bool, recursive: bool) -> None:
 # Limitation: This command will only do run-as for the src file so, if a file is being copied from pkg1 to pkg2
 # on a non-rooted device with both pkg1 and pkg2 being debuggable, this will fail. This can be improved by
 # first copying the file to /data/local/tmp but as of now, I don't think that's required.
-def move_file(src_path: str, dest_path: str, force: bool) -> None:
+def move_file(src_path: str, dest_path: str, *, force: bool) -> None:
     cmd_prefix = "mv"
     if force:
         cmd_prefix += "-f"
@@ -1703,7 +1703,7 @@ def _perform_xapk_install(file_path: str) -> None:
 
 
 @ensure_package_exists
-def perform_uninstall(app_name: str, first_user: bool) -> None:
+def perform_uninstall(app_name: str, *, first_user: bool) -> None:
     print_verbose(f"Uninstalling {app_name}")
     cmd = ""
     if first_user:
@@ -2062,14 +2062,14 @@ def alarm_manager(param: AlarmEnum) -> None:
             print_error(err_msg_api)
 
 
-def toggle_location(turn_on: bool) -> None:
+def toggle_location(*, turn_on: bool) -> None:
     _error_if_min_version_less_than(_MIN_API_FOR_LOCATION)
     cmd = "put secure location_mode 3" if turn_on else "put secure location_mode 0"
     _execute_adb_shell_settings_command3(cmd)
 
 
 @ensure_package_exists
-def set_debug_app(app_name: str, wait_for_debugger: bool, persistent: bool) -> None:
+def set_debug_app(app_name: str, *, wait_for_debugger: bool, persistent: bool) -> None:
     cmd = "am set-debug-app"
     if wait_for_debugger:
         cmd += " -w"
@@ -2095,7 +2095,7 @@ def is_permission_group_unavailable_after_api_29(permission_group: str) -> bool:
     }
 
 
-def print_state_change_info(state_name: str, old_state: str | int | bool, new_state: str | int | bool) -> None:
+def print_state_change_info(state_name: str, *, old_state: str | int | bool, new_state: str | int | bool) -> None:
     if old_state != new_state:
         print_message(f'"{state_name}" state changed from "{old_state}" -> "{new_state}"')
     else:
