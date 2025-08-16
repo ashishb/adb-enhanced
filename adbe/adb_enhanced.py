@@ -1694,7 +1694,7 @@ def _perform_xapk_install(file_path: str) -> None:
     # Unzip the xapk file
     with tempfile.TemporaryDirectory() as temp_dir:
         print_verbose(f"Unzipping {file_path} to {temp_dir}")
-        with zipfile.ZipFile(file_path, 'r') as zip_ref:
+        with zipfile.ZipFile(file_path, "r") as zip_ref:
             zip_ref.extractall(temp_dir)
 
         result = execute_adb_command2(f"install-multiple -r {temp_dir}/*.apk")

@@ -15,8 +15,8 @@ readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 dependencies = [
-    "docopt>=0.6.2",
-    "psutil>=7.0.0",
+    "docopt==0.6.2",
+    "psutil==7.0.0",
 ]
 
 [project.scripts]
@@ -24,20 +24,93 @@ adbe = "adbe.main:main"
 
 [dependency-groups]
 dev = [
-    "autoflake>=2.3.1",
-    "autopep8>=2.3.2",
-    "flake8>=7.2.0",
-    "pylint>=3.3.6",
-    "pytest>=8.3.5",
-    "ruff>=0.11.4",
-    "setuptools>=78.1.0",
-    "types-docopt>=0.6.11.20241107",
-    "types-psutil>=7.0.0.20250401",
-    "twine>=6.1.0",
-    "wheel>=0.45.1",
+    "pytest==8.3.5",
+    "ruff==0.11.4",
+    "setuptools==78.1.0",
+    "types-docopt==0.6.11.20241107",
+    "types-psutil==7.0.0.20250401",
+    "twine==6.1.0",
+    "wheel==0.45.1",
 ]
 
+[tool.ruff]
+# Same as Black.
+line-length = 170
+
+
 [tool.ruff.lint]
-extend-select = [
-    "I",     # https://docs.astral.sh/ruff/rules/#isort-i
+# Enable the pycodestyle (`E`) and Pyflakes (`F`) rules by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = ["C", "W", "E", "F"]
+ignore = [
+    "ANN401",  # https://docs.astral.sh/ruff/rules/any-type/ is not avoidable
+    "PLR2004",  # https://docs.astral.sh/ruff/rules/magic-value-comparison/ - too much work to fix this
+    "S101",  # False positive in test code
+    "T201",  # https://docs.astral.sh/ruff/rules/print/ is unavoidable for a CLI tool
+
+    # subprocess is required for CLI
+    "S105",  # false positive in this case
+    "S404",  # https://docs.astral.sh/ruff/rules/suspicious-subprocess-import/
+    "S602",  # https://docs.astral.sh/ruff/rules/subprocess-popen-with-shell-equals-true/
+    "S607",  # https://docs.astral.sh/ruff/rules/start-process-with-partial-path/ is not a concern
+
 ]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+per-file-ignores = { }
+
+extend-select = [
+    "A",     # https://docs.astral.sh/ruff/rules/#flake8-builtins-a
+    "ANN",   # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann - eventually enable this
+    "ARG",   # https://docs.astral.sh/ruff/rules/#flake8-unused-arguments-arg
+    "ASYNC", # https://docs.astral.sh/ruff/rules/#flake8-async-async
+    "B",     # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
+    "C4",    # https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+    "C90",   # https://docs.astral.sh/ruff/rules/#mccabe-c90
+    "COM",   # https://docs.astral.sh/ruff/rules/#flake8-commas-com
+    "DTZ",   # https://docs.astral.sh/ruff/rules/#flake8-datetimez-dtz
+    "E",     # https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
+    "EXE",   # https://docs.astral.sh/ruff/rules/#flake8-executable-exe
+    "F",     # https://docs.astral.sh/ruff/rules/#pyflakes-f
+    "FAST",  # https://docs.astral.sh/ruff/rules/#fastapi-fast
+#    "FBT",   # https://docs.astral.sh/ruff/rules/#flake8-boolean-trap-fbt - eventually enable this
+    "FLY",   # https://docs.astral.sh/ruff/rules/#flynt-fly
+    "FURB",  # https://docs.astral.sh/ruff/rules/#refurb-furb
+    "G",     # https://docs.astral.sh/ruff/rules/#flake8-logging-format-g
+    "I",     # https://docs.astral.sh/ruff/rules/#isort-i
+    "ICN",   # https://docs.astral.sh/ruff/rules/#flake8-import-conventions-icn
+    "INP",   # https://docs.astral.sh/ruff/rules/#flake8-no-pep420-inp
+    "ISC",   # https://docs.astral.sh/ruff/rules/#flake8-implicit-str-concat-isc
+    "LOG",   # https://docs.astral.sh/ruff/rules/#flake8-logging-log
+    "N",    # https://docs.astral.sh/ruff/rules/#pep8-naming-n
+    "NPY",   # https://docs.astral.sh/ruff/rules/#numpy-specific-rules-npy
+    "PD",    # https://docs.astral.sh/ruff/rules/#pandas-vet-pd
+    "PERF",  # https://docs.astral.sh/ruff/rules/#perflint-perf
+    "PIE",   # https://docs.astral.sh/ruff/rules/#flake8-pie-pie
+#    "PL",    # https://docs.astral.sh/ruff/rules/#pylint-pl - eventually enable this
+    "PT",    # https://docs.astral.sh/ruff/rules/#flake8-pytest-style-pt
+    "PTH",   # https://docs.astral.sh/ruff/rules/#flake8-use-pathlib-pth
+    "PYI",   # https://docs.astral.sh/ruff/rules/#flake8-pyi-pyi
+    "Q",     # https://docs.astral.sh/ruff/rules/#flake8-quotes-q
+    "RET",   # https://docs.astral.sh/ruff/rules/#flake8-return-ret
+    "RSE",   # https://docs.astral.sh/ruff/rules/#flake8-raise-rse
+    "RUF",   # https://docs.astral.sh/ruff/rules/#ruff-specific-rules-ruf
+    "S",     # https://docs.astral.sh/ruff/rules/#flake8-bandit-s
+    "SIM",  # https://docs.astral.sh/ruff/rules/#flake8-simplify-sim
+    "SLF",  # https://docs.astral.sh/ruff/rules/#flake8-self-slf
+    "SLOT",  # https://docs.astral.sh/ruff/rules/#flake8-slots-slot
+    "T10",   # https://docs.astral.sh/ruff/rules/#flake8-debugger-t10
+    "T20",   # https://docs.astral.sh/ruff/rules/#flake8-print-t20
+    "UP",    # https://docs.astral.sh/ruff/rules/#pyupgrade-up
+    "W",     # https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true  # Optional: combine 'as' imports on a single line
+
+[tool.ruff.lint.mccabe]
+# Flag errors (`C901`) whenever the complexity level exceeds 12
+max-complexity = 12
