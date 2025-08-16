@@ -213,7 +213,7 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         # Apk install
         ("install",): lambda: adb_enhanced.perform_install(args["<file_path>"]),
         # Apk uninstall
-        ("uninstall",): lambda: adb_enhanced.perform_uninstall(app_name, args["--first-user"]),
+        ("uninstall",): lambda: adb_enhanced.perform_uninstall(app_name, is_first_user=args["--first-user"]),
         # Clear data
         ("clear-data",): lambda: adb_enhanced.clear_disk_data(app_name),
 
@@ -263,8 +263,8 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         ("rtl", "off"): lambda: adb_enhanced.force_rtl(turn_on=False),
 
         # Files related
-        ("mv",): lambda: adb_enhanced.move_file(args["<src_path>"], args["<dest_path>"], args["-f"]),
-        ("rm",): lambda: adb_enhanced.delete_file(args["<file_path>"], args["-f"], args["-R"] or args["-r"]),
+        ("mv",): lambda: adb_enhanced.move_file(args["<src_path>"], args["<dest_path>"], force=args["-f"]),
+        ("rm",): lambda: adb_enhanced.delete_file(args["<file_path>"], force=args["-f"], recursive=args["-R"] or args["-r"]),
         # Always include hidden files, -a is left for backward-compatibility but is a no-op now.
         ("ls",): lambda: adb_enhanced.list_directory(
             args["<file_path>"], long_format=args["-l"], recursive=args["-R"] or args["-r"],
@@ -313,7 +313,8 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         ("screenrecord",): lambda: adb_enhanced.dump_screenrecord(args["<filename.mp4>"]),
 
         # Debug app
-        ("debug-app", "set"): lambda: adb_enhanced.set_debug_app(args["<app_name>"], args["-w"], args["-p"]),
+        ("debug-app", "set"): lambda: adb_enhanced.set_debug_app(
+            args["<app_name>"], wait_for_debugger=args["-w"], persistent=args["-p"]),
         ("debug-app", "clear"): lambda: adb_enhanced.clear_debug_app,
     }
 
