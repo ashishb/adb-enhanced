@@ -9,6 +9,7 @@ import sys
 import tempfile
 import threading
 import time
+import zipfile
 from collections.abc import Callable
 from enum import Enum
 from functools import partial, wraps
@@ -1673,11 +1674,32 @@ def perform_app_backup(app_name: str, backup_tar_file: str) -> None:
 
 
 def perform_install(file_path: str) -> None:
+    if not Path(file_path).exists():
+        print_error_and_exit(f"File {file_path} does not exist")
+
+    if file_path.endswith(".xapk"):
+        _perform_xapk_install(file_path)
+        return
+
     print_verbose(f"Installing {file_path}")
     # -r: replace existing application
     result = execute_adb_command2(f"install -r {file_path}")
     if result.return_code != 0:
         print_error(f"Failed to install {file_path}, stderr: {result.stderr}")
+
+
+# Note this does not handle the obb files, which are deprecated
+# https://android-developers.googleblog.com/2020/11/new-android-app-bundle-and-target-api.html
+def _perform_xapk_install(file_path: str) -> None:
+    # Unzip the xapk file
+    with tempfile.TemporaryDirectory() as temp_dir:
+        print_verbose(f"Unzipping {file_path} to {temp_dir}")
+        with zipfile.ZipFile(file_path, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir)
+
+        result = execute_adb_command2(f"install-multiple -r {temp_dir}/*.apk")
+        if result.return_code != 0:
+            print_error_and_exit(f"Failed to install xapk {file_path}, stderr: {result.stderr}")
 
 
 @ensure_package_exists
