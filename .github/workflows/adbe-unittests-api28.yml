@@ -19,7 +19,7 @@ permissions:
 jobs:
   testOnApi28:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     strategy:
       matrix:
