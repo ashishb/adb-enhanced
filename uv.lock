@@ -4,7 +4,7 @@ requires-python = ">=3.10"
 
 [[package]]
 name = "adb-enhanced"
-version = "2.7.0"
+version = "2.7.1"
 source = { virtual = "." }
 dependencies = [
     { name = "docopt" },
