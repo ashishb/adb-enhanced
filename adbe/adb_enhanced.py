@@ -814,11 +814,21 @@ def input_text(text: str) -> None:
         print_error_and_exit(f'Failed to input text "{text}"')
 
 
+# https://developer.android.com/reference/android/view/KeyEvent#KEYCODE_BACK
 def press_back() -> None:
-    cmd = "input keyevent 4"
+    press_key("KEYCODE_BACK")
+
+
+# Ref: https://developer.android.com/reference/android/view/KeyEvent#KEYCODE_MEDIA_NEXT
+def press_media_next() -> None:
+    press_key("KEYCODE_MEDIA_NEXT")
+
+
+def press_key(keycode: str | int) -> None:
+    cmd = f"input keyevent {keycode}"
     return_code, _, _ = execute_adb_shell_command2(cmd)
     if return_code != 0:
-        print_error_and_exit("Failed to press back")
+        print_error_and_exit(f"Failed to press {keycode}")
 
 
 def open_url(url: str) -> None:

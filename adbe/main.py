@@ -65,6 +65,7 @@ Usage:
     adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | notifications | phone | sensors | sms | storage)
     adbe [options] permissions list (all | dangerous)
     adbe [options] press back
+    adbe [options] press media (next | previous | play | pause)
     adbe [options] pull [-a] <file_path_on_android>
     adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
     adbe [options] push <file_path_on_machine> <file_path_on_android>
@@ -177,7 +178,13 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         ("apps", "list", "backup-enabled"): adb_enhanced.print_allow_backup_apps,
 
         # Input-related
-        ("back",): adb_enhanced.press_back,
+        # Ref: https://developer.android.com/reference/android/view/KeyEvent#KEYCODE_BACK
+        ("press", "back"): lambda: adb_enhanced.press_key("KEYCODE_BACK"),
+        # Ref: https://developer.android.com/reference/android/view/KeyEvent#KEYCODE_MEDIA_NEXT
+        ("press", "media", "next"): lambda: adb_enhanced.press_key("KEYCODE_MEDIA_NEXT"),
+        ("press", "media", "previous"): lambda: adb_enhanced.press_key("KEYCODE_MEDIA_PREVIOUS"),
+        ("press", "media", "play"): lambda: adb_enhanced.press_key("KEYCODE_MEDIA_PLAY"),
+        ("press", "media", "pause"): lambda: adb_enhanced.press_key("KEYCODE_MEDIA_PAUSE"),
         ("input-text",): lambda: adb_enhanced.input_text(args["<text>"]),
         ("open-url",): lambda: adb_enhanced.open_url(args["<url>"]),
 
