@@ -242,6 +242,7 @@ adbe [options] permission-groups list all
 adbe [options] permissions (grant | revoke) <app_name> (calendar | camera | contacts | location | microphone | notifications | phone | sensors | sms | storage)
 adbe [options] permissions list (all | dangerous)
 adbe [options] press back
+adbe [options] press media (next | previous | play | pause)
 adbe [options] pull [-a] <file_path_on_android>
 adbe [options] pull [-a] <file_path_on_android> <file_path_on_machine>
 adbe [options] push <file_path_on_machine> <file_path_on_android>
