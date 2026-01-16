@@ -1426,7 +1426,9 @@ def cat_file(file_path: str) -> None:
 # Source: https://stackoverflow.com/a/25398877
 @ensure_package_exists
 def launch_app(app_name: str) -> None:
-    adb_shell_cmd = f"monkey -p {app_name} -c android.intent.category.LAUNCHER 1"
+    # `--pct-syskeys 0` is needed on devices without physical keys.
+    # See https://github.com/ARM-software/lisa/pull/408 for details.
+    adb_shell_cmd = f"monkey --pct-syskeys 0 -p {app_name} -c android.intent.category.LAUNCHER 1"
     execute_adb_shell_command3(adb_shell_cmd)
 
 
