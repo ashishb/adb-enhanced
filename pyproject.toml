@@ -16,7 +16,7 @@ license = "Apache-2.0"
 requires-python = ">=3.10"
 dependencies = [
     "docopt==0.6.2",
-    "psutil==7.0.0",
+    "psutil==7.2.1",
 ]
 
 [project.scripts]
@@ -24,12 +24,12 @@ adbe = "adbe.main:main"
 
 [dependency-groups]
 dev = [
-    "pytest==8.3.5",
-    "ruff==0.11.4",
-    "setuptools==78.1.0",
+    "pytest==9.0.2",
+    "ruff==0.14.13",
+    "setuptools==80.9.0",
+    "twine==6.2.0",
     "types-docopt==0.6.11.20241107",
-    "types-psutil==7.0.0.20250401",
-    "twine==6.1.0",
+    "types-psutil==7.2.1.20260116",
     "wheel==0.45.1",
 ]
 
