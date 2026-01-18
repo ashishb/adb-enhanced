@@ -148,10 +148,8 @@ def execute_file_related_adb_shell_command(
     adb_cmds_prefix.append("shell")
 
     stdout = None
-    attempt_count = 1
-    for adb_cmd_prefix in adb_cmds_prefix:
-        print_verbose(f'Attempt {attempt_count}/{len(adb_cmds_prefix)}: "{adb_cmd_prefix}"')
-        attempt_count += 1
+    for i, adb_cmd_prefix in enumerate(adb_cmds_prefix):
+        print_verbose(f'Attempt {i}/{len(adb_cmds_prefix)}: "{adb_cmd_prefix}"')
         adb_cmd = f"{adb_cmd_prefix} {adb_shell_cmd}"
         result = execute_adb_command2(
             adb_cmd, piped_into_cmd, ignore_stderr, device_serial=device_serial)
