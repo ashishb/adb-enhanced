@@ -26,7 +26,7 @@ adbe = "adbe.main:main"
 dev = [
     "pytest==9.0.2",
     "ruff==0.14.13",
-    "setuptools==80.9.0",
+    "setuptools==80.10.1",
     "twine==6.2.0",
     "types-docopt==0.6.11.20241107",
     "types-psutil==7.2.1.20260116",
