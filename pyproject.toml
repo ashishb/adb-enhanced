@@ -29,7 +29,7 @@ dev = [
     "setuptools==82.0.1",
     "twine==6.2.0",
     "types-docopt==0.6.11.20241107",
-    "types-psutil==7.2.2.20260130",
+    "types-psutil==7.2.2.20260402",
     "wheel==0.46.3",
 ]
 
