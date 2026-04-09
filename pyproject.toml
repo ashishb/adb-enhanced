@@ -25,7 +25,7 @@ adbe = "adbe.main:main"
 [dependency-groups]
 dev = [
     "pytest==9.0.2",
-    "ruff==0.15.8",
+    "ruff==0.15.10",
     "setuptools==82.0.1",
     "twine==6.2.0",
     "types-docopt==0.6.11.20241107",
