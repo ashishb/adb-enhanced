@@ -33,10 +33,12 @@ def print_error(error_string: str) -> None:
 
 
 def print_verbose(message: str) -> None:
-    if __settings.verbose and _is_interactive_terminal():
+    if not __settings.verbose:
+        return
+    if _is_interactive_terminal():
         print(f"{BashColors.WARNING}{message}{BashColors.ENDC}")
-    else:
-        print(message)
+        return
+    print(message)
 
 
 @functools.lru_cache
