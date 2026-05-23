@@ -1,4 +1,4 @@
-# ADB Enhanced [![Downloads](https://static.pepy.tech/badge/adb-enhanced)](https://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced)
+# ADB Enhanced [![Downloads](https://static.pepy.tech/badge/adb-enhanced)](https://pepy.tech/project/adb-enhanced) [![PyPI version](https://badge.fury.io/py/adb-enhanced.svg)](https://badge.fury.io/py/adb-enhanced) [![Star History Rank](https://api.star-history.com/badge?repo=ashishb/adb-enhanced&theme=dark)](https://www.star-history.com/ashishb/adb-enhanced)
 
 ![Logo](docs/logo.png)
 
