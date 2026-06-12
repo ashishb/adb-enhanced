@@ -1744,13 +1744,13 @@ def _perform_tap(x: int, y: int) -> None:
 
 # Deprecated use execute_adb_shell_settings_command3
 def _execute_adb_shell_settings_command2(settings_cmd: str, device_serial: str | None = None) -> tuple[int, str | None, str]:
-    result = _execute_adb_shell_settings_command3(settings_cmd, device_serial)
+    result = _execute_adb_shell_settings_command3(settings_cmd, device_serial=device_serial)
     return result.return_code, result.stdout, result.stderr
 
 
 def _execute_adb_shell_settings_command3(settings_cmd: str, device_serial: str | None = None) -> CommandResult:
-    _error_if_min_version_less_than(19)
-    return execute_adb_shell_command3(f"settings {settings_cmd}", device_serial)
+    _error_if_min_version_less_than(19, device_serial=device_serial)
+    return execute_adb_shell_command3(f"settings {settings_cmd}", device_serial=device_serial)
 
 
 def _execute_adb_shell_settings_command_and_poke_activity_service(settings_cmd: str) -> str:
