@@ -55,7 +55,7 @@ def test_binary(testpythoninstallation: bool) -> None:
 
 
 def test_rotate() -> None:
-    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
+    check = _assert_for_sdk(_SETTINGS_CMD_VERSION)
 
     check("rotate landscape")
     check("rotate portrait")
@@ -85,7 +85,7 @@ def test_layout() -> None:
 
 
 def test_airplane() -> None:
-    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
+    check = _assert_for_sdk(_SETTINGS_CMD_VERSION)
 
     check("airplane on")
     check("airplane off")
@@ -95,7 +95,7 @@ def test_battery_sub_cmds() -> None:
     _assert_fail("battery level -1")
     _assert_fail("battery level 104")
 
-    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
+    check = _assert_for_sdk(_SETTINGS_CMD_VERSION)
 
     check("battery level 10")
     check("battery saver on")
@@ -104,14 +104,14 @@ def test_battery_sub_cmds() -> None:
 
 
 def test_dark_mode() -> None:
-    check = _assert_success if _get_device_sdk_version() >= _DARK_MODE_ANDROID_VERSION else _assert_fail
+    check = _assert_for_sdk(_DARK_MODE_ANDROID_VERSION)
 
     check("dark mode on")
     check("dark mode off")
 
 
 def test_doze() -> None:
-    check = _assert_success if _get_device_sdk_version() >= _DOZE_MODE_ANDROID_VERSION else _assert_fail
+    check = _assert_for_sdk(_DOZE_MODE_ANDROID_VERSION)
 
     check("doze on")
     check("doze off")
@@ -125,14 +125,14 @@ def test_mobile_data() -> None:
 
 
 def test_rtl() -> None:
-    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
+    check = _assert_for_sdk(_SETTINGS_CMD_VERSION)
 
     check("rtl on")
     check("rtl off")
 
 
 def test_animations() -> None:
-    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
+    check = _assert_for_sdk(_SETTINGS_CMD_VERSION)
 
     check("animations on")
     check("animations off")
@@ -168,8 +168,8 @@ def test_permissions_grant_revoke() -> None:
             _assert_fail(f"permissions grant {test_app_id} {permission_group}")
             _assert_fail(f"permissions revoke {test_app_id} {permission_group}")
 
-    _assert_fail("permissions grant {} {}".format(_TEST_NON_EXISTANT_APP_ID, "sms"))
-    _assert_fail("permissions revoke {} {}".format(_TEST_NON_EXISTANT_APP_ID, "sms"))
+    _assert_fail(f"permissions grant {_TEST_NON_EXISTANT_APP_ID} sms")
+    _assert_fail(f"permissions revoke {_TEST_NON_EXISTANT_APP_ID} sms")
 
 
 # Cache the SDK version after first use
@@ -264,10 +264,7 @@ def test_app_path_cmd() -> None:
 
 def test_file_delete() -> None:
     tmp_file = "/data/local/tmp/tmp_file"
-    with subprocess.Popen(f"adb shell touch {tmp_file}",
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
-        stdout, stderr = ps.communicate()
-        assert ps.returncode == 0, f'File creation failed with stdout: "{stdout}" and stderr: "{stderr}"'
+    _create_device_file(tmp_file)
     _assert_success(f"rm {tmp_file}")
     _assert_fail(f"pull {tmp_file}")
 
@@ -276,25 +273,13 @@ def test_file_move1() -> None:
     tmp_file1 = "/data/local/tmp/tmp_file1"
     tmp_file2 = "/data/local/tmp/tmp_file2"
 
-    dir_creation_cmd = "adb shell mkdir /data/local/tmp"
-    with subprocess.Popen(dir_creation_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
-        stdout, stderr = ps1.communicate()
-        print(f'Stdout of "{dir_creation_cmd}" is "{stdout}"')
-        print(f'Stderr of "{dir_creation_cmd}" is "{stderr}"')
-
-    file_creation_cmd = f"adb shell touch {tmp_file1}"
-
-    with subprocess.Popen(file_creation_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps2:
-        stdout, stderr = ps2.communicate()
-        assert ps2.returncode == 0, f'File creation failed with stdout: "{stdout}" and stderr: "{stderr}"'
-        print(f'Stdout of "{file_creation_cmd}" is "{stdout}"')
-        print(f'Stderr of "{file_creation_cmd}" is "{stderr}"')
+    # The directory may already exist, so don't assert on the result.
+    _run_shell_command("adb shell mkdir /data/local/tmp")
+    _create_device_file(tmp_file1)
 
     _assert_success(f"mv {tmp_file1} {tmp_file2}")
     _assert_fail(f"pull {tmp_file1}")
-    stdout, stderr = _assert_success("ls /data/local/tmp")
-    print(f'Stdout of "adbe ls /data/local/tmp" is "{stdout}"')
-    print(f'Stderr of "adbe ls /data/local/tmp" is "{stderr}"')
+    _assert_success("ls /data/local/tmp")
     _assert_success(f"pull {tmp_file2}")
     # Cleanup
     _delete_local_file("tmp_file2")
@@ -302,10 +287,7 @@ def test_file_move1() -> None:
 
 @run_once
 def _install_debug_apk() -> None:
-    with subprocess.Popen("adb install -t -r ./tests/net.ashishb.deviceinformationhelper_debug_app.apk",
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
-        stdout, stderr = ps.communicate()
-        assert ps.returncode == 0, f'Install failed with stdout: "{stdout}" and stderr: "{stderr}"'
+    _assert_shell_command("adb install -t -r ./tests/net.ashishb.deviceinformationhelper_debug_app.apk")
 
 
 def test_file_move2() -> None:
@@ -315,34 +297,24 @@ def test_file_move2() -> None:
     _install_debug_apk()
     tmp_file1 = "/data/local/tmp/development.xml"
     tmp_file2_location = f"/data/data/{_DEBUG_APP}"
-    with subprocess.Popen(f"adb shell touch {tmp_file1}",
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
-        stdout, stderr = ps1.communicate()
-        assert ps1.returncode == 0, f'File creation failed with stdout: "{stdout}" and stderr: "{stderr}"'
+    _create_device_file(tmp_file1)
     _assert_success(f"mv {tmp_file1} {tmp_file2_location}")
     _assert_fail(f"pull {tmp_file1}")
-    _assert_success("pull {}/{}".format(tmp_file2_location, "development.xml"))
+    _assert_success(f"pull {tmp_file2_location}/development.xml")
     # Cleanup
-    with subprocess.Popen("rm ./development.xml", shell=True) as ps2:
-        ps2.communicate()
-        assert ps2.returncode == 0, "Failed to deleted pulled file development.xml"
+    _delete_local_file("./development.xml")
 
 
 def test_file_move3() -> None:
     _install_debug_apk()
     tmp_file1 = "/data/local/tmp/development2.xml"
     tmp_file2 = "/data/local/tmp/development.xml"
-    with subprocess.Popen(f"adb shell touch {tmp_file1}",
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps1:
-        stdout, stderr = ps1.communicate()
-        assert ps1.returncode == 0, f'File creation failed with stdout: "{stdout}" and stderr: "{stderr}"'
-        _assert_success(f"mv {tmp_file1} {tmp_file2}")
-        _assert_fail(f"pull {tmp_file1}")
-        _assert_success(f"pull {tmp_file2}")
+    _create_device_file(tmp_file1)
+    _assert_success(f"mv {tmp_file1} {tmp_file2}")
+    _assert_fail(f"pull {tmp_file1}")
+    _assert_success(f"pull {tmp_file2}")
     # Cleanup
-    with subprocess.Popen("rm ./development.xml", shell=True) as ps2:
-        ps2.communicate()
-        assert ps2.returncode == 0, "Failed to deleted pulled file development.xml"
+    _delete_local_file("./development.xml")
 
 
 def test_list_devices() -> None:
@@ -368,7 +340,7 @@ def test_take_screenshot() -> None:
 
 
 def test_keep_activities() -> None:
-    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
+    check = _assert_for_sdk(_SETTINGS_CMD_VERSION)
 
     check("dont-keep-activities on")
     check("dont-keep-activities off")
@@ -379,7 +351,7 @@ def test_ls() -> None:
 
 
 def test_stay_awake_while_charging() -> None:
-    check = _assert_success if _get_device_sdk_version() >= _SETTINGS_CMD_VERSION else _assert_fail
+    check = _assert_for_sdk(_SETTINGS_CMD_VERSION)
 
     check("stay-awake-while-charging on")
     # This causes Circle CI to hang.
@@ -424,7 +396,7 @@ def test_notifications() -> None:
 
 
 def test_location() -> None:
-    check = _assert_success if _get_device_sdk_version() >= _LOCATION_CHANGE_ANDROID_VERSION else _assert_fail
+    check = _assert_for_sdk(_LOCATION_CHANGE_ANDROID_VERSION)
     check("location on")
     check("location off")
 
@@ -432,6 +404,11 @@ def test_location() -> None:
 def test_debug_app() -> None:
     _assert_success(f"debug-app set {_TEST_APP_ID}")
     _assert_success("debug-app clear")
+
+
+def _assert_for_sdk(min_sdk_version: int) -> Callable[[str], tuple[str, str]]:
+    """Returns _assert_success when the device SDK supports the command, else _assert_fail."""
+    return _assert_success if _get_device_sdk_version() >= min_sdk_version else _assert_fail
 
 
 def _assert_fail(sub_cmd: str) -> tuple[str, str]:
@@ -451,30 +428,36 @@ def _execute(sub_cmd: str) -> tuple[int, str, str]:
     if _TEST_PYTHON_INSTALLATION:
         cmd = "adbe"
     else:
-        dir_of_this_script = os.path.split(__file__)[0]
-        adbe_py = Path(dir_of_this_script) / "../adbe/main.py"
+        adbe_py = Path(__file__).parent / "../adbe/main.py"
         cmd = f"{_PYTHON_CMD} {adbe_py}"
-    with subprocess.Popen(f"{cmd} {sub_cmd}",
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
-        stdout_data, stderr_data = ps.communicate()
-        stdout_data = stdout_data.decode("utf-8").strip()
-        stderr_data = stderr_data.decode("utf-8").strip()
-        exit_code = ps.returncode
+    exit_code, stdout_data, stderr_data = _run_shell_command(f"{cmd} {sub_cmd}")
     print(f'Result is "{stdout_data}"')
     if exit_code != 0:
         print(f'Stderr is "{stderr_data}"')
     return exit_code, stdout_data, stderr_data
 
 
-def _delete_local_file(local_file_path: str) -> None:
-    cmd = f"rm {local_file_path}"
-    with subprocess.Popen(cmd,
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
+def _run_shell_command(cmd: str) -> tuple[int, str, str]:
+    """Runs a shell command and returns (exit_code, stdout, stderr) with output decoded and stripped."""
+    with subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ps:
         stdout_data, stderr_data = ps.communicate()
-        stdout_data = stdout_data.decode("utf-8").strip()
-        stderr_data = stderr_data.decode("utf-8").strip()
         exit_code = ps.returncode
+    return exit_code, stdout_data.decode("utf-8").strip(), stderr_data.decode("utf-8").strip()
+
+
+def _assert_shell_command(cmd: str) -> tuple[str, str]:
+    """Runs a shell command, asserts it succeeds, and returns (stdout, stderr)."""
+    exit_code, stdout_data, stderr_data = _run_shell_command(cmd)
     assert exit_code == 0, f'Command "{cmd}" failed with stdout: "{stdout_data}" and stderr: "{stderr_data}"'
+    return stdout_data, stderr_data
+
+
+def _create_device_file(remote_path: str) -> None:
+    _assert_shell_command(f"adb shell touch {remote_path}")
+
+
+def _delete_local_file(local_file_path: str) -> None:
+    _assert_shell_command(f"rm {local_file_path}")
 
 
 def main() -> None:
@@ -507,6 +490,7 @@ def main() -> None:
     test_file_delete()
     test_file_move1()
     test_file_move2()
+    test_file_move3()
     test_list_devices()
     test_list_top_activity()
     test_dump_ui()
