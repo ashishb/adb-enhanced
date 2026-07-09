@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import os
 import sys
-import typing
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import docopt
 
@@ -120,10 +120,7 @@ _VERSION_FILE_NAME = "version.txt"
 
 
 def main() -> None:
-    if _using_python2():
-        _fail_with_python2_warning()
-
-    args: dict[str, typing.Any] = docopt.docopt(USAGE_STRING, version=_get_version())
+    args: dict[str, Any] = docopt.docopt(USAGE_STRING, version=_get_version())
     set_verbose(enabled=args["--verbose"])
 
     _validate_options(args)
@@ -144,10 +141,10 @@ def main() -> None:
             action()
             sys.exit(0)
 
-    print_error_and_exit('Not implemented: "{}"'.format(" ".join(sys.argv)))
+    print_error_and_exit(f'Not implemented: "{" ".join(sys.argv)}"')
 
 
-def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Callable]:
+def _get_actions(args: dict[str, Any]) -> dict[tuple[str, str], Callable]:
     app_name = args["<app_name>"]
     return {
         # Airplane mode
@@ -322,11 +319,11 @@ def _get_actions(args: dict[str, typing.Any]) -> dict[tuple[str, str], typing.Ca
         # Debug app
         ("debug-app", "set"): lambda: adb_enhanced.set_debug_app(
             args["<app_name>"], wait_for_debugger=args["-w"], persistent=args["-p"]),
-        ("debug-app", "clear"): lambda: adb_enhanced.clear_debug_app,
+        ("debug-app", "clear"): adb_enhanced.clear_debug_app,
     }
 
 
-def _grant_revoke_permissions(app_name: str, args: dict[str, typing.Any]) -> None:
+def _grant_revoke_permissions(app_name: str, args: dict[str, Any]) -> None:
     permission_group = adb_enhanced.get_permission_group(args)
     permissions = adb_enhanced.get_permissions_in_permission_group(permission_group)
     if not permissions and \
@@ -346,7 +343,7 @@ def _perform_backup(app_name: str, backup_tar_file_path: str | None) -> None:
     adb_enhanced.perform_app_backup(app_name, backup_tar_file_path)
 
 
-def _validate_options(args: dict[str, typing.Any]) -> None:
+def _validate_options(args: dict[str, Any]) -> None:
     count = 0
     if args["--emulator"]:
         count += 1
@@ -358,7 +355,7 @@ def _validate_options(args: dict[str, typing.Any]) -> None:
         print_error_and_exit("Only one out of -e, -d, or -s can be provided")
 
 
-def _get_generic_options_from_args(args: dict[str, typing.Any]) -> str:
+def _get_generic_options_from_args(args: dict[str, Any]) -> str:
     options = ""
     if args["--emulator"]:
         options += "-e "
@@ -370,20 +367,8 @@ def _get_generic_options_from_args(args: dict[str, typing.Any]) -> str:
 
 
 def _get_version() -> str:
-    dir_of_this_script = os.path.split(__file__)[0]
-    version_file_path = Path(dir_of_this_script) / _VERSION_FILE_NAME
-    return Path(version_file_path).read_text(encoding="UTF-8").strip()
-
-
-def _using_python2() -> bool:
-    return sys.version_info < (3, 0)
-
-
-def _fail_with_python2_warning() -> None:
-    msg = ("You are using Python 2\nADB-enhanced no longer supports Python 2.\n"
-           "Install Python 3 and then re-install this tool using\n"
-           '"sudo pip uninstall adb-enhanced && sudo pip3 install adb-enhanced"')
-    print_error_and_exit(msg)
+    version_file_path = Path(__file__).parent / _VERSION_FILE_NAME
+    return version_file_path.read_text(encoding="UTF-8").strip()
 
 
 if __name__ == "__main__":
