@@ -25,7 +25,6 @@ class _Settings:
 
 __settings = _Settings()
 
-_adb_prefix = "adb"
 _IGNORED_LINES = [
     "WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.",
 ]
@@ -77,7 +76,7 @@ def execute_adb_command2(
     :param device_serial: device serial to send this command to (in case of multiple devices)
     :return: (return_code, stdout, stderr)
     """
-    adb_prefix = _adb_prefix
+    adb_prefix = get_adb_prefix()
     if device_serial:
         adb_prefix = f"{adb_prefix} -s {device_serial}"
 
@@ -207,7 +206,9 @@ def _check_for_adb_not_found_error(stderr_data: str) -> None:
     if not stderr_data:
         return
     stderr_data = stderr_data.strip()
-    if stderr_data.endswith(f"{_adb_prefix}: command not found"):
+    # The shell reports "command not found" against the adb binary name (the first token of the prefix).
+    adb_binary = get_adb_prefix().split(maxsplit=1)[0]
+    if stderr_data.endswith(f"{adb_binary}: command not found"):
         message = "ADB (Android debug bridge) command not found.\n"
         message += "Install ADB via https://developer.android.com/studio/releases/platform-tools.html"
         print_error_and_exit(message)
@@ -253,12 +254,11 @@ def set_device_id(device_id: str) -> None:
     """
     old_adb_prefix = get_adb_prefix()
     if "-s" in old_adb_prefix:
-        old_device = old_adb_prefix.split("-s ")[1]
-        if " " in old_device:
-            # Case: device ID is not the last argument
-            old_device = old_adb_prefix.split("-s")[1].split(" ")[0]
+        # Replace the existing "-s <serial>" in-place instead of appending a second one.
+        old_device = old_adb_prefix.split("-s ")[1].split(" ")[0]
         print_verbose(f"Switching from {old_device} to {device_id}")
-        old_adb_prefix.replace(old_device, device_id)
+        set_adb_prefix(old_adb_prefix.replace(old_device, device_id))
+        return
 
     print_verbose(f"Setting device ID to {device_id}")
     set_adb_prefix(f"{old_adb_prefix} -s {device_id}")
