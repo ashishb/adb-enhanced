@@ -273,12 +273,12 @@ def handle_airplane(*, turn_on: bool) -> str | None:
             print_error("Failed to change airplane mode.")
 
         if last_data_state:
-            handle_mobile_data(turn_on=last_data_state == "1")
+            handle_mobile_data(turn_on=last_data_state.strip() == "1")
         else:
             handle_mobile_data(turn_on=True)
 
         if last_wifi_state:
-            set_wifi(turn_on=last_wifi_state == "1")
+            set_wifi(turn_on=last_wifi_state.strip() == "1")
         else:
             set_wifi(turn_on=True)
     return None
@@ -498,6 +498,8 @@ class _TopActivityData:
 
 def print_top_activity() -> None:
     activity_data = _get_top_activity_data()
+    if activity_data is None:
+        return
     app_name = activity_data.app_name
     activity_name = activity_data.activity_name
     if app_name:
@@ -587,7 +589,15 @@ def get_wifi_state() -> str:
         print_error("Failed to get global Wi-Fi setting")
         return _USER_PRINT_VALUE_UNKNOWN
 
-    if int(stdout.strip()) == 1:
+    stdout = stdout.strip()
+    if stdout == "null":
+        return _USER_PRINT_VALUE_OFF
+    try:
+        state = int(stdout)
+    except ValueError:
+        print_error(f'Unable to get int value from "{stdout}"')
+        return _USER_PRINT_VALUE_UNKNOWN
+    if state == 1:
         return _USER_PRINT_VALUE_ON
     return _USER_PRINT_VALUE_OFF
 
@@ -984,7 +994,7 @@ def _get_hardcoded_permissions_for_group(permission_group: str) -> list[str]:
 
 
 # Pass the full-qualified permission group name to this method.
-def get_permissions_in_permission_group(permission_group: str) -> list[str] | list | None:
+def get_permissions_in_permission_group(permission_group: str) -> list[str] | None:
     # List permissions by group
     cmd = "pm list permissions -g"
     return_code, stdout, stderr = execute_adb_shell_command2(cmd)
@@ -1051,7 +1061,7 @@ def _get_all_packages(pm_cmd: str) -> list:
     packages = []
     if result:
         for line in result.split("\n"):
-            _, package_name = line.split(":", 2)
+            _, package_name = line.split(":", 1)
             packages.append(package_name)
     return packages
 
@@ -1062,7 +1072,7 @@ def _get_all_packages(pm_cmd: str) -> list:
 # For now, we can live with this discrepancy but in the longer run we want to fix those
 # other functions as well
 # https://stackoverflow.com/questions/63416599/adb-shell-pm-list-packages-missing-some-packages
-def get_list_all_apps() -> tuple | tuple[None, str, bytes | str]:
+def get_list_all_apps() -> tuple[list[str] | None, str | None, str | None]:
     """This function return a list of installed applications, error message and command
     execution error
     :returns: tuple(all_apps, err_msg, error)
@@ -1325,16 +1335,18 @@ def delete_file(file_path: str, *, force: bool, recursive: bool) -> None:
 def move_file(src_path: str, dest_path: str, *, force: bool) -> None:
     cmd_prefix = "mv"
     if force:
-        cmd_prefix += "-f"
+        cmd_prefix += " -f"
     cmd = f"{cmd_prefix} {src_path} {dest_path}"
-    if get_package(src_path) and get_package(dest_path) and get_package(src_path) != get_package(dest_path):
+    src_package = get_package(src_path)
+    dest_package = get_package(dest_path)
+    if src_package and dest_package and src_package != dest_package:
         print_error_and_exit("Cannot copy a file from one package into another, copy it via /data/local/tmp instead")
         return
 
     file_path = None
-    if get_package(src_path):
+    if src_package:
         file_path = src_path
-    elif get_package(dest_path):
+    elif dest_package:
         file_path = dest_path
     move_stdout = execute_file_related_adb_shell_command(cmd, file_path)
     if move_stdout:
@@ -1354,7 +1366,7 @@ def pull_file(remote_file_path: str, local_file_path: str, *, copy_ancillary: bo
 
     remote_file_path_package = get_package(remote_file_path)
     if remote_file_path_package is None and not root_required_to_access_file(remote_file_path):
-        print_verbose(f"File {remote_file_path_package} is not inside a package, no temporary file required")
+        print_verbose(f"File {remote_file_path} is not inside a package, no temporary file required")
         pull_cmd = f"pull {remote_file_path} {local_file_path}"
         execute_adb_command2(pull_cmd)
     else:
@@ -1415,12 +1427,11 @@ def push_file(local_file_path: str, remote_file_path: str) -> None:
 
 
 def cat_file(file_path: str) -> None:
-    cmd_prefix = "cat"
-    cmd = f"{cmd_prefix} {file_path}"
+    cmd = f"cat {file_path}"
     cat_stdout = execute_file_related_adb_shell_command(cmd, file_path)
     # Don't print "None" for an empty file
     if cat_stdout:
-        print_message(execute_file_related_adb_shell_command(cmd, file_path))
+        print_message(cat_stdout)
 
 
 # Source: https://stackoverflow.com/a/25398877
@@ -1644,7 +1655,10 @@ def perform_app_backup(app_name: str, backup_tar_file: str) -> None:
 
     backup_thread = threading.Thread(target=backup_func)
     backup_thread.start()
-    while _get_top_activity_data()[1].find("com.android.backupconfirm") == -1:
+    while True:
+        activity_data = _get_top_activity_data()
+        if activity_data is not None and "com.android.backupconfirm" in activity_data.activity_name:
+            break
         print_verbose("Waiting for the backup activity to start")
         time.sleep(1)
     time.sleep(1)
@@ -1871,6 +1885,7 @@ def get_dark_mode() -> str:
     if return_code != 0:
         print_error(f"Failed to get current UI mode: {stderr}")
         return _USER_PRINT_VALUE_UNKNOWN
+    stdout = stdout.strip()
     if stdout == "null":
         return _USER_PRINT_VALUE_UNKNOWN
     val = int(stdout)
@@ -1978,9 +1993,9 @@ def print_top_alarms(output_dump_alarm: str, padding: str) -> None:
         re.search(pattern_top_alarm, output_dump_alarm).group(0)).split("\n")
     temp_dict = {}
     for i, alarm_i in enumerate(alarm_to_parse):
+        # A "+..." line is a top-alarm entry; the following line holds its value.
         if re.match(r"^\+", alarm_i):
             temp_dict[alarm_i] = alarm_to_parse[i + 1]
-            i += 1
 
     for key, value in temp_dict.items():
         # key example: +2m19s468ms running, 0 wakeups, 708 alarms: 1000:android
