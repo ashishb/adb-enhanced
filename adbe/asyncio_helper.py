@@ -7,7 +7,7 @@ T = TypeVar("T")
 
 
 # Executes method method_to_call for each argument in params_list and returns the result_list
-def execute_in_parallel(method_to_call: Callable[[Any], T], params_list: list[Any]) -> list[T]:
+def execute_in_parallel[T](method_to_call: Callable[[Any], T], params_list: list[Any]) -> list[T]:
     num_workers = 50
 
     async def _run() -> list[T]:
