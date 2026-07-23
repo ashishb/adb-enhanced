@@ -41,7 +41,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           cache-dependency-path: "pyproject.toml"
           python-version: ${{ matrix.python-version }}
