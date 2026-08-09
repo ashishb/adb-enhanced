@@ -21,6 +21,8 @@ _RUNTIME_PERMISSIONS_SUPPORTED = 23
 _DARK_MODE_ANDROID_VERSION = 29
 # The command to change location does not work below API 29
 _LOCATION_CHANGE_ANDROID_VERSION = 29
+# Navigation mode overlays were added in API 29
+_NAVIGATION_MODE_ANDROID_VERSION = 29
 
 _PYTHON_CMD = f"python{sys.version_info.major:d}.{sys.version_info.minor:d}"
 
@@ -401,6 +403,19 @@ def test_location() -> None:
     check("location off")
 
 
+def test_navigation() -> None:
+    check = _assert_for_sdk(_NAVIGATION_MODE_ANDROID_VERSION)
+
+    original_mode, _ = check("navigation")
+    try:
+        check("navigation gestural")
+        check("navigation twobutton")
+        check("navigation threebutton")
+    finally:
+        if original_mode in {"gestural", "twobutton", "threebutton"}:
+            _execute(f"navigation {original_mode}")
+
+
 def test_debug_app() -> None:
     _assert_success(f"debug-app set {_TEST_APP_ID}")
     _assert_success("debug-app clear")
@@ -506,6 +521,7 @@ def main() -> None:
     test_screen_toggle()
     test_notifications()
     test_location()
+    test_navigation()
     test_debug_app()
     # TODO: Add a test for screen record after figuring out how to perform ^C while it is running.
 

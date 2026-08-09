@@ -84,6 +84,15 @@ See [Release announcement](https://ashishb.net/tech/introducing-adb-enhanced-a-s
 * Turn Wireless Debug mode on
   `adbe enable wireless debugging`
 
+* Switch between gesture and button navigation (Android 10 and above)
+
+  ```bash
+  $ adbe navigation
+  threebutton
+  $ adbe navigation gestural
+  "Navigation mode" state changed from "threebutton" -> "gestural"
+  ```
+
 ### Permissions
 
 * Grant storage-related runtime permissions
@@ -235,6 +244,8 @@ adbe [options] ls [-a] [-l] [-R|-r] <file_path>
 adbe [options] mobile-data (on | off)
 adbe [options] mobile-data saver (on | off)
 adbe [options] mv [-f] <src_path> <dest_path>
+adbe [options] navigation
+adbe [options] navigation (gestural | twobutton | threebutton)
 adbe [options] notifications list
 adbe [options] open-url <url>
 adbe [options] overdraw (on | off | deut)

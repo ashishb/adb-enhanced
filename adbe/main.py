@@ -58,6 +58,8 @@ Usage:
     adbe [options] mobile-data (on | off)
     adbe [options] mobile-data saver (on | off)
     adbe [options] mv [-f] <src_path> <dest_path>
+    adbe [options] navigation
+    adbe [options] navigation (gestural | twobutton | threebutton)
     adbe [options] notifications list
     adbe [options] open-url <url>
     adbe [options] overdraw (on | off | deut)
@@ -195,6 +197,11 @@ def _get_actions(args: dict[str, Any]) -> dict[tuple[str, str], Callable]:
         # Dark mode
         ("dark", "mode", "on"): lambda: adb_enhanced.set_dark_mode(force=True),
         ("dark", "mode", "off"): lambda: adb_enhanced.set_dark_mode(force=False),
+
+        ("navigation", "gestural"): lambda: adb_enhanced.set_navigation_mode("gestural"),
+        ("navigation", "twobutton"): lambda: adb_enhanced.set_navigation_mode("twobutton"),
+        ("navigation", "threebutton"): lambda: adb_enhanced.set_navigation_mode("threebutton"),
+        ("navigation",): adb_enhanced.print_navigation_mode,
 
         # List devices
         ("devices",): adb_enhanced.handle_list_devices,
