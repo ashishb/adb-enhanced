@@ -73,6 +73,7 @@ _KEYCODE_BACK = 4
 _MIN_API_FOR_RUNTIME_PERMISSIONS = 23
 _MIN_API_FOR_DARK_MODE = 29
 _MIN_API_FOR_LOCATION = 29
+_MIN_API_FOR_NAVIGATION_MODE = 29
 
 _REGEX_BACKUP_ALLOWED = "(pkgFlags|flags).*ALLOW_BACKUP"
 _REGEX_DEBUGGABLE = "(pkgFlags|flags).*DEBUGGABLE"
@@ -91,6 +92,15 @@ _USER_PRINT_VALUE_AUTO = "auto"
 SCREEN_ON = 1
 SCREEN_OFF = 2
 SCREEN_TOGGLE = 3
+
+# Mode values and overlay package names are the ones declared in AOSP.
+# Ref: https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/core/java/android/view/WindowManagerPolicyConstants.java
+_NAVIGATION_MODE_OVERLAY_PREFIX = "com.android.internal.systemui.navbar."
+_NAVIGATION_MODES = {
+    0: "threebutton",
+    1: "twobutton",
+    2: "gestural",
+}
 
 
 # A decorator to ensure package exists
@@ -1915,6 +1925,51 @@ def set_dark_mode(*, force: bool) -> None:
         # execute_adb_shell_command2('setprop persist.hwui.force_dark true')
     else:
         execute_adb_shell_command3("cmd uimode night no")
+
+
+# SystemUI mirrors "config_navBarInteractionMode" into this setting on a background thread, so the
+# value can lag behind the overlay change by a couple of seconds.
+# Ref: https://android.googlesource.com/platform/frameworks/base/+/refs/tags/android-10.0.0_r2/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationModeController.java
+def get_navigation_mode() -> str:
+    _error_if_min_version_less_than(_MIN_API_FOR_NAVIGATION_MODE)
+    return_code, stdout, stderr = _execute_adb_shell_settings_command2("get secure navigation_mode")
+    if return_code != 0 or stdout is None:
+        print_error(f"Failed to get the current navigation mode: {stderr}")
+        return _USER_PRINT_VALUE_UNKNOWN
+    stdout = stdout.strip()
+    try:
+        value = int(stdout)
+    except ValueError:
+        print_verbose(f'Navigation mode setting holds a non-numeric value: "{stdout}"')
+        return _USER_PRINT_VALUE_UNKNOWN
+    return _NAVIGATION_MODES.get(value, _USER_PRINT_VALUE_UNKNOWN)
+
+
+def print_navigation_mode() -> None:
+    mode = get_navigation_mode()
+    print_verbose(f"Current navigation mode is {mode}")
+    print(mode)
+
+
+@partial(print_state_change_decorator, title="Navigation mode", get_state_func=get_navigation_mode)
+def set_navigation_mode(mode: str) -> None:
+    _error_if_min_version_less_than(_MIN_API_FOR_NAVIGATION_MODE)
+    if mode not in _NAVIGATION_MODES.values():
+        print_error_and_exit(f"Unexpected navigation mode {mode}")
+        return
+
+    overlay_package = f"{_NAVIGATION_MODE_OVERLAY_PREFIX}{mode}"
+    if not _package_exists(overlay_package):
+        print_error_and_exit(
+            f'Navigation mode "{mode}" is unavailable on this device, overlay {overlay_package} is missing.'
+            " Devices with a manufacturer skin often manage navigation on their own.")
+
+    # "--category" confines the exclusivity to the navigation bar mode category. Without it, every
+    # other overlay of the "android" target gets disabled as well.
+    # Ref: https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/services/core/java/com/android/server/om/OverlayManagerShellCommand.java
+    result = execute_adb_shell_command3(f"cmd overlay enable-exclusive --category {overlay_package}")
+    if result.return_code != 0:
+        print_error_and_exit(f'Failed to switch navigation mode to "{mode}", stderr: {result.stderr}')
 
 
 def print_notifications() -> None:
