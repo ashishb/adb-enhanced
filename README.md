@@ -224,7 +224,7 @@ adbe [options] battery reset
 adbe [options] battery saver (on | off)
 adbe [options] cat <file_path>
 adbe [options] clear-data <app_name>
-adbe [options] dark mode (on | off)
+adbe [options] dark mode (on | off | toggle)
 adbe [options] debug-app (set [-w] [-p] <app_name> | clear)
 adbe [options] devices
 adbe [options] display size

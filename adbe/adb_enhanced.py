@@ -1927,6 +1927,16 @@ def set_dark_mode(*, force: bool) -> None:
         execute_adb_shell_command3("cmd uimode night no")
 
 
+def toggle_dark_mode() -> None:
+    current = get_dark_mode()
+    if current == _USER_PRINT_VALUE_ON:
+        set_dark_mode(force=False)
+    elif current == _USER_PRINT_VALUE_OFF:
+        set_dark_mode(force=True)
+    else:
+        print_error_and_exit(f'Cannot toggle dark mode, current mode is "{current}"')
+
+
 # SystemUI mirrors "config_navBarInteractionMode" into this setting on a background thread, so the
 # value can lag behind the overlay change by a couple of seconds.
 # Ref: https://android.googlesource.com/platform/frameworks/base/+/refs/tags/android-10.0.0_r2/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationModeController.java

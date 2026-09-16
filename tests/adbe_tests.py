@@ -110,6 +110,7 @@ def test_dark_mode() -> None:
 
     check("dark mode on")
     check("dark mode off")
+    check("dark mode toggle")
 
 
 def test_doze() -> None:

@@ -228,7 +228,7 @@ Usage
    adbe [options] battery saver (on | off)
    adbe [options] cat <file_path>
    adbe [options] clear-data <app_name>
-   adbe [options] dark mode (on | off)
+   adbe [options] dark mode (on | off | toggle)
    adbe [options] devices
    adbe [options] (enable | disable) wireless debugging
    adbe [options] dont-keep-activities (on | off)
