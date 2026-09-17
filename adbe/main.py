@@ -38,7 +38,7 @@ Usage:
     adbe [options] battery saver (on | off)
     adbe [options] cat <file_path>
     adbe [options] clear-data <app_name>
-    adbe [options] dark mode (on | off)
+    adbe [options] dark mode (on | off | toggle)
     adbe [options] debug-app (set [-w] [-p] <app_name> | clear)
     adbe [options] devices
     adbe [options] display size
@@ -197,6 +197,7 @@ def _get_actions(args: dict[str, Any]) -> dict[tuple[str, str], Callable]:
         # Dark mode
         ("dark", "mode", "on"): lambda: adb_enhanced.set_dark_mode(force=True),
         ("dark", "mode", "off"): lambda: adb_enhanced.set_dark_mode(force=False),
+        ("dark", "mode", "toggle"): adb_enhanced.toggle_dark_mode,
 
         ("navigation", "gestural"): lambda: adb_enhanced.set_navigation_mode("gestural"),
         ("navigation", "twobutton"): lambda: adb_enhanced.set_navigation_mode("twobutton"),
