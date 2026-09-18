@@ -225,7 +225,7 @@ def _get_actions(args: dict[str, Any]) -> dict[tuple[str, str], Callable]:
         # Apk install
         ("install",): lambda: adb_enhanced.perform_install(args["<file_path>"]),
         # Apk uninstall
-        ("uninstall",): lambda: adb_enhanced.perform_uninstall(app_name, is_first_user=args["--first-user"]),
+        ("uninstall",): lambda: adb_enhanced.perform_uninstall(app_name, first_user=args["--first-user"]),
         # Clear data
         ("clear-data",): lambda: adb_enhanced.clear_disk_data(app_name),
 
