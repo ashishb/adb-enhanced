@@ -422,6 +422,17 @@ def test_debug_app() -> None:
     _assert_success("debug-app clear")
 
 
+def test_uninstall() -> None:
+    try:
+        _install_debug_apk()
+        _assert_success(f"uninstall {_DEBUG_APP}")
+        _install_debug_apk.has_run = False
+        _install_debug_apk()
+        _assert_success(f"uninstall --first-user {_DEBUG_APP}")
+    finally:
+        _install_debug_apk.has_run = False
+
+
 def _assert_for_sdk(min_sdk_version: int) -> Callable[[str], tuple[str, str]]:
     """Returns _assert_success when the device SDK supports the command, else _assert_fail."""
     return _assert_success if _get_device_sdk_version() >= min_sdk_version else _assert_fail
