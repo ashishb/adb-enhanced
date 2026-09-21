@@ -1,4 +1,3 @@
-include adbe/version.txt
 include adbe/adb_enhanced.py
 include adbe/asyncio_helper.py
 include adbe/main.py
