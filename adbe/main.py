@@ -2,7 +2,7 @@
 
 import sys
 from collections.abc import Callable
-from pathlib import Path
+from importlib.metadata import PackageNotFoundError, version as _package_version
 from typing import Any
 
 import docopt
@@ -118,7 +118,7 @@ List of things which this tool will do in the future
 
 """
 
-_VERSION_FILE_NAME = "version.txt"
+_DISTRIBUTION_NAME = "adb-enhanced"
 
 
 def main() -> None:
@@ -375,8 +375,11 @@ def _get_generic_options_from_args(args: dict[str, Any]) -> str:
 
 
 def _get_version() -> str:
-    version_file_path = Path(__file__).parent / _VERSION_FILE_NAME
-    return version_file_path.read_text(encoding="UTF-8").strip()
+    try:
+        return _package_version(_DISTRIBUTION_NAME)
+    except PackageNotFoundError:
+        # Running from a source checkout without the package being installed
+        return "0.0.0-dev"
 
 
 if __name__ == "__main__":

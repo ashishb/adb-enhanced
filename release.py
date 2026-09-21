@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 import os
+import re
 import subprocess
 import sys
 
 import docopt
 
 _DIR_OF_THIS_SCRIPT = os.path.split(__file__)[0]
-_VERSION_FILE_NAME = 'version.txt'
-_VERSION_FILE_PATH = os.path.join(
-    _DIR_OF_THIS_SCRIPT, 'adbe', _VERSION_FILE_NAME)
+_VERSION_FILE_NAME = 'pyproject.toml'
+_VERSION_FILE_PATH = os.path.join(_DIR_OF_THIS_SCRIPT, _VERSION_FILE_NAME)
+# Matches the `version = "x.y.z"` line of the [project] table
+_VERSION_REGEX = re.compile(r'^version = "([^"]+)"$', re.MULTILINE)
 _README_FILE_NAME = os.path.join('docs', 'README.rst')
 _TEST_PYPI_URL = 'https://test.pypi.org/legacy/'
 
@@ -21,37 +23,41 @@ _SRC_FILE_NAMES = [
     'asyncio_helper.py',
     'main.py',
     'output_helper.py',
-    'version.txt',
     ]
 
 
 def _get_version():
     with open(_VERSION_FILE_PATH, 'r') as file_handle:
-        version = file_handle.read().strip()
-        return version
+        match = _VERSION_REGEX.search(file_handle.read())
+    if not match:
+        raise ValueError('failed to find the version in %s' % _VERSION_FILE_PATH)
+    return match.group(1)
 
 
 def _set_version(version):
     if not version or not version.strip():
         raise ValueError('version cannot be empty')
+    with open(_VERSION_FILE_PATH, 'r') as file_handle:
+        contents = file_handle.read()
+    contents, count = _VERSION_REGEX.subn(
+        'version = "%s"' % version.strip(), contents, count=1)
+    if count != 1:
+        raise ValueError('failed to find the version in %s' % _VERSION_FILE_PATH)
     with open(_VERSION_FILE_PATH, 'w') as file_handle:
-        file_handle.write('%s\n' % version)
+        file_handle.write(contents)
 
 
-def _prompt_user_to_update_version(version_file):
+def _prompt_user_to_update_version():
     current_version = _get_version()
     print('Current version is %s' % current_version)
     new_version = input("Enter new version: ")
     _set_version(new_version or current_version)
-    with open(version_file, 'w') as file_handle:
-        file_handle.write(new_version)
 
 
-def _push_new_release_to_git(version_file):
-    with open(version_file) as file_handle:
-        version = file_handle.read()
+def _push_new_release_to_git():
+    version = _get_version()
     cmds = [
-        'git add %s' % version_file,
+        'git add %s' % _VERSION_FILE_PATH,
         'git commit -m "Setup release %s"' % version,
         'git tag %s' % version,
         'git push --tags',
@@ -84,13 +90,11 @@ def _run_cmd_or_fail(cmd):
 
 
 def _publish_release(testing_release=False):
-    version_file = os.path.join('adbe', 'version.txt')
-
-    _prompt_user_to_update_version(version_file)
+    _prompt_user_to_update_version()
     _run_cmd_or_fail('make build')
 
     _publish_package_to_pypi(testing_release)
-    _push_new_release_to_git(version_file)
+    _push_new_release_to_git()
 
 
 # List of things which this release tool does as of today.
